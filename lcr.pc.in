@@ -1,0 +1,12 @@
+prefix=@CMAKE_INSTALL_PREFIX@
+libdir=@CMAKE_INSTALL_PREFIX@/lib
+localstatedir=@CMAKE_INSTALL_PREFIX@/var
+includedir=@CMAKE_INSTALL_PREFIX@/include
+
+Name: liblcr
+Description: light-weighted container runtime library
+Version: @LCR_VERSION@
+URL: http://code.huawei.com/containers/liblcr
+Libs: -L@CMAKE_INSTALL_PREFIX@/lib -llcr
+Cflags: -I@CMAKE_INSTALL_PREFIX@/include
+
