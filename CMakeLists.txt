@@ -1,6 +1,8 @@
 cmake_minimum_required (VERSION 3.12.1)
 project (lcr)
 
+include(cmake/set_build_flags.cmake)
+
 option(VERSION "set lcr version" ON)
 if (VERSION STREQUAL "ON")
 	set(LCR_VERSION "1.0.15")
@@ -65,7 +67,22 @@ else ()
 	message("--  Build static library")
 endif()
 
+# llt and coverage
+SET(CMAKE_VERBOSE_MAKEFILE OFF)
+OPTION(ENABLE_COVERAGE "coverage switch" OFF)
+IF(ENABLE_COVERAGE)
+    MESSAGE(STATUS "Enable coverage compile option")
+    SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g -fprofile-arcs -ftest-coverage")
+    SET(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -g -fprofile-arcs -ftest-coverage")
+    SET(CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG} -g -fprofile-arcs -ftest-coverage -lgcov")
+ENDIF(ENABLE_COVERAGE)
+
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/src)
+OPTION(ENABLE_LLT "llt switch" OFF)
+IF(ENABLE_LLT)
+    enable_testing()
+    add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/test)
+ENDIF(ENABLE_LLT)
 
 # install all files
 install(FILES ${CMAKE_BINARY_DIR}/conf/lcr.pc

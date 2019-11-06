@@ -475,12 +475,12 @@ void *util_common_calloc_s(size_t size)
     return calloc(1, size);
 }
 
-int mem_realloc(void **new, size_t newsize, void *old, size_t oldsize)
+int mem_realloc(void **newptr, size_t newsize, void *oldptr, size_t oldsize)
 {
     int nret = 0;
     void *addr = NULL;
 
-    if (new == NULL) {
+    if (newptr == NULL) {
         return -1;
     }
 
@@ -493,16 +493,16 @@ int mem_realloc(void **new, size_t newsize, void *old, size_t oldsize)
         goto err_out;
     }
 
-    if (old != NULL) {
-        nret = memcpy_s(addr, newsize, old, oldsize);
+    if (oldptr != NULL) {
+        nret = memcpy_s(addr, newsize, oldptr, oldsize);
         if (nret != EOK) {
             free(addr);
             goto err_out;
         }
-        free(old);
+        free(oldptr);
     }
 
-    *new = addr;
+    *newptr = addr;
     return 0;
 
 err_out:
@@ -1095,32 +1095,34 @@ restart:
 }
 
 /* util string append */
-char *util_string_append(const char *dst, const char *src)
+char *util_string_append(const char *post, const char *pre)
 {
     char *res_string = NULL;
     size_t length = 0;
 
-    if ((dst == NULL) && (src == NULL)) {
+    if (post == NULL && pre == NULL) {
         return NULL;
     }
-    if (src == NULL) {
-        return util_strdup_s(dst);
+    if (pre == NULL) {
+        return util_strdup_s(post);
     }
-    if (dst == NULL) {
-        return util_strdup_s(src);
+    if (post == NULL) {
+        return util_strdup_s(pre);
     }
-
-    if (strlen(dst) > ((SIZE_MAX - strlen(src)) - 1)) {
+    if (strlen(post) > ((SIZE_MAX - strlen(pre)) - 1)) {
+        ERROR("String is too long to be appended");
         return NULL;
     }
-    length = strlen(dst) + strlen(src) + 1;
+    length = strlen(post) + strlen(pre) + 1;
     res_string = util_common_calloc_s(length);
     if (res_string == NULL) {
         return NULL;
     }
-
-    if (sprintf_s(res_string, length, "%s%s", src, dst) < 0) {
-        ERROR("Failed to get mount option");
+    if (strcat_s(res_string, length, pre) != EOK) {
+        free(res_string);
+        return NULL;
+    }
+    if (strcat_s(res_string, length, post) != EOK) {
         free(res_string);
         return NULL;
     }
@@ -1249,6 +1251,7 @@ void util_free_array(char **array)
 {
     char **p = NULL;
 
+    /* free a null pointer may cause codex error */
     if (array == NULL) {
         return;
     }

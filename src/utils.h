@@ -20,6 +20,11 @@
 #include <sys/types.h>
 #include <stdio.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+
 #ifndef O_CLOEXEC
 #define O_CLOEXEC 02000000
 #endif
@@ -159,7 +164,7 @@ char **lcr_string_split_and_trim(const char *str, char _sep);
 void lcr_free_array(void **array);
 int lcr_grow_array(void ***array, size_t *capacity, size_t new_size, size_t capacity_increment);
 size_t lcr_array_len(void **array);
-int mem_realloc(void **new, size_t newsize, void *old, size_t oldsize);
+int mem_realloc(void **newptr, size_t newsize, void *oldptr, size_t oldsize);
 bool util_valid_cmd_arg(const char *arg);
 int util_safe_ullong(const char *numstr, unsigned long long *converted);
 int util_safe_strtod(const char *numstr, double *converted);
@@ -176,7 +181,7 @@ FILE *util_fopen(const char *filename, const char *mode);
 void *util_common_calloc_s(size_t size);
 int util_safe_int(const char *numstr, int *converted);
 int util_check_inherited(bool closeall, int fd_to_ignore);
-char *util_string_append(const char *dst, const char *src);
+char *util_string_append(const char *post, const char *pre);
 char *util_string_split_prefix(size_t prefix_len, const char *file);
 
 int util_build_dir(const char *name);
@@ -198,5 +203,9 @@ bool util_copy_file(const char *src_file, const char *dst_file);
 bool util_write_file(const char *filepath, const char *content, size_t len, bool add_newline);
 
 int util_atomic_write_file(const char *filepath, const char *content);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /*__LCR_UTILS_H */

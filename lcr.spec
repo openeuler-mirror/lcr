@@ -2,13 +2,13 @@
 %global _release 20190612.105034.gitefd3b7ac
 Name:      lcr
 Version:   %{_version}
-Release:   %{_release}%{?dist}
+Release:   %{_release}
 URL:       http://code.huawei.com/containers/lcr
-Source:    %{name}-1.0.tar.gz
+Source:    lcr-1.0.tar.gz
 Summary:   Lightweight Container Runtime
 Group:     Applications/System
 License:   Mulan PSL v1
-BuildRoot: %{_tmppath}/%{name}-%{version}
+BuildRoot: %{_tmppath}/lcr-%{version}
 
 BuildRequires: cmake
 BuildRequires: lxc
@@ -38,7 +38,7 @@ lxc-based containers.
 %global debug_package %{nil}
 
 %prep
-%setup -c -n %{name}-%{version}
+%setup -c -n lcr-%{version}
 
 %build
 mkdir -p build
@@ -49,10 +49,10 @@ cd build
 %install
 rm -rf %{buildroot}
 cd build
-mkdir -p %{buildroot}/{%{_libdir},%{_libdir}/pkgconfig,%{_includedir}/%{name},%{_bindir}}
+mkdir -p %{buildroot}/{%{_libdir},%{_libdir}/pkgconfig,%{_includedir}/lcr,%{_bindir}}
 install -m 0644 ./src/liblcr.so            %{buildroot}/%{_libdir}/liblcr.so
 install -m 0644 ./conf/lcr.pc          %{buildroot}/%{_libdir}/pkgconfig/lcr.pc
-install -m 0644 ../src/lcrcontainer.h  %{buildroot}/%{_includedir}/%{name}/lcrcontainer.h
+install -m 0644 ../src/lcrcontainer.h  %{buildroot}/%{_includedir}/lcr/lcrcontainer.h
 
 find %{buildroot} -type f -name '*.la' -exec rm -f {} ';'
 find %{buildroot} -name '*.a' -exec rm -f {} ';'
@@ -70,8 +70,8 @@ rm -rf %{buildroot}
 %files
 %defattr(-,root,root,-)
 %{_libdir}/*
-%{_libdir}/pkgconfig/%{name}.pc
-%{_includedir}/%{name}/lcrcontainer.h
+%{_libdir}/pkgconfig/lcr.pc
+%{_includedir}/lcr/lcrcontainer.h
 
 %changelog
 * Fri Apr 14 2017 Hui Wang <hw.huiwang@huawei.com> - 0.0.1

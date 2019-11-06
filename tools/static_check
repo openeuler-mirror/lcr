@@ -47,7 +47,7 @@ function usage() {
   echo "    -i, --incremental-check  Perform incremental check"
   echo "    -f, --quick-format       Incremental format code by astyle/clang-format"
   echo "    -k, --style-check        Check code style by astyle"
-  echo "    --cpp-check              Check code style by Cppcheck"
+  echo "    --cpp-check              Use Cppcheck check code style"
   echo "    -h, --help               Script help information"
 }
 
@@ -82,7 +82,7 @@ function pclint_check() {
     local start_time=$(date +%s)
     local files
     if [[ ${1} == "all" ]]; then
-        files=$(find ./src -regextype posix-extended -regex ".*\.(c)")
+        files=$(find ./src ./test -regextype posix-extended -regex ".*\.(c|cc)")
     else
         files=$(git diff --name-only HEAD | grep -E "*.c$")
     fi
@@ -148,7 +148,7 @@ function codestyle_check() {
     local start_time=$(date +%s)
     local files
     if [[ ${1} == "all" ]]; then
-        files=$(find ./src -regextype posix-extended -regex ".*\.(h|c|cc)")
+        files=$(find ./src ./test -regextype posix-extended -regex ".*\.(h|c|cc)")
     else
         files=$(git diff --name-only HEAD | grep -E "*.h$|*.c$|*.cc$")
     fi
@@ -203,7 +203,7 @@ function cpp_check() {
     printf "\n"
     local check_rule=$(echo ${CPPCHRECK_RULE[@]} | sed -e "s/ /,/g")
     local start_time=$(date +%s)
-    result=$(cppcheck --enable=${check_rule} -I ./src -I ./build -i ./build -i ./isula_testcases -i ./CI ./ 2>&1 \
+    result=$(cppcheck --enable=${check_rule} -I ./src -i ./build -i ./isula_testcases -i ./CI ./ 2>&1 \
       | grep -vE "^Checking|done$|Cppcheck cannot find all the include files")
     nums=$(echo "${result}" | wc -l)
     echo "${result}"
@@ -304,7 +304,7 @@ function astyle_format() {
     /_/  |_|/____/ /_/     /_//_____//_____/      /_/     \____//_/ |_|/_/  /_//_/  |_|/_/ \033[0m]
 ================================================================================================="
     local start_time=$(date +%s)
-    local files=$(find ./src -regextype posix-extended -regex ".*\.(h|c|cc)")
+    local files=$(find ./src ./test -regextype posix-extended -regex ".*\.(h|c|cc)")
     files=(${files// / })
     local total=${#files[@]}
     local failure_num=0
@@ -359,7 +359,7 @@ echo -e "\
     local start_time=$(date +%s)
     local files
     if [[ ${1} == "all" ]]; then
-        files=$(find ./src -regextype posix-extended -regex ".*\.(h|c|cc)")
+        files=$(find ./src ./test -regextype posix-extended -regex ".*\.(h|c|cc)")
     else
         files=$(git diff --name-only HEAD | grep -E "*.h$|*.c$|*.cc$")
     fi
@@ -419,7 +419,7 @@ function cmetrics_check() {
     local start_time=$(date +%s)
     local files
     if [[ ${1} == "all" ]]; then
-        files=$(find ./src -regextype posix-extended -regex ".*\.(h|c|cc)")
+        files=$(find ./src ./test -regextype posix-extended -regex ".*\.(h|c|cc)")
     else
         files=$(git diff --name-only HEAD | grep -E "*.h$|*.c$|*.cc$")
     fi
