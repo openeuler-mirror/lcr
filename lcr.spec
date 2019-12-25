@@ -1,9 +1,9 @@
-%global _version 1.0.15
-%global _release 20190612.105034.gitefd3b7ac
+%global _version 1.0.17
+%global _release 20191222.223702.gita44996d6
 Name:      lcr
 Version:   %{_version}
 Release:   %{_release}
-URL:       http://code.huawei.com/containers/lcr
+URL:       lcr
 Source:    lcr-1.0.tar.gz
 Summary:   Lightweight Container Runtime
 Group:     Applications/System

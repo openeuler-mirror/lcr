@@ -34,6 +34,20 @@ const char * const g_engine_log_prio_name[] = {
     "NOTICE", "INFO",  "DEBUG", "TRACE"
 };
 
+/* predefined priorities. */
+enum engine_log_priority {
+    LOG_PRIORITY_FATAL = LOG_EMERG,
+    LOG_PRIORITY_ALERT = LOG_ALERT,
+    LOG_PRIORITY_CRIT = LOG_CRIT,
+    LOG_PRIORITY_ERROR = LOG_ERR,
+    LOG_PRIORITY_WARN = LOG_WARNING,
+    LOG_PRIORITY_NOTICE = LOG_NOTICE,
+    LOG_PRIORITY_INFO = LOG_INFO,
+    LOG_PRIORITY_DEBUG = LOG_DEBUG,
+    LOG_PRIORITY_TRACE,
+    LOG_PRIORITY_MAX
+};
+
 #define MAX_MSG_LENGTH 4096
 #define MAX_LOG_PREFIX_LENGTH 15
 
@@ -41,7 +55,7 @@ static __thread char *g_engine_log_prefix = NULL;
 
 static char *g_engine_log_vmname = NULL;
 static bool g_engine_log_quiet = false;
-static int g_engine_log_level = ENGINE_LOG_DEBUG;
+static int g_engine_log_level = LOG_PRIORITY_DEBUG;
 static int g_engine_log_driver = LOG_DRIVER_STDOUT;
 int g_engine_log_fd = -1;
 
@@ -67,8 +81,9 @@ void engine_free_log_prefix()
 
 ssize_t write_nointr(int fd, const void *buf, size_t count);
 
-void log_append_logfile(const struct engine_log_object_metadata *meta, const char *timestamp, const char *msg);
-void log_append_stderr(const struct engine_log_object_metadata *meta, const char *timestamp, const char *msg);
+void log_append_logfile(const struct engine_log_event *event, const char *timestamp, const char *msg);
+void log_append_stderr(const struct engine_log_event *event, const char *timestamp, const char *msg);
+int engine_unix_trans_to_utc(char *buf, size_t bufsize, const struct timespec *time);
 
 /* engine change str logdriver to enum */
 int engine_change_str_logdriver_to_enum(const char *driver)
@@ -129,14 +144,14 @@ static int init_log_driver(const struct engine_log_config *log)
 {
     int i, driver;
 
-    for (i = ENGINE_LOG_FATAL; i < ENGINE_LOG_MAX; i++) {
+    for (i = LOG_PRIORITY_FATAL; i < LOG_PRIORITY_MAX; i++) {
         if (!strcasecmp(g_engine_log_prio_name[i], log->priority)) {
             g_engine_log_level = i;
             break;
         }
     }
 
-    if (i == ENGINE_LOG_MAX) {
+    if (i == LOG_PRIORITY_MAX) {
         fprintf(stderr, "Unable to parse logging level:%s\n", log->priority);
         return -1;
     }
@@ -209,43 +224,14 @@ out:
     return nret;
 }
 
-static char *parse_timespec_to_human()
-{
-    struct timespec timestamp;
-    struct tm ptm = { 0 };
-    char date_time[ENGINE_LOG_TIME_SIZE] = { 0 };
-    int nret;
-
-    if (clock_gettime(CLOCK_REALTIME, &timestamp) == -1) {
-        fprintf(stderr, "Failed to get real time\n");
-        return 0;
-    }
-
-    if (localtime_r(&(timestamp.tv_sec), &ptm) == NULL) {
-        SYSERROR("Transfer timespec failed");
-        return NULL;
-    }
-
-    nret = sprintf_s(date_time, ENGINE_LOG_TIME_SIZE, "%04d%02d%02d%02d%02d%02d.%03ld",
-                     ptm.tm_year + 1900, ptm.tm_mon + 1, ptm.tm_mday, ptm.tm_hour, ptm.tm_min, ptm.tm_sec,
-                     timestamp.tv_nsec / 1000000);
-
-    if (nret < 0) {
-        COMMAND_ERROR("Sprintf failed");
-        return NULL;
-    }
-
-    return util_strdup_s(date_time);
-}
-
 /* engine log append */
-int engine_log_append(const struct engine_log_object_metadata *meta, const char *format, ...)
+int engine_log_append(const struct engine_log_event *event, const char *format, ...)
 {
     int rc;
     va_list args;
     char msg[MAX_MSG_LENGTH] = { 0 };
-    char *date_time = NULL;
-    int ret = 0;
+    char date_time[ENGINE_LOG_TIME_SIZE] = { 0 };
+    struct timespec timestamp;
 
     va_start(args, format);
     rc = vsprintf_s(msg, MAX_MSG_LENGTH, format, args);
@@ -257,9 +243,12 @@ int engine_log_append(const struct engine_log_object_metadata *meta, const char 
         }
     }
 
-    date_time = parse_timespec_to_human();
-    if (date_time == NULL) {
-        goto out;
+    if (clock_gettime(CLOCK_REALTIME, &timestamp) == -1) {
+        fprintf(stderr, "Failed to get real time\n");
+        return 0;
+    }
+    if (engine_unix_trans_to_utc(date_time, ENGINE_LOG_TIME_SIZE, &timestamp) < 0) {
+        return 0;
     }
 
     switch (g_engine_log_driver) {
@@ -267,31 +256,27 @@ int engine_log_append(const struct engine_log_object_metadata *meta, const char 
             if (g_engine_log_quiet) {
                 break;
             }
-            log_append_stderr(meta, date_time, msg);
+            log_append_stderr(event, date_time, msg);
             break;
         case LOG_DRIVER_FIFO:
             if (g_engine_log_fd == -1) {
                 fprintf(stderr, "Do not set log file\n");
-                ret = -1;
-                goto out;
+                return -1;
             }
-            log_append_logfile(meta, date_time, msg);
+            log_append_logfile(event, date_time, msg);
             break;
         case LOG_DRIVER_NOSET:
             break;
         default:
             fprintf(stderr, "Invalid log driver\n");
-            ret = -1;
-            goto out;
+            return -1;
     }
 
-out:
-    free(date_time);
-    return ret;
+    return 0;
 }
 
 /* log append logfile */
-void log_append_logfile(const struct engine_log_object_metadata *meta, const char *timestamp, const char *msg)
+void log_append_logfile(const struct engine_log_event *event, const char *timestamp, const char *msg)
 {
     char log_buffer[ENGINE_LOG_BUFFER_SIZE] = { 0 };
     int log_fd = -1;
@@ -299,7 +284,7 @@ void log_append_logfile(const struct engine_log_object_metadata *meta, const cha
     size_t size;
     char *tmp_prefix = NULL;
 
-    if (meta->level > g_engine_log_level) {
+    if (event->priority > g_engine_log_level) {
         return;
     }
     log_fd = g_engine_log_fd;
@@ -312,15 +297,15 @@ void log_append_logfile(const struct engine_log_object_metadata *meta, const cha
         tmp_prefix = tmp_prefix + (strlen(tmp_prefix) - MAX_LOG_PREFIX_LENGTH);
     }
     nret = sprintf_s(log_buffer, sizeof(log_buffer), "%15s %s %-8s %s - %s:%s:%d - %s", tmp_prefix ? tmp_prefix : "",
-                     timestamp, g_engine_log_prio_name[meta->level],
-                     g_engine_log_vmname ? g_engine_log_vmname : "engine", meta->file, meta->func,
-                     meta->line, msg);
+                     timestamp, g_engine_log_prio_name[event->priority],
+                     g_engine_log_vmname ? g_engine_log_vmname : "engine", event->locinfo->file, event->locinfo->func,
+                     event->locinfo->line, msg);
 
     if (nret < 0) {
         nret = sprintf_s(log_buffer, sizeof(log_buffer), "%15s %s %-8s %s - %s:%s:%d - %s",
-                         tmp_prefix ? tmp_prefix : "", timestamp, g_engine_log_prio_name[meta->level],
-                         g_engine_log_vmname ? g_engine_log_vmname : "engine", meta->file,
-                         meta->func, meta->line, "Large log message");
+                         tmp_prefix ? tmp_prefix : "", timestamp, g_engine_log_prio_name[event->priority],
+                         g_engine_log_vmname ? g_engine_log_vmname : "engine", event->locinfo->file,
+                         event->locinfo->func, event->locinfo->line, "Large log message");
         if (nret < 0) {
             return;
         }
@@ -339,10 +324,10 @@ void log_append_logfile(const struct engine_log_object_metadata *meta, const cha
 }
 
 /* log append stderr */
-void log_append_stderr(const struct engine_log_object_metadata *meta, const char *timestamp, const char *msg)
+void log_append_stderr(const struct engine_log_event *event, const char *timestamp, const char *msg)
 {
     char *tmp_prefix = NULL;
-    if (meta->level > g_engine_log_level) {
+    if (event->priority > g_engine_log_level) {
         return;
     }
 
@@ -350,11 +335,84 @@ void log_append_stderr(const struct engine_log_object_metadata *meta, const char
     if (tmp_prefix != NULL && strlen(tmp_prefix) > MAX_LOG_PREFIX_LENGTH) {
         tmp_prefix = tmp_prefix + (strlen(tmp_prefix) - MAX_LOG_PREFIX_LENGTH);
     }
-    fprintf(stderr, "%15s %s %-8s ", tmp_prefix ? tmp_prefix : "", timestamp, g_engine_log_prio_name[meta->level]);
+    fprintf(stderr, "%15s %s %-8s ", tmp_prefix ? tmp_prefix : "", timestamp, g_engine_log_prio_name[event->priority]);
     fprintf(stderr, "%s - ", g_engine_log_vmname ? g_engine_log_vmname : "engine");
-    fprintf(stderr, "%s:%s:%d - ", meta->file, meta->func, meta->line);
+    fprintf(stderr, "%s:%s:%d - ", event->locinfo->file, event->locinfo->func, event->locinfo->line);
     fprintf(stderr, "%s", msg);
     fprintf(stderr, "\n");
+}
+
+/* engine unix trans to utc */
+int engine_unix_trans_to_utc(char *buf, size_t bufsize, const struct timespec *time)
+{
+    int64_t trans_to_days, all_days, age, doa, yoa, doy, nom, hours_to_sec, trans_to_sec;
+    int64_t real_year, real_day, real_month, real_hours, real_minutes, real_seconds;
+    char ns[LCR_NUMSTRLEN64] = { 0 };
+    int ret;
+
+    /* Transtate seconds to number of days. */
+    trans_to_days = time->tv_sec / 86400;
+
+    /* Calculate days from 0000-03-01 to 1970-01-01.Days base it */
+    all_days = trans_to_days + 719468;
+
+    /* compute the age.One age means 400 years(146097 days) */
+    age = (all_days >= 0 ? all_days : all_days - 146096) / 146097;
+
+    /* The day-of-age (doa) can then be found by subtracting the  genumber */
+    doa = (all_days - age * 146097);
+
+    /* Calculate year-of-age (yoa, range [0, 399]) */
+    yoa = ((doa - doa / 1460) + (doa / 36524 - doa / 146096)) / 365;
+
+    /* Compute the year this moment */
+    real_year = yoa + age * 400;
+
+    /* Calculate the day-of-year */
+    doy = doa - (365 * yoa + yoa / 4 - yoa / 100);
+
+    /* Compute the month number. */
+    nom = (5 * doy + 2) / 153;
+
+    /* Compute the real_day. */
+    real_day = (doy - (153 * nom + 2) / 5) + 1;
+
+    /* Compute the correct month. */
+    real_month = nom + (nom < 10 ? 3 : -9);
+
+    /* Add one year before March */
+    if (real_month < 3) {
+        real_year++;
+    }
+
+    /* Translate days in the age to seconds. */
+    trans_to_sec = trans_to_days * 86400;
+
+    /* Compute the real_hours */
+    real_hours = (time->tv_sec - trans_to_sec) / 3600;
+
+    /* Translate the real hours to seconds. */
+    hours_to_sec = real_hours * 3600;
+
+    /* Calculate the real minutes */
+    real_minutes = ((time->tv_sec - trans_to_sec) - hours_to_sec) / 60;
+
+    /* Calculate the real seconds */
+    real_seconds = (((time->tv_sec - trans_to_sec) - hours_to_sec) - (real_minutes * 60));
+
+    ret = sprintf_s(ns, LCR_NUMSTRLEN64, "%ld", time->tv_nsec);
+    if (ret < 0 || ret >= LCR_NUMSTRLEN64) {
+        return -1;
+    }
+
+    /* Create the final timestamp */
+    ret = sprintf_s(buf, bufsize, "%" PRId64 "%02" PRId64 "%02" PRId64 "%02" PRId64 "%02" PRId64 "%02" PRId64 ".%.3s",
+                    real_year, real_month, real_day, real_hours, real_minutes, real_seconds, ns);
+    if (ret < 0 || (size_t)ret >= bufsize) {
+        return -1;
+    }
+
+    return 0;
 }
 
 /* write nointr */

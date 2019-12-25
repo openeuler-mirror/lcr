@@ -887,27 +887,20 @@ void do_lcr_state(struct lxc_container *c, struct lcr_container_state *lcs)
 
 #define ExitSignalOffset 128
 
-static void execute_lxc_attach(const char *name, const char *path, const char *logpath, const char *loglevel,
-                               const char *console_fifos[], const char * const argv[], const char * const env[],
-                               int64_t timeout)
+static void execute_lxc_attach(const char *name, const char *path, const struct lcr_exec_request *request)
 {
     // should check the size of params when add new params.
     char **params = NULL;
     size_t i = 0;
+    size_t j = 0;
     size_t args_len = PARAM_NUM;
-    const char * const *tmp = NULL;
 
     if (util_check_inherited(true, -1) != 0) {
         COMMAND_ERROR("Close inherited fds failed");
         exit(EXIT_FAILURE);
     }
 
-    for (tmp = env; tmp != NULL && *tmp != NULL; tmp++) {
-        args_len++;
-    }
-    for (tmp = argv; tmp != NULL && *tmp != NULL; tmp++) {
-        args_len++;
-    }
+    args_len = args_len + request->args_len + request->env_len;
 
     if (args_len > (SIZE_MAX / sizeof(char *))) {
         exit(EXIT_FAILURE);
@@ -924,29 +917,34 @@ static void execute_lxc_attach(const char *name, const char *path, const char *l
     add_array_elem(params, args_len, &i, "-P");
     add_array_elem(params, args_len, &i, path);
     add_array_elem(params, args_len, &i, "--clear-env");
-    add_array_kv(params, args_len, &i, "--logfile", logpath);
-    add_array_kv(params, args_len, &i, "-l", loglevel);
-    add_array_kv(params, args_len, &i, "--in-fifo", console_fifos[0]);
-    add_array_kv(params, args_len, &i, "--out-fifo", console_fifos[1]);
-    for (tmp = env; tmp && *tmp; tmp++) {
+    add_array_kv(params, args_len, &i, "--logfile", request->logpath);
+    add_array_kv(params, args_len, &i, "-l", request->loglevel);
+    add_array_kv(params, args_len, &i, "--in-fifo", request->console_fifos[0]);
+    add_array_kv(params, args_len, &i, "--out-fifo", request->console_fifos[1]);
+    for (j = 0; j < request->env_len; j++) {
         add_array_elem(params, args_len, &i, "-v");
-        add_array_elem(params, args_len, &i, *tmp);
+        add_array_elem(params, args_len, &i, request->env[j]);
     }
 
-    if (timeout != 0) {
+    if (request->timeout != 0) {
         char timeout_str[LCR_NUMSTRLEN64] = { 0 };
         add_array_elem(params, args_len, &i, "--timeout");
-        if (sprintf_s(timeout_str, LCR_NUMSTRLEN64, "%lld", (long long)timeout) < 0) {
-            COMMAND_ERROR("Invaild attach timeout value :%lld", (long long)timeout);
+        if (sprintf_s(timeout_str, LCR_NUMSTRLEN64, "%lld", (long long)request->timeout) < 0) {
+            COMMAND_ERROR("Invaild attach timeout value :%lld", (long long)request->timeout);
             free(params);
             exit(EXIT_FAILURE);
         }
         add_array_elem(params, args_len, &i, timeout_str);
     }
 
+    if (request->user != NULL) {
+        add_array_elem(params, args_len, &i, "-u");
+        add_array_elem(params, args_len, &i, request->user);
+    }
+
     add_array_elem(params, args_len, &i, "--");
-    for (tmp = argv; tmp && *tmp; tmp++) {
-        add_array_elem(params, args_len, &i, *tmp);
+    for (j = 0; j < request->args_len; j++) {
+        add_array_elem(params, args_len, &i, request->args[j]);
     }
 
     execvp("lxc-attach", params);
@@ -974,9 +972,7 @@ static int do_attach_get_exit_code(int status)
     return exit_code;
 }
 
-bool do_attach(const char *name, const char *path, const char *logpath, const char *loglevel,
-               const char *console_fifos[], const char * const argv[], const char * const env[], int64_t timeout,
-               pid_t *exec_pid, int *exit_code)
+bool do_attach(const char *name, const char *path, const struct lcr_exec_request *request, int *exit_code)
 {
     bool ret = false;
     pid_t pid = 0;
@@ -1009,7 +1005,7 @@ bool do_attach(const char *name, const char *path, const char *logpath, const ch
         close(pipefd[0]);
         dup2(pipefd[1], 2);
 
-        execute_lxc_attach(name, path, logpath, loglevel, console_fifos, argv, env, timeout);
+        execute_lxc_attach(name, path, request);
     }
 
     close(pipefd[1]);
@@ -1039,10 +1035,7 @@ out:
     return ret;
 }
 
-void execute_lxc_start(const char *name, const char *path, const char *logpath, const char *loglevel,
-                       bool daemonize, bool tty, bool open_stdin, const char *pidfile,
-                       const char *console_fifos[], const char *console_logpath, const char *share_ns[],
-                       uint32_t start_timeout, const char *container_pidfile, const char *exit_fifo)
+void execute_lxc_start(const char *name, const char *path, const struct lcr_start_request *request)
 {
     // should check the size of params when add new params.
     char *params[PARAM_NUM] = { NULL };
@@ -1058,28 +1051,26 @@ void execute_lxc_start(const char *name, const char *path, const char *logpath, 
     add_array_elem(params, PARAM_NUM, &i, "-P");
     add_array_elem(params, PARAM_NUM, &i, path);
     add_array_elem(params, PARAM_NUM, &i, "--quiet");
-    add_array_kv(params, PARAM_NUM, &i, "--logfile", logpath);
-    add_array_kv(params, PARAM_NUM, &i, "-l", loglevel);
-    add_array_kv(params, PARAM_NUM, &i, "--in-fifo", console_fifos[0]);
-    add_array_kv(params, PARAM_NUM, &i, "--out-fifo", console_fifos[1]);
-    add_array_kv(params, PARAM_NUM, &i, "--err-fifo", console_fifos[2]);
-    if (!tty) {
+    add_array_kv(params, PARAM_NUM, &i, "--logfile", request->logpath);
+    add_array_kv(params, PARAM_NUM, &i, "-l", request->loglevel);
+    add_array_kv(params, PARAM_NUM, &i, "--in-fifo", request->console_fifos[0]);
+    add_array_kv(params, PARAM_NUM, &i, "--out-fifo", request->console_fifos[1]);
+    add_array_kv(params, PARAM_NUM, &i, "--err-fifo", request->console_fifos[2]);
+    if (!request->tty) {
         add_array_elem(params, PARAM_NUM, &i, "--disable-pty");
     }
-    if (open_stdin) {
+    if (request->open_stdin) {
         add_array_elem(params, PARAM_NUM, &i, "--open-stdin");
     }
-    add_array_elem(params, PARAM_NUM, &i, daemonize ? "-d" : "-F");
-    add_array_kv(params, PARAM_NUM, &i, "-p", pidfile);
-    add_array_kv(params, PARAM_NUM, &i, "-L", console_logpath);
-    add_array_kv(params, PARAM_NUM, &i, "--container-pidfile", container_pidfile);
-    add_array_kv(params, PARAM_NUM, &i, "--exit-fifo", exit_fifo);
+    add_array_elem(params, PARAM_NUM, &i, request->daemonize ? "-d" : "-F");
+    add_array_kv(params, PARAM_NUM, &i, "--container-pidfile", request->container_pidfile);
+    add_array_kv(params, PARAM_NUM, &i, "--exit-fifo", request->exit_fifo);
 
-    if (start_timeout != 0) {
+    if (request->start_timeout != 0) {
         char start_timeout_str[LCR_NUMSTRLEN64] = { 0 };
         add_array_elem(params, PARAM_NUM, &i, "--start-timeout");
-        if (sprintf_s(start_timeout_str, LCR_NUMSTRLEN64, "%u", start_timeout) < 0) {
-            COMMAND_ERROR("Invaild start timeout value: %u", start_timeout);
+        if (sprintf_s(start_timeout_str, LCR_NUMSTRLEN64, "%u", request->start_timeout) < 0) {
+            COMMAND_ERROR("Invaild start timeout value: %u", request->start_timeout);
             exit(EXIT_FAILURE);
         }
         add_array_elem(params, PARAM_NUM, &i, start_timeout_str);

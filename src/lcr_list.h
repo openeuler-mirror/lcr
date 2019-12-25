@@ -22,7 +22,7 @@ struct lcr_list {
     struct lcr_list *prev;
 };
 
-/* Iterate through an lcr list.*/
+/* Iterate through an lcr list. */
 #define lcr_list_for_each(__iterator, __list) \
     for ((__iterator) = (__list)->next; \
          (__iterator) != (__list); \

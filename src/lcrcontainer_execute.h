@@ -25,14 +25,9 @@ bool do_update(struct lxc_container *c, const char *name, const char *lcrpath, c
 
 void do_lcr_state(struct lxc_container *c, struct lcr_container_state *lcs);
 
-bool do_attach(const char *name, const char *path, const char *logpath, const char *loglevel,
-               const char *console_fifos[], const char * const argv[], const char * const env[], int64_t timeout,
-               pid_t *exec_pid, int *exit_code);
+bool do_attach(const char *name, const char *path, const struct lcr_exec_request *request, int *exit_code);
 
-void execute_lxc_start(const char *name, const char *path, const char *logpath, const char *loglevel,
-                       bool daemonize, bool tty, bool open_stdin, const char *pidfile,
-                       const char *console_fifos[], const char *console_logpath, const char *share_ns[],
-                       uint32_t start_timeout, const char *container_pidfile, const char *exit_fifo);
+void execute_lxc_start(const char *name, const char *path, const struct lcr_start_request *request);
 
 #ifdef __cplusplus
 }

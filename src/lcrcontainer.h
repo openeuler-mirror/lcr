@@ -42,11 +42,11 @@ struct lcr_console_config {
  * Store lcr container info
  */
 struct lcr_container_info {
-    /* Name of container.*/
+    /* Name of container. */
     char *name;
-    /* State of container.*/
+    /* State of container. */
     char *state;
-    /* Interface of container.*/
+    /* Interface of container. */
     char *interface;
     char *ipv4;
     char *ipv6;
@@ -70,15 +70,15 @@ struct lcr_container_state {
     char *name;
     /* State of container */
     char *state;
-    /* The process ID of the init container*/
+    /* The process ID of the init container */
     pid_t init;
     /* Current pids */
     uint64_t pids_current;
-    /* CPU usage*/
+    /* CPU usage */
     uint64_t cpu_use_nanos;
     uint64_t cpu_use_user;
     uint64_t cpu_use_sys;
-    /* BlkIO usage*/
+    /* BlkIO usage */
     struct blkio_stats io_service_bytes;
     struct blkio_stats io_serviced;
     /* Memory usage */
@@ -142,12 +142,9 @@ void lcr_containers_info_free(struct lcr_container_info **info_arr, size_t size)
  * param name   : container name
  * param lcrpath: container path
  * param rootfs : the path of rootfs used for the container
- * param dist	: the distribution for generate specification
- *		  NOTE: if the dist is `none`, it will not create default spec
  * param oci_config_data	: json string of oci config data
  */
-bool lcr_create(const char *name, const char *lcrpath, const char *rootfs,
-                const char *dist, const void *oci_config_data);
+bool lcr_create(const char *name, const char *lcrpath, const char *rootfs, const void *oci_config_data);
 
 /*
  * Start a container
@@ -179,9 +176,7 @@ struct lcr_start_request {
     bool daemonize;
     bool tty;
     bool open_stdin;
-    const char *pidfile;
     const char **console_fifos;
-    const char *console_logpath;
     uint32_t start_timeout;
     const char *container_pidfile;
     const char *exit_fifo;
@@ -190,8 +185,6 @@ struct lcr_start_request {
     gid_t gid;
     gid_t *additional_gids;
     size_t additional_gids_len;
-
-    const char **share_ns;
 };
 bool lcr_start(const struct lcr_start_request *request);
 
@@ -210,17 +203,6 @@ bool lcr_kill(const char *name, const char *lcrpath, uint32_t signal);
  * param force		: force to delete container
  */
 bool lcr_delete(const char *name, const char *lcrpath);
-
-/*
- * Execute process inside a container
- * param name		: container name, required.
- * param lcrpath	: container path, set to NULL if you want use default lcrpath.
- * param argc		: the size of the argv array
- * param argv		: array of arguments to be execute inside container
- * param pid		: ID of process running inside container
- */
-bool lcr_exec(const char *name, const char *lcrpath, int argc, char * const * argv, pid_t *pid);
-
 
 bool lcr_clean(const char *name, const char *lcrpath, const char *logpath, const char *loglevel, pid_t pid);
 
@@ -275,26 +257,28 @@ void lcr_free_console_config(struct lcr_console_config *config);
 int lcr_log_init(const char *name, const char *file, const char *priority,
                  const char *prefix,  int quiet, const char *lcrpath);
 
+struct lcr_exec_request {
+    const char *name;
+    const char *lcrpath;
+
+    const char *logpath;
+    const char *loglevel;
+
+    const char **console_fifos;
+
+    const char *user;
+
+    const char **env;
+    size_t env_len;
+    const char **args;
+    size_t args_len;
+
+    int64_t timeout;
+};
 /*
  * Execute process inside a container
- * param name		: container name, required.
- * param lcrpath	: container path, set to NULL if you want use default lcrpath.
- * param stdinfd	: stdinfd
- * param stdoutfd	: stdoutfd
- * param stderrfd	: stderrfd
- * param escape		: prefix for escape command, for example if escape equals 1 means the escape
- *				prefix is <CTRL+a>, you can type <CTRL+a q> to exit the console.
- *				-1 means never exit console by hand.
- * param argc		: the size of the argv array
- * param argv		: array of arguments to be execute inside container(terminated with "NULL")
- * param env		: array of environment variables to be set inside container(terminated with "NULL")
- * param timeout	: Timeout in seconds for attach container
- * param pid		: ID of process running inside container
- * param exit_code	: exit_code of process running inside container
  */
-bool lcr_attach(const char *name, const char *lcrpath, const char *logpath, const char *loglevel,
-                const char *console_fifos[], char * const argv[], char * const env[],
-                int64_t timeout, pid_t *pid, int *exit_code);
+bool lcr_exec(const struct lcr_exec_request *request, int *exit_code);
 
 bool lcr_update(const char *name, const char *lcrpath, const struct lcr_cgroup_resources *cr);
 

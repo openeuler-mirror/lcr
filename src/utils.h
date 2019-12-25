@@ -198,9 +198,9 @@ int util_safe_llong(const char *numstr, long long *converted);
 char *util_strdup_s(const char *src);
 int util_null_stdfds(void);
 
-bool util_copy_file(const char *src_file, const char *dst_file);
+bool util_copy_file(const char *src_file, const char *dst_file, mode_t mode);
 
-bool util_write_file(const char *filepath, const char *content, size_t len, bool add_newline);
+bool util_write_file(const char *filepath, const char *content, size_t len, bool add_newline, mode_t mode);
 
 int util_atomic_write_file(const char *filepath, const char *content);
 
@@ -208,4 +208,4 @@ int util_atomic_write_file(const char *filepath, const char *content);
 }
 #endif
 
-#endif /*__LCR_UTILS_H */
+#endif /* __LCR_UTILS_H */

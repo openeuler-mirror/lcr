@@ -320,7 +320,7 @@ err_out:
     return -1;
 }
 
-/* lcr shrink array*/
+/* lcr shrink array */
 static char **lcr_shrink_array(char **orig_array, size_t new_size)
 {
     char **res_array = NULL;
@@ -345,7 +345,7 @@ static char **lcr_shrink_array(char **orig_array, size_t new_size)
     return res_array;
 }
 
-/* lcr string split and trim*/
+/* lcr string split and trim */
 char **lcr_string_split_and_trim(const char *orig_str, char _sep)
 {
     char *token = NULL;
@@ -393,7 +393,7 @@ error_out:
     return NULL;
 }
 
-/* lcr free array*/
+/* lcr free array */
 void lcr_free_array(void **orig_array)
 {
     void **p = NULL;
@@ -404,7 +404,7 @@ void lcr_free_array(void **orig_array)
     free((void *)orig_array);
 }
 
-/* lcr grow array*/
+/* lcr grow array */
 int lcr_grow_array(void ***orig_array, size_t *orig_capacity, size_t size, size_t increment)
 {
     size_t add_capacity;
@@ -452,7 +452,7 @@ int lcr_grow_array(void ***orig_array, size_t *orig_capacity, size_t size, size_
     return 0;
 }
 
-/* lcr array len*/
+/* lcr array len */
 size_t lcr_array_len(void **orig_array)
 {
     void **p = NULL;
@@ -465,7 +465,7 @@ size_t lcr_array_len(void **orig_array)
     return length;
 }
 
-/* util common malloc s*/
+/* util common malloc s */
 void *util_common_calloc_s(size_t size)
 {
     if (size == 0) {
@@ -543,7 +543,7 @@ int util_safe_strtod(const char *numstr, double *converted)
     return 0;
 }
 
-/* util safe ullong*/
+/* util safe ullong */
 int util_safe_ullong(const char *numstr, unsigned long long *converted)
 {
     char *err_str = NULL;
@@ -567,7 +567,7 @@ int util_safe_ullong(const char *numstr, unsigned long long *converted)
     return 0;
 }
 
-/* util safe uint*/
+/* util safe uint */
 int util_safe_uint(const char *numstr, unsigned int *converted)
 {
     char *err_str = NULL;
@@ -613,7 +613,7 @@ static struct unit_map_def_lcr const g_lcr_unit_map[] = {
 
 static size_t const g_lcr_unit_map_len = sizeof(g_lcr_unit_map) / sizeof(g_lcr_unit_map[0]);
 
-/* parse unit multiple*/
+/* parse unit multiple */
 static int parse_unit_multiple(const char *unit, int64_t *mltpl)
 {
     size_t i;
@@ -684,7 +684,7 @@ static int util_parse_size_int_and_float(const char *numstr, int64_t mlt, int64_
     return 0;
 }
 
-/* parse byte size string*/
+/* parse byte size string */
 int parse_byte_size_string(const char *s, int64_t *converted)
 {
     int ret;
@@ -751,7 +751,7 @@ err:
     return err;
 }
 
-/* util dir exists*/
+/* util dir exists */
 bool util_dir_exists(const char *path)
 {
     struct stat s;
@@ -780,7 +780,7 @@ static inline bool is_double_dot(const char *value)
 }
 
 
-/* util rmdir one*/
+/* util rmdir one */
 static void util_rmdir_one(const char *dirpath, const struct dirent *pdirent, int recursive_depth, int *failure)
 {
     struct stat fstat;
@@ -817,7 +817,7 @@ static void util_rmdir_one(const char *dirpath, const struct dirent *pdirent, in
     }
 }
 
-/* util recursive rmdir*/
+/* util recursive rmdir */
 int util_recursive_rmdir(const char *dirpath, int recursive_depth)
 {
     struct dirent *pdirent = NULL;
@@ -831,7 +831,7 @@ int util_recursive_rmdir(const char *dirpath, int recursive_depth)
         goto err_out;
     }
 
-    if (!util_dir_exists(dirpath)) { /*dir not exists*/
+    if (!util_dir_exists(dirpath)) { /* dir not exists */
         goto err_out;
     }
 
@@ -863,7 +863,7 @@ err_out:
     return failure ? -1 : 0;
 }
 
-/* util string replace one*/
+/* util string replace one */
 static ssize_t util_string_replace_one(const char *needle, const char *replace, const char *haystack, char **result)
 {
     char *res_string = *result;
@@ -904,7 +904,7 @@ static ssize_t util_string_replace_one(const char *needle, const char *replace, 
     return length;
 }
 
-/* util string replace*/
+/* util string replace */
 char *util_string_replace(const char *needle, const char *replace, const char *haystack)
 {
     ssize_t length = -1;
@@ -1003,27 +1003,26 @@ FILE *util_fopen(const char *filename, const char *mode)
     return fp;
 }
 
-/* util safe int*/
-int util_safe_int(const char *numstr, int *converted)
+int util_safe_int(const char *num_str, int *converted)
 {
     char *err_str = NULL;
     signed long int li;
 
-    if (numstr == NULL || converted == NULL) {
+    if (num_str == NULL || converted == NULL) {
         return -EINVAL;
     }
 
     errno = 0;
-    li = strtol(numstr, &err_str, 0);
+    li = strtol(num_str, &err_str, 0);
     if (errno > 0) {
         return -errno;
     }
 
-    if (is_invalid_error_str(err_str, numstr)) {
+    if (is_invalid_error_str(err_str, num_str)) {
         return -EINVAL;
     }
 
-    if (li > INT_MAX) {
+    if (li > INT_MAX || li < INT_MIN) {
         return -ERANGE;
     }
 
@@ -1031,7 +1030,7 @@ int util_safe_int(const char *numstr, int *converted)
     return 0;
 }
 
-/* util check inherited*/
+/* util check inherited */
 static bool util_dir_skip_current(const struct dirent *pdirent)
 {
     if (is_dot(pdirent->d_name)) {
@@ -1251,7 +1250,6 @@ void util_free_array(char **array)
 {
     char **p = NULL;
 
-    /* free a null pointer may cause codex error */
     if (array == NULL) {
         return;
     }
@@ -1480,7 +1478,7 @@ int util_null_stdfds(void)
     return ret;
 }
 
-bool util_copy_file(const char *src_file, const char *dst_file)
+bool util_copy_file(const char *src_file, const char *dst_file, mode_t mode)
 {
     bool ret = false;
     char *nret = NULL;
@@ -1502,7 +1500,7 @@ bool util_copy_file(const char *src_file, const char *dst_file)
         ERROR("Open src file: %s, failed: %s", real_src_file, strerror(errno));
         goto free_out;
     }
-    dst_fd = util_open(dst_file, O_WRONLY | O_CREAT | O_TRUNC, DEFAULT_SECURE_FILE_MODE);
+    dst_fd = util_open(dst_file, O_WRONLY | O_CREAT | O_TRUNC, mode);
     if (dst_fd < 0) {
         ERROR("Creat file: %s, failed: %s", dst_file, strerror(errno));
         goto free_out;
@@ -1531,7 +1529,7 @@ free_out:
     return ret;
 }
 
-bool util_write_file(const char *filepath, const char *content, size_t len, bool add_newline)
+bool util_write_file(const char *filepath, const char *content, size_t len, bool add_newline, mode_t mode)
 {
     bool ret = true;
     int rfd = -1;
@@ -1540,7 +1538,7 @@ bool util_write_file(const char *filepath, const char *content, size_t len, bool
         return false;
     }
 
-    rfd = util_open(filepath, O_CREAT | O_TRUNC | O_WRONLY, CONFIG_FILE_MODE);
+    rfd = util_open(filepath, O_CREAT | O_TRUNC | O_WRONLY, mode);
     if (rfd == -1) {
         ERROR("Create file %s failed: %s", filepath, strerror(errno));
         return false;

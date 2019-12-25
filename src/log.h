@@ -15,7 +15,9 @@
 #ifndef __LCR_LOG_H
 #define __LCR_LOG_H
 
+#include <syslog.h>
 #include <stdbool.h>
+#include <sys/time.h>
 #include <errno.h>
 #include <time.h>
 
@@ -39,27 +41,15 @@ extern "C" {
  * */
 #define ENGINE_LOG_TIME_SIZE 42
 
-/*errmsg that defined in lcrc & lcrd*/
+/* errmsg that defined in lcrc & lcrd */
 #define DAEMON_ERROR_GRPC_INIT_STR "Init failed"
 #define DAEMON_ERROR_GRPC_CONNENCT_STR "Can not connect with server.Is the docker dameon running on the host?"
 #define DAEMON_ERROR_GRPC_SERVER_STR "Server internal error"
 
-enum engine_log_level {
-    ENGINE_LOG_FATAL = 0,
-    ENGINE_LOG_ALERT,
-    ENGINE_LOG_CRIT,
-    ENGINE_LOG_ERROR,
-    ENGINE_LOG_WARN,
-    ENGINE_LOG_NOTICE,
-    ENGINE_LOG_INFO,
-    ENGINE_LOG_DEBUG,
-    ENGINE_LOG_TRACE,
-    ENGINE_LOG_MAX
-};
-
 enum g_engine_log_driver {
     LOG_DRIVER_STDOUT,
     LOG_DRIVER_FIFO,
+    LOG_DRIVER_SYSLOG,
     LOG_DRIVER_NOSET,
 };
 
@@ -72,21 +62,23 @@ struct engine_log_config {
     bool quiet;
 };
 
-#define ENGINE_LOG_LOCINFO_INIT                               \
-    {                                                         \
-        .file = __FILE__, .func = __func__, .line = __LINE__, \
-    }
-
-/* brief logging object metadata */
-struct engine_log_object_metadata {
-    int level;
-
-    /* location information of the logging item */
+/* location information of the logging event */
+struct engine_log_locinfo {
     const char *file;
     const char *func;
     int line;
 };
 
+#define ENGINE_LOG_LOCINFO_INIT                               \
+    {                                                         \
+        .file = __FILE__, .func = __func__, .line = __LINE__, \
+    }
+
+/* brief logging event object */
+struct engine_log_event {
+    int priority;
+    struct engine_log_locinfo *locinfo;
+};
 extern void engine_close_log_file();
 int log_enable(const struct engine_log_config *log);
 
@@ -96,38 +88,79 @@ void engine_free_log_prefix();
 
 int engine_change_str_logdriver_to_enum(const char *driver);
 
-int engine_log_append(const struct engine_log_object_metadata *event, const char *format, ...);
+int engine_log_append(const struct engine_log_event *event, const char *format, ...);
 
-#define COMMON_LOG(loglevel, format, ...)                                      \
-    do {                                                                    \
-        struct engine_log_object_metadata meta = ENGINE_LOG_LOCINFO_INIT;   \
-        meta.level = loglevel;                                          \
-        (void)engine_log_append(&meta, format, ##__VA_ARGS__);              \
+#define DEBUG(format, ...)                                           \
+    do {                                                             \
+        struct engine_log_locinfo locinfo = ENGINE_LOG_LOCINFO_INIT; \
+        struct engine_log_event event;                               \
+        event.locinfo = &locinfo;                                    \
+        event.priority = LOG_DEBUG;                                  \
+        (void)engine_log_append(&event, format, ##__VA_ARGS__);      \
     } while (0)
 
-#define DEBUG(format, ...)                                                  \
-    COMMON_LOG(ENGINE_LOG_FATAL, format, ##__VA_ARGS__);
+#define INFO(format, ...)                                            \
+    do {                                                             \
+        struct engine_log_locinfo locinfo = ENGINE_LOG_LOCINFO_INIT; \
+        struct engine_log_event event;                               \
+        event.locinfo = &locinfo;                                    \
+        event.priority = LOG_INFO;                                   \
+        (void)engine_log_append(&event, format, ##__VA_ARGS__);      \
+    } while (0)
 
-#define INFO(format, ...)                                                   \
-    COMMON_LOG(ENGINE_LOG_INFO, format, ##__VA_ARGS__);
+#define NOTICE(format, ...)                                          \
+    do {                                                             \
+        struct engine_log_locinfo locinfo = ENGINE_LOG_LOCINFO_INIT; \
+        struct engine_log_event event;                               \
+        event.locinfo = &locinfo;                                    \
+        event.priority = LOG_NOTICE;                                 \
+        (void)engine_log_append(&event, format, ##__VA_ARGS__);      \
+    } while (0)
 
-#define NOTICE(format, ...)                                                 \
-    COMMON_LOG(ENGINE_LOG_NOTICE, format, ##__VA_ARGS__);
+#define WARN(format, ...)                                            \
+    do {                                                             \
+        struct engine_log_locinfo locinfo = ENGINE_LOG_LOCINFO_INIT; \
+        struct engine_log_event event;                               \
+        event.locinfo = &locinfo;                                    \
+        event.priority = LOG_WARNING;                                \
+        (void)engine_log_append(&event, format, ##__VA_ARGS__);      \
+    } while (0)
 
-#define WARN(format, ...)                                                   \
-    COMMON_LOG(ENGINE_LOG_WARN, format, ##__VA_ARGS__);
+#define ERROR(format, ...)                                           \
+    do {                                                             \
+        struct engine_log_locinfo locinfo = ENGINE_LOG_LOCINFO_INIT; \
+        struct engine_log_event event;                               \
+        event.locinfo = &locinfo;                                    \
+        event.priority = LOG_ERR;                                    \
+        (void)engine_log_append(&event, format, ##__VA_ARGS__);      \
+    } while (0)
 
-#define ERROR(format, ...)                                                  \
-    COMMON_LOG(ENGINE_LOG_ERROR, format, ##__VA_ARGS__);
+#define CRIT(format, ...)                                            \
+    do {                                                             \
+        struct engine_log_locinfo locinfo = ENGINE_LOG_LOCINFO_INIT; \
+        struct engine_log_event event;                               \
+        event.locinfo = &locinfo;                                    \
+        event.priority = LOG_CRIT;                                   \
+        (void)engine_log_append(&event, format, ##__VA_ARGS__);      \
+    } while (0)
 
-#define CRIT(format, ...)                                                   \
-    COMMON_LOG(ENGINE_LOG_CRIT, format, ##__VA_ARGS__);
+#define ALERT(format, ...)                                           \
+    do {                                                             \
+        struct engine_log_locinfo locinfo = ENGINE_LOG_LOCINFO_INIT; \
+        struct engine_log_event event;                               \
+        event.locinfo = &locinfo;                                    \
+        event.priority = LOG_ALERT;                                  \
+        (void)engine_log_append(&event, format, ##__VA_ARGS__);      \
+    } while (0)
 
-#define ALERT(format, ...)                                                  \
-    COMMON_LOG(ENGINE_LOG_ALERT, format, ##__VA_ARGS__);
-
-#define FATAL(format, ...)                                                  \
-    COMMON_LOG(ENGINE_LOG_FATAL, format, ##__VA_ARGS__);
+#define FATAL(format, ...)                                           \
+    do {                                                             \
+        struct engine_log_locinfo locinfo = ENGINE_LOG_LOCINFO_INIT; \
+        struct engine_log_event event;                               \
+        event.locinfo = &locinfo;                                    \
+        event.priority = LOG_EMERG;                                  \
+        (void)engine_log_append(&event, format, ##__VA_ARGS__);      \
+    } while (0)
 
 #define SYSERROR(format, ...)                                  \
     do {                                                       \

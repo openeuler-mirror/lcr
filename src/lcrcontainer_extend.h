@@ -70,14 +70,6 @@ struct lcr_list *lcr_oci2lcr(const struct lxc_container *c, const char *containe
                              char **seccomp);
 
 /*
- * Generate lcr_config_info according to distribution.
- * param distribution		: system distribution, now support: ubuntu
- * param seccomp_conf [out]	: return seccomp configuration if needed.
- * return: a linked list
- */
-struct lcr_list *lcr_dist2spec(const char *distribution, char **seccomp_conf);
-
-/*
  * Create a new specification file
  * param name			: container name, required.
  * param lcrpath		: container path, set to NULL if you want use default lcrpath.

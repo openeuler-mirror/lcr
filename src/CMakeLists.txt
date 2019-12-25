@@ -54,7 +54,6 @@ if (CMAKE_TOOLCHAIN_FILE)
     target_link_libraries(liblcr ${EXTRAL_LINK_LIBS})
 endif()
 
-add_subdirectory(cmd)
 if (LCR_GCOV)
     target_link_libraries(liblcr -lgcov)
 endif()

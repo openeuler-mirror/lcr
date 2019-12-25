@@ -34,142 +34,6 @@
 #include "log.h"
 #include "conf.h"
 
-#define COMMON_CONFIG_ITEMS                                                                                 \
-    { .name = "lxc.tty.dir", .value = "lxc" /* Setup the LXC devices in /dev/lxc */ },                      \
-    { .name = "lxc.pty.max", .value = "1024" /* Allow for 1024 pseudo terminals */ },                       \
-    { .name = "lxc.tty.max", .value = "4" /* Setup 4 tty devices */ }, /* Drop some harmful capabilities */ \
-    { .name = "lxc.cap.drop", .value = "mac_admin mac_override sys_time sys_module sys_rawio" },            \
-    { .name = "lxc.cgroup.devices.deny",                                                                    \
-      .value = "a" /* CGroup whitelist */ }, /* Allow any mknod (but not reading/writing the node */        \
-    { .name = "lxc.cgroup.devices.allow",                                                                   \
-      .value = "c *:* m" }, /* Allow any mknod (but not reading/writing the node */                         \
-    { .name = "lxc.cgroup.devices.allow", .value = "b *:* m" },                                             \
-    { .name = "lxc.cgroup.devices.allow", .value = "c 1:3 rwm" /* Allow /dev/null */ },                     \
-    { .name = "lxc.cgroup.devices.allow", .value = "c 1:5 rwm" /* Allow /dev/zero */ },                     \
-    { .name = "lxc.cgroup.devices.allow", .value = "c 1:7 rwm" /* Allow /dev/full */ },                     \
-    { .name = "lxc.cgroup.devices.allow", .value = "c 5:0 rwm" /* Allow /dev/tty */ },                      \
-    { .name = "lxc.cgroup.devices.allow", .value = "c 5:1 rwm" /* Allow /dev/console */ },                  \
-    { .name = "lxc.cgroup.devices.allow", .value = "c 5:2 rwm" /* Allow /dev/ptmx */ },                     \
-    { .name = "lxc.cgroup.devices.allow", .value = "c 1:8 rwm" /* Allow /dev/random */ },                   \
-    { .name = "lxc.cgroup.devices.allow", .value = "c 1:9 rwm" /* Allow /dev/urandom */ },                  \
-    { .name = "lxc.cgroup.devices.allow", .value = "c 136:* rwm" /* Allow /dev/pts */ },                    \
-    { .name = "lxc.cgroup.devices.allow", .value = "c 10:229 rwm" /* Allow fuse */ },                       \
-    { .name = "lxc.mount.auto", .value = "cgroup:mixed proc:mixed sys:mixed" /* default mounts */ },        \
-    { .name = "lxc.mount.entry",                                                                            \
-      .value = "/sys/fs/fuse/connections sys/fs/fuse/connections non bind,optional 0 0" },                  \
-    { NULL, NULL }
-
-static const lcr_config_item_t g_app_config_items[] = {
-    /* Container specific configuration */
-    {
-        .name = "lxc.arch",
-        .value = "x86_64",
-    },
-    {
-        .name = "lxc.uts.name",
-        .value = "app",
-    },
-    /* Extra mount entries */
-    {
-        .name = "lxc.mount.entry",
-        .value = "/dev dev none ro,bind 0 0",
-    },
-    {
-        .name = "lxc.mount.entry",
-        .value = "/lib lib none ro,bind 0 0",
-    },
-    {
-        .name = "lxc.mount.entry",
-        .value = "/bin bin none ro,bind 0 0",
-    },
-    {
-        .name = "lxc.mount.entry",
-        .value = "/usr usr none ro,bind 0 0",
-    },
-    {
-        .name = "lxc.mount.entry",
-        .value = "/sbin sbin none ro,bind 0 0",
-    },
-    {
-        .name = "lxc.mount.entry",
-        .value = "tmpfs var/run tmpfs mode=0644 0 0",
-    },
-    {
-        .name = "lxc.mount.entry",
-        .value = "proc proc proc nodev,noexec,nosuid 0 0",
-    },
-    {
-        .name = "lxc.mount.entry",
-        .value = "sysfs sys sysfs ro,bind 0 0",
-    },
-    {
-        .name = "lxc.mount.entry",
-        .value = "/lib64 lib64 none ro,bind 0 0",
-    },
-    /* Include common config */
-    COMMON_CONFIG_ITEMS
-};
-
-static const lcr_config_item_t g_ubuntu_config_items[] = {
-    /* Container specific configuration */
-    {
-        .name = "lxc.arch",
-        .value = "x86_64"
-    },
-    {
-        .name = "lxc.uts.name",
-        .value = "ubuntu",
-    },
-    /* Extra mount entries */
-    {
-        .name = "lxc.mount.entry",
-        .value = "/sys/kernel/debug sys/kernel/debug none bind,optional 0 0",
-    },
-    {
-        .name = "lxc.mount.entry",
-        .value = "/sys/kernel/security sys/kernel/security none bind,optional 0 0",
-    },
-    {
-        .name = "lxc.mount.entry",
-        .value = "/sys/fs/pstore sys/fs/pstore none bind,optional 0 0",
-    },
-    {
-        .name = "lxc.mount.entry",
-        .value = "mqueue dev/mqueue mqueue rw,realtime,create=dir,optional 0 0",
-    },
-    /* Extra cgroup device access */
-    {
-        .name = "lxc.cgroup.devices.allow",
-        .value = "c 254:0 rm",
-    }, /* rtc */
-    {
-        .name = "lxc.cgroup.devices.allow",
-        .value = "c 10:200 rwm",
-    }, /* tun */
-    {
-        .name = "lxc.cgroup.devices.allow",
-        .value = "c 10:228 rwm",
-    }, /* hpet */
-    {
-        .name = "lxc.cgroup.devices.allow",
-        .value = "c 10:232 rwm",
-    }, /* kvm */
-    /* Include common config */
-    COMMON_CONFIG_ITEMS
-};
-
-static const char g_common_seccomp[] = "\
-2\n\
-blacklist\n\
-reject_force_umount    # comment this to allow umount -f; not recommended\n\
-[all]\n\
-kexec_load errno 1\n\
-open_by_handle_at errno 1\n\
-init_module errno 1\n\
-finit_module errno 1\n\
-delete_module errno 1\n\
-";
-
 static struct lxc_container *lcr_new_container(const char *name, const char *path)
 {
     struct lxc_container *c = lxc_container_new(name, path);
@@ -330,7 +194,7 @@ static int trans_rootfs_linux(struct lcr_list *lcr_conf, const char *container_r
     int ret = -1;
     struct lcr_list *node = NULL;
 
-    /*merge the rootfs config*/
+    /* merge the rootfs config */
     if (container_rootfs != NULL) {
         if (!container->root) {
             container->root = util_common_calloc_s(sizeof(oci_runtime_spec_root));
@@ -738,7 +602,7 @@ int lcr_containers_info_get(const char *lcrpath, struct lcr_container_info **inf
         }
         run_flag = (strcmp(st, "STOPPED") != 0);
 
-        /*Now it makes sense to allocate memory */
+        /* Now it makes sense to allocate memory */
         in = info_new(info, size);
         if (in == NULL) {
             goto put_container;
@@ -759,8 +623,8 @@ err_out:
 }
 
 /*
- *Transform container JSON into oci_runtime_spec struct
-*/
+ * Transform container JSON into oci_runtime_spec struct
+ */
 bool container_parse(const char *oci_filename, const char *oci_json_data, oci_runtime_spec **container)
 {
     struct parser_context ctx = { OPT_PARSE_STRICT, stderr };
@@ -861,69 +725,6 @@ out_free:
     return NULL;
 }
 
-static inline bool is_distribution_ubuntu(const char *distribution)
-{
-    return strcmp("ubuntu", distribution) == 0;
-}
-
-static inline bool is_distribution_app(const char *distribution)
-{
-    return strcmp("app", distribution) == 0;
-}
-
-struct lcr_list *lcr_dist2spec(const char *distribution, char **seccomp_conf)
-{
-    const lcr_config_item_t *items = NULL;
-    const lcr_config_item_t *i = NULL;
-    struct lcr_list *lcr_conf = NULL;
-    struct lcr_list *tmp = NULL;
-
-    if (seccomp_conf == NULL) {
-        return NULL;
-    }
-
-    free(*seccomp_conf);
-    *seccomp_conf = NULL;
-
-    /* get distribution specific configuration */
-    if (is_distribution_ubuntu(distribution)) {
-        items = g_ubuntu_config_items;
-        *seccomp_conf = util_strdup_s(g_common_seccomp);
-    } else if (is_distribution_app(distribution)) {
-        items = g_app_config_items;
-    } else {
-        ERROR("Distribution \"%s\" is not supported", distribution);
-        return NULL;
-    }
-
-    /* initialize the config list */
-    lcr_conf = util_common_calloc_s(sizeof(*lcr_conf));
-    if (lcr_conf == NULL) {
-        goto out_free;
-    }
-    lcr_list_init(lcr_conf);
-
-    /* add other config items to `lcr_conf` list */
-    for (i = items; i->name; i++) {
-        tmp = create_lcr_list_node(i->name, i->value);
-        if (tmp == NULL) {
-            goto out_free;
-        }
-        lcr_list_add_tail(lcr_conf, tmp);
-    }
-
-    return lcr_conf;
-
-out_free:
-    ERROR("Failed translate dist to spec");
-    free(*seccomp_conf);
-    *seccomp_conf = NULL;
-
-    lcr_free_config(lcr_conf);
-    free(lcr_conf);
-
-    return NULL;
-}
 
 static int lcr_open_config_file(const char *bundle)
 {

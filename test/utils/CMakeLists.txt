@@ -6,6 +6,7 @@ add_executable(${EXE}
     ${CMAKE_CURRENT_SOURCE_DIR}/../../src/utils.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../../src/log.c
     ${CMAKE_BINARY_DIR}/json/json_common.c
+    utils_convert_llt.cc
     utils_llt.cc)
 
 target_include_directories(${EXE} PUBLIC

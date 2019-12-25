@@ -119,7 +119,7 @@ struct lcr_container_info *lcr_container_info_get(const char *name, const char *
     }
     run_flag = (strcmp(st, "STOPPED") != 0);
 
-    /*Now it makes sense to allocate memory */
+    /* Now it makes sense to allocate memory */
     info = util_common_calloc_s(sizeof(*info));
     if (info == NULL) {
         nret = -1;
@@ -387,8 +387,8 @@ out_free:
     return bret;
 }
 /*
- *Expand array for container->mounts
-*/
+ * Expand array for container->mounts
+ */
 static bool mounts_expand(oci_runtime_spec *container, size_t add_len)
 {
     defs_mount **tmp_mount = NULL;
@@ -410,8 +410,8 @@ static bool mounts_expand(oci_runtime_spec *container, size_t add_len)
     return true;
 }
 /*
- *Get the file path that needs to be mount
-*/
+ * Get the file path that needs to be mount
+ */
 static bool mount_get_bundle_file(char **bundle, const char *container_name, const char *lcrpath, const char *filename)
 {
     const char *path = lcrpath ? lcrpath : LCRPATH;
@@ -435,8 +435,8 @@ static bool mount_get_bundle_file(char **bundle, const char *container_name, con
     return true;
 }
 /*
- *Mount file
- **/
+ * Mount file
+ */
 static bool mount_file(oci_runtime_spec *container, const char *bundle, const char *filename, const char *targetdir)
 {
     char dest[PATH_MAX] = { 0 };
@@ -463,7 +463,7 @@ static bool mount_file(oci_runtime_spec *container, const char *bundle, const ch
     }
     options[0] = util_strdup_s("rbind");
     options[1] = util_strdup_s("rprivate");
-    /*generate mount node*/
+    /* generate mount node */
     tmp_mounts = util_common_calloc_s(sizeof(defs_mount));
     if (tmp_mounts == NULL) {
         ERROR("Malloc tmp_mounts memory failed");
@@ -477,11 +477,11 @@ static bool mount_file(oci_runtime_spec *container, const char *bundle, const ch
     tmp_mounts->options_len = options_len;
     options = NULL;
 
-    /*expand mount array*/
+    /* expand mount array */
     if (!mounts_expand(container, 1)) {
         goto out_free;
     }
-    /*add a new mount node*/
+    /* add a new mount node */
     container->mounts[container->mounts_len - 1] = tmp_mounts;
 
     ret = true;
@@ -495,8 +495,8 @@ out_free:
 }
 
 /*
- *Mount hostname file to  /etc/hostname
-*/
+ * Mount hostname file to  /etc/hostname
+ */
 static bool mount_hostname(oci_runtime_spec *container, const struct lxc_container *c)
 {
     bool ret = true;
@@ -513,7 +513,8 @@ static bool mount_hostname(oci_runtime_spec *container, const struct lxc_contain
         goto out_free;
     }
     /* 2.generate hostname file that need to mount */
-    ret = util_write_file(bundle, container->hostname, strlen(container->hostname), true);
+    ret = util_write_file(bundle, container->hostname, strlen(container->hostname),
+                          true, NETWORK_MOUNT_FILE_MODE);
     if (!ret) {
         goto out_free;
     }
@@ -529,8 +530,8 @@ out_free:
 }
 
 /*
- *Mount network file, such as hosts, resolv.conf
-*/
+ * Mount network file, such as hosts, resolv.conf
+ */
 static bool mount_network_file(oci_runtime_spec *container, const struct lxc_container *c, const char *full_path,
                                const char *default_str)
 {
@@ -557,11 +558,11 @@ static bool mount_network_file(oci_runtime_spec *container, const struct lxc_con
     }
     // 2. copy /etc/hosts into container hosts file that need to mount
     if (file_exists(full_path)) {
-        ret = util_copy_file(full_path, bundle);
+        ret = util_copy_file(full_path, bundle, NETWORK_MOUNT_FILE_MODE);
     } else {
         // write default value into bundle
         if (default_str != NULL && strlen(default_str) > 0) {
-            ret = util_write_file(bundle, default_str, strlen(default_str), false);
+            ret = util_write_file(bundle, default_str, strlen(default_str), false, NETWORK_MOUNT_FILE_MODE);
         } else {
             ret = false;
             ERROR("Default value is NULL");
@@ -583,8 +584,8 @@ out_free:
 }
 
 /*
- *Mount hosts file to  /etc/hosts
-*/
+ * Mount hosts file to  /etc/hosts
+ */
 static bool mount_hosts(oci_runtime_spec *container, const struct lxc_container *c)
 {
     bool ret = false;
@@ -626,16 +627,17 @@ static bool mount_hosts(oci_runtime_spec *container, const struct lxc_container 
         goto out_free;
     }
     /* 5.generate hosts file that need to mount */
-    ret = util_write_file(bundle, content, strlen(content), false);
+    ret = util_write_file(bundle, content, strlen(content), false, NETWORK_MOUNT_FILE_MODE);
     if (!ret) {
         goto out_free;
     }
-    /* 3.Add one mount nodes to container->mounts */
+    /* 6.Add one mount nodes to container->mounts */
     ret = mount_file(container, bundle, filename, targetdir);
     if (!ret) {
         ERROR("mount hostname file failed");
         goto out_free;
     }
+
 out_free:
     free(bundle);
     free(content);
@@ -669,7 +671,7 @@ static bool copy_host_file_to_bundle(const struct lxc_container *c, const char *
     if (!ret) {
         goto out_free;
     }
-    ret = util_copy_file(full_path, bundle);
+    ret = util_copy_file(full_path, bundle, NETWORK_MOUNT_FILE_MODE);
     if (!ret) {
         goto out_free;
     }
@@ -795,68 +797,6 @@ static bool init_network_files(oci_runtime_spec *container, const struct lxc_con
 static inline bool is_root(const char *path)
 {
     return strcmp(path, "/") == 0;
-}
-
-static bool create_spec(struct lxc_container *c, const char *dist, const char *container_rootfs)
-{
-    bool ret = false;
-    char config[PATH_MAX] = { 0 };
-    int nret = 0;
-    struct lcr_list *lcr_conf = NULL;
-    char *seccomp_conf = NULL;
-
-    INFO("Create new specification file");
-    nret = sprintf_s(config, sizeof(config), "%s/%s/config", c->config_path, c->name);
-    if (nret < 0) {
-        ERROR("Failed to print string");
-        goto err_out;
-    }
-
-    lcr_conf = lcr_dist2spec(dist, &seccomp_conf);
-    if (lcr_conf == NULL) {
-        ERROR("Create distribution specific configuration failed");
-        goto err_out;
-    }
-
-    if (!lcr_save_spec(c->name, c->config_path, lcr_conf, seccomp_conf)) {
-        ERROR("Failed to save configuration");
-        goto out_free_conf;
-    }
-
-    /* reload the config to update the hwaddr in `config` */
-    c->clear_config(c);
-
-    if (!c->load_config(c, config)) {
-        ERROR("Failed to load config %s", config);
-        goto out_free_conf;
-    }
-
-    /* NOTE: update (clear and set) container's utsname
-     * will result in two 'lxc.uts.name' in config file due to lxc's problem,
-     * But they override each other in the order specified.
-     */
-    c->clear_config_item(c, "lxc.uts.name");
-    c->set_config_item(c, "lxc.uts.name", c->name);
-
-    c->clear_config_item(c, "lxc.rootfs.path");
-    if (!is_root(container_rootfs)) {
-        c->set_config_item(c, "lxc.rootfs.path", container_rootfs);
-    }
-
-    if (!c->save_config(c, config)) {
-        ERROR("Save configuration failed\n");
-        goto out_free_conf;
-    }
-
-    ret = true;
-
-out_free_conf:
-    lcr_free_config(lcr_conf);
-    free(lcr_conf);
-
-err_out:
-    free(seccomp_conf);
-    return ret;
 }
 
 static int create_partial(const struct lxc_container *c)
@@ -991,46 +931,25 @@ static struct lxc_container *lcr_create_new_container(const char *name, const ch
     return c;
 }
 
-static inline bool is_spec_dist_none(const char *spec_dist)
-{
-    return strcmp(spec_dist, "none") == 0;
-}
 
-static bool lcr_create_spec_dist(struct lxc_container *c, const char *real_rootfs, const char *spec_dist,
-                                 const char *oci_config_data)
+static bool lcr_create_spec(const struct lxc_container *c, const char *real_rootfs, const char *oci_config_data)
 {
-    /* NOTE: a special value can be assigned to `dist`, when it's value
-     * is `none`, we will not create default config
-     */
-    if (!is_spec_dist_none(spec_dist)) {
-        if (oci_config_data != NULL) {
-            // Translate oci config
-            DEBUG("Translate oci config...\n");
-            if (!translate_spec(c, oci_config_data, real_rootfs)) {
-                return false;
-            }
-            DEBUG("Translate oci config... done\n");
-        } else {
-            // Generate default config
-            DEBUG("Generate default config...\n");
-            if (!create_spec(c, spec_dist, real_rootfs)) {
-                return false;
-            }
-            DEBUG("Generate default config... done\n");
-        }
+    // Translate oci config
+    DEBUG("Translate oci config...\n");
+    if (!translate_spec(c, oci_config_data, real_rootfs)) {
+        return false;
     }
+    DEBUG("Translate oci config... done\n");
     return true;
 }
 
-bool lcr_create(const char *name, const char *lcrpath, const char *rootfs, const char *dist,
-                const void *oci_config_data)
+bool lcr_create(const char *name, const char *lcrpath, const char *rootfs, const void *oci_config_data)
 {
     struct lxc_container *c = NULL;
     int partial_fd = -1;
     bool bret = false;
-    char *real_rootfs = NULL; /*the real rootfs used by the container*/
+    char *real_rootfs = NULL; /* the real rootfs used by the container */
     const char *tmp_path = lcrpath ? lcrpath : LCRPATH;
-    const char *spec_dist = dist ? dist : "ubuntu";
 
     clear_error_message(&g_lcr_error);
     engine_set_log_prefix(name);
@@ -1054,7 +973,7 @@ bool lcr_create(const char *name, const char *lcrpath, const char *rootfs, const
         goto out_unlock;
     }
 
-    if (!lcr_create_spec_dist(c, real_rootfs, spec_dist, oci_config_data)) {
+    if (!lcr_create_spec(c, real_rootfs, oci_config_data)) {
         goto out_unlock;
     }
 
@@ -1237,9 +1156,7 @@ bool lcr_start(const struct lcr_start_request *request)
         close(pipefd[0]);
         dup2(pipefd[1], 2);
 
-        execute_lxc_start(request->name, path, request->logpath, request->loglevel, request->daemonize, request->tty,
-                          request->open_stdin, request->pidfile, request->console_fifos, request->console_logpath,
-                          request->share_ns, request->start_timeout, request->container_pidfile, request->exit_fifo);
+        execute_lxc_start(request->name, path, request);
     }
 
     close(pipefd[1]);
@@ -1384,70 +1301,22 @@ out_put:
     return ret;
 }
 
-bool lcr_exec(const char *name, const char *lcrpath, int argc, char * const *argv, pid_t *pid)
+bool lcr_exec(const struct lcr_exec_request *request, int *exit_code)
 {
+    const char *name = NULL;
     struct lxc_container *c = NULL;
-    const char *path = lcrpath ? lcrpath : LCRPATH;
-    int r = 0;
-    bool ret = false;
-    lxc_attach_options_t options = LXC_ATTACH_OPTIONS_DEFAULT;
-    lxc_attach_command_t command = (lxc_attach_command_t) {
-        .program = NULL
-    };
-    if (argc > 0) {
-        command.program = argv[0];
-        command.argv = (char **)argv;
-    }
-
-    if (name == NULL) {
-        ERROR("Missing container name");
-        return false;
-    }
-
-    engine_set_log_prefix(name);
-    if (geteuid()) {
-        if (access(path, O_RDONLY) < 0) {
-            ERROR("You lack access to %s", path);
-            engine_free_log_prefix();
-            return false;
-        }
-    }
-
-    c = lxc_container_new(name, path);
-    if (c == NULL) {
-        ERROR("Failed to delete container.");
-        engine_free_log_prefix();
-        return false;
-    }
-
-    if (!lcr_check_container_running(c, name)) {
-        goto out_put;
-    }
-
-    if (command.program != NULL) {
-        r = c->attach(c, lxc_attach_run_command, &command, &options, pid);
-    } else {
-        r = c->attach(c, lxc_attach_run_shell, NULL, &options, pid);
-    }
-    if (r < 0) {
-        goto out_put;
-    }
-    ret = true;
-out_put:
-    lxc_container_put(c);
-    engine_free_log_prefix();
-    return ret;
-}
-
-bool lcr_attach(const char *name, const char *lcrpath, const char *logpath, const char *loglevel,
-                const char *console_fifos[], char * const argv[], char * const env[], int64_t timeout,
-                pid_t *exec_pid, int *exit_code)
-{
-    struct lxc_container *c = NULL;
-    const char *tmp_path = lcrpath ? lcrpath : LCRPATH;
+    const char *tmp_path = NULL;
     bool bret = false;
 
     clear_error_message(&g_lcr_error);
+
+    if (request == NULL || exit_code == NULL) {
+        ERROR("Invalid input arguments");
+        return bret;
+    }
+
+    name = request->name;
+    tmp_path = request->lcrpath ? request->lcrpath : LCRPATH;
 
     if (name == NULL) {
         ERROR("Missing container name");
@@ -1475,10 +1344,8 @@ bool lcr_attach(const char *name, const char *lcrpath, const char *logpath, cons
 
     lxc_container_put(c);
 
-    /* do attach to wait exit code*/
-    bret = do_attach(name, lcrpath, logpath, loglevel, console_fifos, (const char * const *)argv,
-                     (const char * const *)env, timeout, exec_pid, exit_code);
-
+    /* do attach to wait exit code */
+    bret = do_attach(name, tmp_path, request, exit_code);
     goto out;
 
 out_put:
@@ -1490,13 +1357,6 @@ out:
 
 static bool lcr_check_container_stopped(struct lxc_container *c, const char *name)
 {
-    if (!is_container_exists(c)) {
-        ERROR("No such container");
-        lcr_set_error_message(LCR_ERR_RUNTIME, "No such container:%s or the configuration files has been corrupted",
-                              name);
-        return false;
-    }
-
     if (!is_container_can_control(c)) {
         ERROR("Insufficent privileges to control");
         return false;
@@ -1537,6 +1397,13 @@ bool lcr_clean(const char *name, const char *lcrpath, const char *logpath, const
         ERROR("Failed to delete container.");
         engine_free_log_prefix();
         return false;
+    }
+
+    /* if container do not exist, just return true. */
+    if (!is_container_exists(c)) {
+        WARN("No such container: %s", name);
+        bret = true;
+        goto out_put;
     }
 
     if (!lcr_check_container_stopped(c, name)) {
@@ -1995,7 +1862,7 @@ int lcr_log_init(const char *name, const char *file, const char *priority, const
         lconf.driver = "stdout";
         lconf.priority = priority ? priority : "ERROR";
     } else {
-        /*File has prefix "fifo:",*/
+        /* File has prefix "fifo:", */
         full_path = util_string_split_prefix(pre_len, file);
         lconf.file = full_path;
         lconf.driver = "fifo";
@@ -2045,7 +1912,7 @@ bool translate_spec(const struct lxc_container *c, const char *oci_json_data, co
 
     lcr_conf = lcr_oci2lcr(c, container_rootfs, container, &seccomp_conf);
     if (lcr_conf == NULL) {
-        ERROR("Create distribution specific configuration failed");
+        ERROR("Create specific configuration failed");
         goto out_free_conf;
     }
 

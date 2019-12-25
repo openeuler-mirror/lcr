@@ -2324,7 +2324,7 @@ static int append_seccomp_with_archs(const oci_runtime_config_linux_seccomp *sec
             ret = -1;
             goto out;
         }
-        /* append rules*/
+        /* append rules */
         for (j = 0; j < seccomp->syscalls_len; j++) {
             if (seccomp_append_rules(seccomp->syscalls[j], buffer)) {
                 ret = -1;

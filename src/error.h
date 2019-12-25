@@ -24,7 +24,7 @@ typedef struct engine_error {
     char *errmsg;
 } engine_error_t;
 
-/*record the lcr error*/
+/* record the lcr error */
 extern __thread engine_error_t g_lcr_error;
 
 #define DEF_SUCCESS_STR "Success"
