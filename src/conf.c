@@ -29,7 +29,6 @@
 #include "utils.h"
 #include "log.h"
 #include "buffer.h"
-#include "securec.h"
 
 #define SUB_UID_PATH "/etc/subuid"
 #define SUB_GID_PATH "/etc/subgid"
@@ -299,7 +298,6 @@ static char *capabilities_join(const char *sep, const char **parts, size_t len)
     size_t sep_len;
     size_t result_len;
     size_t iter;
-    int nret = 0;
 
     sep_len = strlen(sep);
     if (valid_sep_len(sep_len, len) == false) {
@@ -322,20 +320,10 @@ static char *capabilities_join(const char *sep, const char **parts, size_t len)
     }
 
     for (iter = 0; iter < len - 1; iter++) {
-        nret = strcat_s(result, result_len + 1, &(parts[iter][4]));
-        if (nret != EOK) {
-            goto err_out;
-        }
-
-        nret = strcat_s(result, result_len + 1, sep);
-        if (nret != EOK) {
-            goto err_out;
-        }
+        (void)strcat(result, &(parts[iter][4]));
+        (void)strcat(result, sep);
     }
-    nret = strcat_s(result, result_len + 1, &(parts[len - 1][4]));
-    if (nret != EOK) {
-        goto err_out;
-    }
+    (void)strcat(result, &(parts[len - 1][4]));
 
     // Lower case
     for (iter = 0; iter < result_len; iter++) {
@@ -345,10 +333,6 @@ static char *capabilities_join(const char *sep, const char **parts, size_t len)
     }
 
     return result;
-
-err_out:
-    free(result);
-    return NULL;
 }
 
 #define UID_MAX_SIZE 21
@@ -360,8 +344,8 @@ static int trans_oci_process_init_uid(const oci_runtime_spec_process *proc, stru
     int nret;
     int ret = -1;
     if (proc->user != NULL && proc->user->uid != INVALID_INT) {
-        nret = sprintf_s(buf, sizeof(buf), "%u", (unsigned int)proc->user->uid);
-        if (nret < 0) {
+        nret = snprintf(buf, sizeof(buf), "%u", (unsigned int)proc->user->uid);
+        if (nret < 0 || (size_t)nret >= sizeof(buf)) {
             goto out;
         }
 
@@ -384,8 +368,8 @@ static int trans_oci_process_init_gid(const oci_runtime_spec_process *proc, stru
     int nret;
     int ret = -1;
     if (proc->user != NULL && proc->user->gid != INVALID_INT) {
-        nret = sprintf_s(buf, sizeof(buf), "%u", (unsigned int)proc->user->gid);
-        if (nret < 0) {
+        nret = snprintf(buf, sizeof(buf), "%u", (unsigned int)proc->user->gid);
+        if (nret < 0 || (size_t)nret >= sizeof(buf)) {
             goto out;
         }
 
@@ -418,16 +402,16 @@ static int trans_oci_process_init_groups(const oci_runtime_spec_process *proc, s
             goto out;
         }
 
-        nret = sprintf_s(gids, total_len, "%u", (unsigned int)(proc->user->additional_gids[0]));
-        if (nret < 0) {
+        nret = snprintf(gids, total_len, "%u", (unsigned int)(proc->user->additional_gids[0]));
+        if (nret < 0 || (size_t)nret >= total_len) {
             free(gids);
             goto out;
         }
         for (i = 1; i < proc->user->additional_gids_len; i++) {
             size_t old_len = strlen(gids);
-            nret = sprintf_s(gids + old_len, total_len - old_len, " %u",
-                             (unsigned int)(proc->user->additional_gids[i]));
-            if (nret < 0) {
+            nret = snprintf(gids + old_len, total_len - old_len, " %u",
+                            (unsigned int)(proc->user->additional_gids[i]));
+            if (nret < 0 || (size_t)nret >= (total_len - old_len)) {
                 free(gids);
                 goto out;
             }
@@ -577,16 +561,16 @@ static int trans_oci_process_prlimit(const oci_runtime_spec_process *proc, struc
         }
 
         // Skip `RLIMIT_`
-        nret = sprintf_s(buf_key, sizeof(buf_key), "lxc.prlimit.%s", &(type[7]));
+        nret = snprintf(buf_key, sizeof(buf_key), "lxc.prlimit.%s", &(type[7]));
         free(type);
-        if (nret < 0) {
+        if (nret < 0 || (size_t)nret >= sizeof(buf_key)) {
             goto out;
         }
 
         // We always use format `soft_limit:hard_limit`
-        nret = sprintf_s(buf_value, sizeof(buf_value), "%llu:%llu", (unsigned long long)lr->soft,
-                         (unsigned long long)lr->hard);
-        if (nret < 0) {
+        nret = snprintf(buf_value, sizeof(buf_value), "%llu:%llu", (unsigned long long)lr->soft,
+                        (unsigned long long)lr->hard);
+        if (nret < 0 || (size_t)nret >= sizeof(buf_value)) {
             goto out;
         }
 
@@ -766,8 +750,8 @@ static int trans_oci_root_rootfs_options(const oci_runtime_spec_root *root, stru
                 goto out;
             }
             value = tmpvalue;
-            nret = sprintf_s(value + strlen(value), newsize - strlen(value), ",%s", linux->rootfs_propagation);
-            if (nret < 0) {
+            nret = snprintf(value + strlen(value), newsize - strlen(value), ",%s", linux->rootfs_propagation);
+            if (nret < 0 || (size_t)nret >= (newsize - strlen(value))) {
                 ERROR("Failed to print string");
                 goto out;
             }
@@ -952,8 +936,8 @@ static struct lcr_list *trans_mount_auto_to_lxc(const defs_mount *mount)
         goto out_free;
     }
 
-    ret = sprintf_s(buf, buf_len, "%s:%s", type, options);
-    if (ret < 0) {
+    ret = snprintf(buf, buf_len, "%s:%s", type, options);
+    if (ret < 0 || (size_t)ret >= buf_len) {
         DEBUG("Failed to print string");
         goto out_free;
     }
@@ -1000,8 +984,8 @@ static struct lcr_list *trans_mount_entry_to_lxc(const defs_mount *mount)
         goto out_free;
     }
 
-    ret = sprintf_s(buf, buf_len, "%s %s %s %s 0 0", replaced_source, replaced_dest + 1, mount->type, options);
-    if (ret < 0) {
+    ret = snprintf(buf, buf_len, "%s %s %s %s 0 0", replaced_source, replaced_dest + 1, mount->type, options);
+    if (ret < 0 || (size_t)ret >= buf_len) {
         ERROR("Failed to print string");
         goto out_free;
     }
@@ -1121,8 +1105,8 @@ static int trans_one_oci_id_mapping(struct lcr_list *conf, const char *typ, cons
     char buf_value[300] = { 0 };
     char subid[ID_MAP_LEN] = { 0 };
 
-    nret = sprintf_s(buf_value, sizeof(buf_value), "%s %u %u %u", typ, id->container_id, id->host_id, id->size);
-    if (nret < 0) {
+    nret = snprintf(buf_value, sizeof(buf_value), "%s %u %u %u", typ, id->container_id, id->host_id, id->size);
+    if (nret < 0 || (size_t)nret >= sizeof(buf_value)) {
         return -1;
     }
 
@@ -1132,8 +1116,8 @@ static int trans_one_oci_id_mapping(struct lcr_list *conf, const char *typ, cons
     }
     lcr_list_add_tail(conf, node);
 
-    nret = sprintf_s(subid, sizeof(subid), "%u:%u:%u", id->container_id, id->host_id, id->size);
-    if (nret < 0) {
+    nret = snprintf(subid, sizeof(subid), "%u:%u:%u", id->container_id, id->host_id, id->size);
+    if (nret < 0 || (size_t)nret >= sizeof(subid)) {
         return -1;
     }
     nret = util_atomic_write_file(path, subid);
@@ -1208,8 +1192,8 @@ static int trans_conf_int(struct lcr_list *conf, const char *lxc_key, int val)
     char buf_value[300] = { 0 };
     int nret;
 
-    nret = sprintf_s(buf_value, sizeof(buf_value), "%d", val);
-    if (nret < 0) {
+    nret = snprintf(buf_value, sizeof(buf_value), "%d", val);
+    if (nret < 0 || (size_t)nret >= sizeof(buf_value)) {
         return -1;
     }
     node = create_lcr_list_node(lxc_key, buf_value);
@@ -1226,8 +1210,8 @@ static int trans_conf_uint32(struct lcr_list *conf, const char *lxc_key, uint32_
     char buf_value[300] = { 0 };
     int nret;
 
-    nret = sprintf_s(buf_value, sizeof(buf_value), "%u", (unsigned int)val);
-    if (nret < 0) {
+    nret = snprintf(buf_value, sizeof(buf_value), "%u", (unsigned int)val);
+    if (nret < 0 || (size_t)nret >= sizeof(buf_value)) {
         return -1;
     }
     node = create_lcr_list_node(lxc_key, buf_value);
@@ -1244,8 +1228,8 @@ static int trans_conf_int64(struct lcr_list *conf, const char *lxc_key, int64_t 
     char buf_value[300] = { 0 };
     int nret;
 
-    nret = sprintf_s(buf_value, sizeof(buf_value), "%lld", (long long)val);
-    if (nret < 0) {
+    nret = snprintf(buf_value, sizeof(buf_value), "%lld", (long long)val);
+    if (nret < 0 || (size_t)nret >= sizeof(buf_value)) {
         return -1;
     }
     node = create_lcr_list_node(lxc_key, buf_value);
@@ -1262,8 +1246,8 @@ static int trans_conf_uint64(struct lcr_list *conf, const char *lxc_key, uint64_
     char buf_value[300] = { 0 };
     int nret;
 
-    nret = sprintf_s(buf_value, sizeof(buf_value), "%llu", (unsigned long long)val);
-    if (nret < 0) {
+    nret = snprintf(buf_value, sizeof(buf_value), "%llu", (unsigned long long)val);
+    if (nret < 0 || (size_t)nret >= sizeof(buf_value)) {
         return -1;
     }
     node = create_lcr_list_node(lxc_key, buf_value);
@@ -1412,11 +1396,11 @@ static int trans_resources_devices_no_match(const oci_runtime_defs_linux_device_
 {
     int ret = 0;
     if (lrd->minor != WILDCARD) {
-        ret = sprintf_s(buf_value, size, "%s %lld:%lld %s", lrd->type ? lrd->type : "a", (long long)(lrd->major),
-                        (long long)lrd->minor, lrd->access ? lrd->access : "rwm");
+        ret = snprintf(buf_value, size, "%s %lld:%lld %s", lrd->type ? lrd->type : "a", (long long)(lrd->major),
+                       (long long)lrd->minor, lrd->access ? lrd->access : "rwm");
     } else {
-        ret = sprintf_s(buf_value, size, "%s %lld:* %s", lrd->type ? lrd->type : "a", (long long)(lrd->major),
-                        lrd->access ? lrd->access : "rwm");
+        ret = snprintf(buf_value, size, "%s %lld:* %s", lrd->type ? lrd->type : "a", (long long)(lrd->major),
+                       lrd->access ? lrd->access : "rwm");
     }
 
     return ret;
@@ -1426,10 +1410,10 @@ static int trans_resources_devices_match(const oci_runtime_defs_linux_device_cgr
 {
     int ret = 0;
     if (lrd->minor != WILDCARD) {
-        ret = sprintf_s(buf_value, size, "%s *:%lld %s", lrd->type ? lrd->type : "a", (long long)(lrd->minor),
-                        lrd->access ? lrd->access : "rwm");
+        ret = snprintf(buf_value, size, "%s *:%lld %s", lrd->type ? lrd->type : "a", (long long)(lrd->minor),
+                       lrd->access ? lrd->access : "rwm");
     } else {
-        ret = sprintf_s(buf_value, size, "%s *:* %s", lrd->type ? lrd->type : "a", lrd->access ? lrd->access : "rwm");
+        ret = snprintf(buf_value, size, "%s *:* %s", lrd->type ? lrd->type : "a", lrd->access ? lrd->access : "rwm");
     }
 
     return ret;
@@ -1610,9 +1594,9 @@ static int trans_blkio_wdevice(const oci_runtime_config_linux_resources_block_io
         int nret;
         oci_runtime_defs_linux_block_io_device_weight *wd = block_io->weight_device[i];
         if ((wd != NULL) && wd->weight != INVALID_INT) {
-            nret = sprintf_s(buf_value, sizeof(buf_value), "%lld:%lld %d", (long long)(wd->major), (long long)wd->minor,
-                             wd->weight);
-            if (nret < 0) {
+            nret = snprintf(buf_value, sizeof(buf_value), "%lld:%lld %d", (long long)(wd->major), (long long)wd->minor,
+                            wd->weight);
+            if (nret < 0 || (size_t)nret >= sizeof(buf_value)) {
                 goto out;
             }
 
@@ -1623,9 +1607,9 @@ static int trans_blkio_wdevice(const oci_runtime_config_linux_resources_block_io
             lcr_list_add_tail(conf, node);
         }
         if ((wd != NULL) && wd->leaf_weight != INVALID_INT) {
-            nret = sprintf_s(buf_value, sizeof(buf_value), "%lld:%lld %d", (long long)(wd->major),
-                             (long long)(wd->minor), wd->leaf_weight);
-            if (nret < 0) {
+            nret = snprintf(buf_value, sizeof(buf_value), "%lld:%lld %d", (long long)(wd->major),
+                            (long long)(wd->minor), wd->leaf_weight);
+            if (nret < 0 || (size_t)nret >= sizeof(buf_value)) {
                 goto out;
             }
 
@@ -1657,9 +1641,9 @@ static int trans_blkio_throttle(oci_runtime_defs_linux_block_io_device_throttle 
         if (throttle[i] && throttle[i]->rate != INVALID_INT) {
             int nret;
             char buf_value[300] = { 0x00 };
-            nret = sprintf_s(buf_value, sizeof(buf_value), "%lld:%lld %llu", (long long)throttle[i]->major,
-                             (long long)(throttle[i]->minor), (unsigned long long)(throttle[i]->rate));
-            if (nret < 0) {
+            nret = snprintf(buf_value, sizeof(buf_value), "%lld:%lld %llu", (long long)throttle[i]->major,
+                            (long long)(throttle[i]->minor), (unsigned long long)(throttle[i]->rate));
+            if (nret < 0 || (size_t)nret >= sizeof(buf_value)) {
                 goto out;
             }
 
@@ -1727,7 +1711,8 @@ static int trans_resources_hugetlb(const oci_runtime_config_linux_resources *res
     for (i = 0; i < res->hugepage_limits_len; i++) {
         oci_runtime_config_linux_resources_hugepage_limits_element *lrhl = res->hugepage_limits[i];
         if (lrhl->page_size != NULL) {
-            if (sprintf_s(buf_key, sizeof(buf_key), "lxc.cgroup.hugetlb.%s.limit_in_bytes", lrhl->page_size) < 0) {
+            int nret = snprintf(buf_key, sizeof(buf_key), "lxc.cgroup.hugetlb.%s.limit_in_bytes", lrhl->page_size);
+            if (nret < 0 || (size_t)nret >= sizeof(buf_key)) {
                 goto out;
             }
 
@@ -1762,7 +1747,8 @@ static int trans_resources_network(const oci_runtime_config_linux_resources *res
     for (i = 0; i < res->network->priorities_len; i++) {
         oci_runtime_defs_linux_network_interface_priority *lrnp = res->network->priorities[i];
         if ((lrnp != NULL) && lrnp->name != NULL && lrnp->priority != INVALID_INT) {
-            if (sprintf_s(buf_value, sizeof(buf_value), "%s %u", lrnp->name, lrnp->priority) < 0) {
+            int nret = snprintf(buf_value, sizeof(buf_value), "%s %u", lrnp->name, lrnp->priority);
+            if (nret < 0 || (size_t)nret >= sizeof(buf_value)) {
                 goto out;
             }
 
@@ -1792,11 +1778,11 @@ static int trans_resources_pids(const oci_runtime_config_linux_resources *res, s
     if (res->pids->limit != INVALID_INT) {
         int nret;
         if (res->pids->limit == -1) {
-            nret = sprintf_s(buf_value, sizeof(buf_value), "max");
+            nret = snprintf(buf_value, sizeof(buf_value), "max");
         } else {
-            nret = sprintf_s(buf_value, sizeof(buf_value), "%lld", (long long)(res->pids->limit));
+            nret = snprintf(buf_value, sizeof(buf_value), "%lld", (long long)(res->pids->limit));
         }
-        if (nret < 0) {
+        if (nret < 0 || (size_t)nret >= sizeof(buf_value)) {
             goto out;
         }
 
@@ -2001,10 +1987,10 @@ static struct lcr_list *trans_oci_linux_devices(const oci_runtime_config_linux *
         /* lxc.populate_device = PATH_IN_CONTAINER:DEVICETYPE:MAJOR:MINOR:MODE:UID:GID
          * For e.g. lxc.populate_device = /dev/sda:b:8:0:0666:0:0
          */
-        nret = sprintf_s(buf_value, sizeof(buf_value), "%s:%s:%lld:%lld:%d:%u:%u", device->path, device->type,
-                         (long long int)(device->major), (long long int)(device->minor), device->file_mode, device->uid,
-                         device->gid);
-        if (nret < 0) {
+        nret = snprintf(buf_value, sizeof(buf_value), "%s:%s:%lld:%lld:%d:%u:%u", device->path, device->type,
+                        (long long int)(device->major), (long long int)(device->minor), device->file_mode, device->uid,
+                        device->gid);
+        if (nret < 0 || (size_t)nret >= sizeof(buf_value)) {
             ERROR("Failed to get populate device string");
             goto out_free;
         }
@@ -2293,8 +2279,8 @@ static struct lcr_list *trans_oci_linux_sysctl(const json_map_string_string *sys
 
     for (i = 0; i < sysctl->len; i++) {
         char sysk[BUFSIZ] = { 0 };
-        int nret = sprintf_s(sysk, sizeof(sysk), "lxc.sysctl.%s", sysctl->keys[i]);
-        if (nret < 0) {
+        int nret = snprintf(sysk, sizeof(sysk), "lxc.sysctl.%s", sysctl->keys[i]);
+        if (nret < 0 || (size_t)nret >= sizeof(sysk)) {
             ERROR("Failed to print string");
             goto out_free;
         }

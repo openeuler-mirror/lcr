@@ -26,7 +26,6 @@
 #include <fcntl.h>
 #include "constants.h"
 #include "utils.h"
-#include "securec.h"
 #include "log.h"
 
 #define ISSLASH(C) ((C) == '/')
@@ -55,7 +54,6 @@ static int do_clean_path(const char *respath, const char *limit_respath, const c
 {
     char *dest = *dst;
     const char *endpos = stpos;
-    errno_t ret;
 
     for (; *stpos; stpos = endpos) {
         while (ISSLASH(*stpos)) {
@@ -84,11 +82,7 @@ static int do_clean_path(const char *respath, const char *limit_respath, const c
             return -1;
         }
 
-        ret = memcpy_s(dest, (size_t)(endpos - stpos), stpos, (size_t)(endpos - stpos));
-        if (ret != EOK) {
-            ERROR("Failed at cleanpath memcpy");
-            return -1;
-        }
+        (void)memcpy(dest, stpos, (size_t)(endpos - stpos));
         dest += endpos - stpos;
         *dest = '\0';
     }
@@ -102,7 +96,6 @@ static char *cleanpath(const char *path, char *realpath, size_t realpath_len)
     char *dest = NULL;
     const char *stpos = NULL;
     const char *limit_respath = NULL;
-    errno_t ret;
 
     if (path == NULL || path[0] == '\0' || realpath == NULL || (realpath_len < PATH_MAX)) {
         return NULL;
@@ -110,11 +103,7 @@ static char *cleanpath(const char *path, char *realpath, size_t realpath_len)
 
     respath = realpath;
 
-    ret = memset_s(respath, realpath_len, 0, realpath_len);
-    if (ret != EOK) {
-        ERROR("Failed at cleanpath memset");
-        goto error;
-    }
+    (void)memset(respath, 0, realpath_len);
     limit_respath = respath + PATH_MAX;
 
     if (!IS_ABSOLUTE_FILE_NAME(path)) {
@@ -128,11 +117,11 @@ static char *cleanpath(const char *path, char *realpath, size_t realpath_len)
             ERROR("Failed to get the end of respath");
             goto error;
         }
-        ret = strcat_s(respath, PATH_MAX, path);
-        if (ret != EOK) {
-            ERROR("Failed at cleanpath strcat");
+        if (strlen(path) >= (PATH_MAX - 1) - strlen(respath)) {
+            ERROR("%s path too long", path);
             goto error;
         }
+        (void)strcat(respath, path);
         stpos = path;
     } else {
         dest = respath;
@@ -235,21 +224,11 @@ static char *do_string_join(const char *sep, const char **parts, size_t parts_le
     if (res_string == NULL) {
         return NULL;
     }
-
     for (iter = 0; iter < parts_len - 1; iter++) {
-        if (strcat_s(res_string, result_len + 1, parts[iter]) != EOK) {
-            free(res_string);
-            return NULL;
-        }
-        if (strcat_s(res_string, result_len + 1, sep) != EOK) {
-            free(res_string);
-            return NULL;
-        }
+        (void)strcat(res_string, parts[iter]);
+        (void)strcat(res_string, sep);
     }
-    if (strcat_s(res_string, result_len + 1, parts[parts_len - 1]) != EOK) {
-        free(res_string);
-        return NULL;
-    }
+    (void)strcat(res_string, parts[parts_len - 1]);
     return res_string;
 }
 
@@ -436,12 +415,7 @@ int lcr_grow_array(void ***orig_array, size_t *orig_capacity, size_t size, size_
             return -1;
         }
         if (*orig_array) {
-            if (memcpy_s(add_array, add_capacity * sizeof(void *), *orig_array, *orig_capacity * sizeof(void *)) !=
-                EOK) {
-                ERROR("Failed to memcpy memory");
-                free(add_array);
-                return -1;
-            }
+            (void)memcpy(add_array, *orig_array, *orig_capacity * sizeof(void *));
             free((void *)*orig_array);
         }
 
@@ -477,7 +451,6 @@ void *util_common_calloc_s(size_t size)
 
 int mem_realloc(void **newptr, size_t newsize, void *oldptr, size_t oldsize)
 {
-    int nret = 0;
     void *addr = NULL;
 
     if (newptr == NULL) {
@@ -494,11 +467,7 @@ int mem_realloc(void **newptr, size_t newsize, void *oldptr, size_t oldsize)
     }
 
     if (oldptr != NULL) {
-        nret = memcpy_s(addr, newsize, oldptr, oldsize);
-        if (nret != EOK) {
-            free(addr);
-            goto err_out;
-        }
+        (void)memcpy(addr, oldptr, oldsize);
         free(oldptr);
     }
 
@@ -791,8 +760,8 @@ static void util_rmdir_one(const char *dirpath, const struct dirent *pdirent, in
         return;
     }
 
-    nret = sprintf_s(fname, PATH_MAX, "%s/%s", dirpath, pdirent->d_name);
-    if (nret < 0) {
+    nret = snprintf(fname, PATH_MAX, "%s/%s", dirpath, pdirent->d_name);
+    if (nret < 0 || nret >= PATH_MAX) {
         ERROR("Pathname too long");
         *failure = 1;
         return;
@@ -878,27 +847,18 @@ static ssize_t util_string_replace_one(const char *needle, const char *replace, 
     for (next_p = (char *)haystack, p = strstr(next_p, needle); p != NULL; next_p = p, p = strstr(next_p, needle)) {
         part_len = (size_t)(p - next_p);
         if ((res_string != NULL) && part_len > 0) {
-            if (memcpy_s(&res_string[length], part_len, next_p, part_len) != EOK) {
-                ERROR("Failed to copy memory!");
-                return -1;
-            }
+            (void)memcpy(&res_string[length], next_p, part_len);
         }
         length += (ssize_t)part_len;
         if ((res_string != NULL) && replace_len > 0) {
-            if (memcpy_s(&res_string[length], replace_len, replace, replace_len) != EOK) {
-                ERROR("Failed to copy memory!");
-                return -1;
-            }
+            (void)memcpy(&res_string[length], replace, replace_len);
         }
         length += (ssize_t)replace_len;
         p += nl_len;
     }
     part_len = strlen(next_p);
     if ((res_string != NULL) && part_len > 0) {
-        if (memcpy_s(&res_string[length], part_len, next_p, part_len) != EOK) {
-            ERROR("Failed to copy memory!");
-            return -1;
-        }
+        (void)memcpy(&res_string[length], next_p, part_len);
     }
     length += (ssize_t)part_len;
     return length;
@@ -1117,14 +1077,8 @@ char *util_string_append(const char *post, const char *pre)
     if (res_string == NULL) {
         return NULL;
     }
-    if (strcat_s(res_string, length, pre) != EOK) {
-        free(res_string);
-        return NULL;
-    }
-    if (strcat_s(res_string, length, post) != EOK) {
-        free(res_string);
-        return NULL;
-    }
+    (void)strcat(res_string, pre);
+    (void)strcat(res_string, post);
 
     return res_string;
 }
@@ -1152,11 +1106,7 @@ char *util_string_split_prefix(size_t prefix_len, const char *file)
     if (path == NULL) {
         return NULL;
     }
-    if (strncpy_s(path, len + 1, file + prefix_len, len) != EOK) {
-        ERROR("Failed to copy string!");
-        free(path);
-        return NULL;
-    }
+    (void)strncpy(path, file + prefix_len, len);
     path[len] = '\0';
 
     return path;
@@ -1374,11 +1324,7 @@ int util_array_append(char ***array, const char *element)
         return -1;
     }
     if (*array) {
-        if (memcpy_s(new_array, (len + 2) * sizeof(char *), *array, len * sizeof(char *)) != EOK) {
-            ERROR("Failed to memcpy memory");
-            free(new_array);
-            return -1;
-        }
+        (void)memcpy(new_array, *array, len * sizeof(char *));
         free((void *)*array);
     }
     *array = new_array;
@@ -1603,7 +1549,8 @@ static int append_new_content_to_file(FILE *fp, const char *content)
             ret = -1;
             goto out;
         }
-        if (sprintf_s(tmp_str, content_len, "%s\n", content) < 0) {
+        int num = snprintf(tmp_str, content_len, "%s\n", content);
+        if (num < 0 || (size_t)num >= content_len) {
             ERROR("Failed to print string");
             ret = -1;
             goto out;

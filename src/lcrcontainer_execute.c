@@ -29,7 +29,6 @@
 #include "utils.h"
 #include "log.h"
 #include "error.h"
-#include "securec.h"
 #include "oci_runtime_spec.h"
 
 // Cgroup Item Definition
@@ -188,7 +187,8 @@ static int update_resources_cpu_shares(struct lxc_container *c, const struct lcr
     char numstr[128] = { 0 }; /* max buffer */
 
     if (cr->cpu_shares != 0) {
-        if (sprintf_s(numstr, sizeof(numstr), "%llu", (unsigned long long)(cr->cpu_shares)) < 0) {
+        int num = snprintf(numstr, sizeof(numstr), "%llu", (unsigned long long)(cr->cpu_shares));
+        if (num < 0 || (size_t)num >= sizeof(numstr)) {
             ret = -1;
             goto out;
         }
@@ -210,7 +210,8 @@ static int update_resources_cpu_period(struct lxc_container *c, const struct lcr
     char numstr[128] = { 0 }; /* max buffer */
 
     if (cr->cpu_period != 0) {
-        if (sprintf_s(numstr, sizeof(numstr), "%llu", (unsigned long long)(cr->cpu_period)) < 0) {
+        int num = snprintf(numstr, sizeof(numstr), "%llu", (unsigned long long)(cr->cpu_period));
+        if (num < 0 || (size_t)num >= sizeof(numstr)) {
             ret = -1;
             goto out;
         }
@@ -232,7 +233,8 @@ static int update_resources_cpu_quota(struct lxc_container *c, const struct lcr_
     char numstr[128] = { 0 }; /* max buffer */
 
     if (cr->cpu_quota != 0) {
-        if (sprintf_s(numstr, sizeof(numstr), "%llu", (unsigned long long)(cr->cpu_quota)) < 0) {
+        int num = snprintf(numstr, sizeof(numstr), "%llu", (unsigned long long)(cr->cpu_quota));
+        if (num < 0 || (size_t)num >= sizeof(numstr)) {
             ret = -1;
             goto out;
         }
@@ -283,7 +285,8 @@ static int update_resources_memory_limit(struct lxc_container *c, const struct l
     char numstr[128] = { 0 }; /* max buffer */
 
     if (cr->memory_limit != 0) {
-        if (sprintf_s(numstr, sizeof(numstr), "%llu", (unsigned long long)(cr->memory_limit)) < 0) {
+        int num = snprintf(numstr, sizeof(numstr), "%llu", (unsigned long long)(cr->memory_limit));
+        if (num < 0 || (size_t)num >= sizeof(numstr)) {
             ret = -1;
             goto out;
         }
@@ -305,7 +308,8 @@ static int update_resources_memory_swap(struct lxc_container *c, const struct lc
     char numstr[128] = { 0 }; /* max buffer */
 
     if (cr->memory_swap != 0) {
-        if (sprintf_s(numstr, sizeof(numstr), "%llu", (unsigned long long)(cr->memory_swap)) < 0) {
+        int num = snprintf(numstr, sizeof(numstr), "%llu", (unsigned long long)(cr->memory_swap));
+        if (num < 0 || (size_t)num >= sizeof(numstr)) {
             ret = -1;
             goto out;
         }
@@ -327,7 +331,8 @@ static int update_resources_memory_reservation(struct lxc_container *c, const st
     char numstr[128] = { 0 }; /* max buffer */
 
     if (cr->memory_reservation != 0) {
-        if (sprintf_s(numstr, sizeof(numstr), "%llu", (unsigned long long)(cr->memory_reservation)) < 0) {
+        int num = snprintf(numstr, sizeof(numstr), "%llu", (unsigned long long)(cr->memory_reservation));
+        if (num < 0 || (size_t)num >= sizeof(numstr)) {
             ret = -1;
             goto out;
         }
@@ -370,7 +375,8 @@ static int update_resources_blkio_weight(struct lxc_container *c, const struct l
     char numstr[128] = { 0 }; /* max buffer */
 
     if (cr->blkio_weight != 0) {
-        if (sprintf_s(numstr, sizeof(numstr), "%llu", (unsigned long long)(cr->blkio_weight)) < 0) {
+        int num = snprintf(numstr, sizeof(numstr), "%llu", (unsigned long long)(cr->blkio_weight));
+        if (num < 0 || (size_t)num >= sizeof(numstr)) {
             ret = -1;
             goto out;
         }
@@ -742,7 +748,6 @@ static void stat_get_blk_stats(struct lxc_container *c, const char *item, struct
     size_t len = 0;
     char **lines = NULL;
     char **cols = NULL;
-    errno_t nret = 0;
 
     len = (size_t)c->get_cgroup_item(c, item, buf, sizeof(buf));
     if (len == 0 || len >= sizeof(buf)) {
@@ -755,10 +760,7 @@ static void stat_get_blk_stats(struct lxc_container *c, const char *item, struct
         return;
     }
 
-    nret = memset_s(stats, sizeof(struct blkio_stats), 0, sizeof(struct blkio_stats));
-    if (nret != EOK) {
-        goto err_out;
-    }
+    (void)memset(stats, 0, sizeof(struct blkio_stats));
 
     for (i = 0; lines[i]; i++) {
         cols = lcr_string_split_and_trim(lines[i], ' ');
@@ -849,9 +851,7 @@ void do_lcr_state(struct lxc_container *c, struct lcr_container_state *lcs)
     const char *state = NULL;
 
     clear_error_message(&g_lcr_error);
-    if (memset_s(lcs, sizeof(struct lcr_container_state), 0x00, sizeof(struct lcr_container_state)) != EOK) {
-        ERROR("Can not set memory");
-    }
+    (void)memset(lcs, 0x00, sizeof(struct lcr_container_state));
 
     lcs->name = util_strdup_s(c->name);
 
@@ -929,7 +929,8 @@ static void execute_lxc_attach(const char *name, const char *path, const struct 
     if (request->timeout != 0) {
         char timeout_str[LCR_NUMSTRLEN64] = { 0 };
         add_array_elem(params, args_len, &i, "--timeout");
-        if (sprintf_s(timeout_str, LCR_NUMSTRLEN64, "%lld", (long long)request->timeout) < 0) {
+        int num = snprintf(timeout_str, LCR_NUMSTRLEN64, "%lld", (long long)request->timeout);
+        if (num < 0 || num >= LCR_NUMSTRLEN64) {
             COMMAND_ERROR("Invaild attach timeout value :%lld", (long long)request->timeout);
             free(params);
             exit(EXIT_FAILURE);
@@ -1069,7 +1070,8 @@ void execute_lxc_start(const char *name, const char *path, const struct lcr_star
     if (request->start_timeout != 0) {
         char start_timeout_str[LCR_NUMSTRLEN64] = { 0 };
         add_array_elem(params, PARAM_NUM, &i, "--start-timeout");
-        if (sprintf_s(start_timeout_str, LCR_NUMSTRLEN64, "%u", request->start_timeout) < 0) {
+        int num = snprintf(start_timeout_str, LCR_NUMSTRLEN64, "%u", request->start_timeout);
+        if (num < 0 || num >= LCR_NUMSTRLEN64) {
             COMMAND_ERROR("Invaild start timeout value: %u", request->start_timeout);
             exit(EXIT_FAILURE);
         }

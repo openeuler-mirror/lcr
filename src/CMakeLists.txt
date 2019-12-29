@@ -15,12 +15,10 @@ message("--  Get top json srcs: " ${topjsonsrcs})
 add_library(liblcr ${LIBTYPE} ${topsrcs} ${topjsonsrcs} ${commonjsonsrcs} ${generatesrcs})
 
 set(check_incs
-	${LIBSECUREC_INCLUDE_DIR}
 	${LIBLXC_INCLUDE_DIR}
 	${LIBYAJL_INCLUDE_DIR}
 	)
 set(check_libs
-	${LIBSECUREC_LIBRARY}
 	${LIBLXC_LIBRARY}
 	${LIBYAJL_LIBRARY}
 	)

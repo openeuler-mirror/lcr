@@ -16,9 +16,9 @@
 #ifndef _GNU_SOURCE
 #define _GNU_SOURCE
 #endif
-#include <securec.h>
 #include "read_file.h"
 #include "oci_runtime_hooks.h"
+#include <stdlib.h>
 
 #define PARSE_ERR_BUFFER_SIZE 1024
 
@@ -30,7 +30,6 @@ char *oci_runtime_spec_hooks_generate_json(const oci_runtime_spec_hooks *ptr, co
     const unsigned char *gen_buf = NULL;
     char *json_buf = NULL;
     size_t gen_len = 0;
-    errno_t eret;
 
     if (ptr == NULL || err == NULL) {
         return NULL;
@@ -67,11 +66,7 @@ char *oci_runtime_spec_hooks_generate_json(const oci_runtime_spec_hooks *ptr, co
         *err = strdup("Out of memory");
         goto free_out;
     }
-    eret = memcpy_s((void *)json_buf, gen_len + 1, (void *)gen_buf, gen_len);
-    if (eret != EOK) {
-        *err = strdup("Memcpy failed");
-        goto free_out;
-    }
+    (void)memcpy((void *)json_buf, (void *)gen_buf, gen_len);
     json_buf[gen_len] = '\0';
 
 free_out:

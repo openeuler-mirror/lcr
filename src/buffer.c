@@ -16,7 +16,6 @@
 
 #include <stdio.h>
 #include <string.h>
-#include <securec.h>
 
 #include "buffer.h"
 #include "log.h"
@@ -84,7 +83,6 @@ static bool buffer_has_space(const Buffer *buf, size_t desired_length)
 static int buffer_grow(Buffer *buf, size_t minimum_size)
 {
     size_t factor = 0;
-    errno_t ret = 0;
     size_t new_size = 0;
     char *tmp = NULL;
 
@@ -112,12 +110,7 @@ static int buffer_grow(Buffer *buf, size_t minimum_size)
         return -1;
     }
 
-    ret = memcpy_s(tmp, new_size, buf->contents, buf->total_size);
-    if (ret != EOK) {
-        ERROR("Failed to copy memory");
-        free(tmp);
-        return -1;
-    }
+    (void)memcpy(tmp, buf->contents, buf->total_size);
 
     free(buf->contents);
     buf->contents = tmp;
@@ -192,7 +185,7 @@ int buffer_nappendf(Buffer *buf, size_t length, const char *format, ...)
     }
 
     va_start(argp, format);
-    status = vsprintf_s(tmp, printf_length, format, argp);
+    status = vsprintf(tmp, format, argp);
     va_end(argp);
     if (status < 0) {
         goto error;
@@ -229,11 +222,7 @@ char *buffer_to_s(const Buffer *buf)
     if (result == NULL) {
         return NULL;
     }
-    if (strncpy_s(result, len + 1, buf->contents, len) != EOK) {
-        ERROR("Failed to copy string!");
-        free(result);
-        return NULL;
-    }
+    (void)strncpy(result, buf->contents, len);
 
     return result;
 }
