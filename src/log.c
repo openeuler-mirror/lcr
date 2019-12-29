@@ -25,7 +25,6 @@
 #include <unistd.h>
 #include <inttypes.h>
 
-#include "securec.h"
 #include "log.h"
 #include "utils.h"
 
@@ -234,11 +233,11 @@ int engine_log_append(const struct engine_log_event *event, const char *format, 
     struct timespec timestamp;
 
     va_start(args, format);
-    rc = vsprintf_s(msg, MAX_MSG_LENGTH, format, args);
+    rc = vsprintf(msg, format, args);
     va_end(args);
-    if (rc < 0 || rc >= MAX_MSG_LENGTH) {
-        rc = sprintf_s(msg, MAX_MSG_LENGTH, "%s", "!!LONG LONG A LOG!!");
-        if (rc < 0) {
+    if (rc < 0) {
+        rc = snprintf(msg, MAX_MSG_LENGTH, "%s", "!!LONG LONG A LOG!!");
+        if (rc < 0 || rc >= MAX_MSG_LENGTH) {
             return 0;
         }
     }
@@ -296,17 +295,17 @@ void log_append_logfile(const struct engine_log_event *event, const char *timest
     if (tmp_prefix != NULL && strlen(tmp_prefix) > MAX_LOG_PREFIX_LENGTH) {
         tmp_prefix = tmp_prefix + (strlen(tmp_prefix) - MAX_LOG_PREFIX_LENGTH);
     }
-    nret = sprintf_s(log_buffer, sizeof(log_buffer), "%15s %s %-8s %s - %s:%s:%d - %s", tmp_prefix ? tmp_prefix : "",
-                     timestamp, g_engine_log_prio_name[event->priority],
-                     g_engine_log_vmname ? g_engine_log_vmname : "engine", event->locinfo->file, event->locinfo->func,
-                     event->locinfo->line, msg);
+    nret = snprintf(log_buffer, sizeof(log_buffer), "%15s %s %-8s %s - %s:%s:%d - %s", tmp_prefix ? tmp_prefix : "",
+                    timestamp, g_engine_log_prio_name[event->priority],
+                    g_engine_log_vmname ? g_engine_log_vmname : "engine", event->locinfo->file, event->locinfo->func,
+                    event->locinfo->line, msg);
 
     if (nret < 0) {
-        nret = sprintf_s(log_buffer, sizeof(log_buffer), "%15s %s %-8s %s - %s:%s:%d - %s",
-                         tmp_prefix ? tmp_prefix : "", timestamp, g_engine_log_prio_name[event->priority],
-                         g_engine_log_vmname ? g_engine_log_vmname : "engine", event->locinfo->file,
-                         event->locinfo->func, event->locinfo->line, "Large log message");
-        if (nret < 0) {
+        nret = snprintf(log_buffer, sizeof(log_buffer), "%15s %s %-8s %s - %s:%s:%d - %s",
+                        tmp_prefix ? tmp_prefix : "", timestamp, g_engine_log_prio_name[event->priority],
+                        g_engine_log_vmname ? g_engine_log_vmname : "engine", event->locinfo->file,
+                        event->locinfo->func, event->locinfo->line, "Large log message");
+        if (nret < 0 || (size_t)nret >= sizeof(log_buffer)) {
             return;
         }
     }
@@ -400,14 +399,14 @@ int engine_unix_trans_to_utc(char *buf, size_t bufsize, const struct timespec *t
     /* Calculate the real seconds */
     real_seconds = (((time->tv_sec - trans_to_sec) - hours_to_sec) - (real_minutes * 60));
 
-    ret = sprintf_s(ns, LCR_NUMSTRLEN64, "%ld", time->tv_nsec);
+    ret = snprintf(ns, LCR_NUMSTRLEN64, "%ld", time->tv_nsec);
     if (ret < 0 || ret >= LCR_NUMSTRLEN64) {
         return -1;
     }
 
     /* Create the final timestamp */
-    ret = sprintf_s(buf, bufsize, "%" PRId64 "%02" PRId64 "%02" PRId64 "%02" PRId64 "%02" PRId64 "%02" PRId64 ".%.3s",
-                    real_year, real_month, real_day, real_hours, real_minutes, real_seconds, ns);
+    ret = snprintf(buf, bufsize, "%" PRId64 "%02" PRId64 "%02" PRId64 "%02" PRId64 "%02" PRId64 "%02" PRId64 ".%.3s",
+                   real_year, real_month, real_day, real_hours, real_minutes, real_seconds, ns);
     if (ret < 0 || (size_t)ret >= bufsize) {
         return -1;
     }

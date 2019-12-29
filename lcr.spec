@@ -14,7 +14,6 @@ BuildRequires: cmake
 BuildRequires: lxc
 BuildRequires: lxc-devel
 BuildRequires: yajl yajl-devel
-BuildRequires: libsecurec libsecurec-devel
 Requires:      rsync bridge-utils lxc
 ExclusiveArch:  x86_64 aarch64
 

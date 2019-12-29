@@ -127,8 +127,8 @@ static int make_annotations(oci_runtime_spec *container, const struct lxc_contai
     }
 
     if (!anno->values[fpos]) {
-        nret = sprintf_s(default_path, PATH_MAX, "%s/%s/%s", c->config_path, c->name, "console.log");
-        if (nret < 0) {
+        nret = snprintf(default_path, PATH_MAX, "%s/%s/%s", c->config_path, c->name, "console.log");
+        if (nret < 0 || nret >= PATH_MAX) {
             ERROR("create default path: %s failed", default_path);
             goto out;
         }
@@ -373,8 +373,8 @@ static int lcr_spec_write_seccomp_line(int fd, const char *seccomp)
         goto cleanup;
     }
 
-    nret = sprintf_s(line, len, "%s = %s", "lxc.seccomp.profile", seccomp);
-    if (nret < 0) {
+    nret = snprintf(line, len, "%s = %s", "lxc.seccomp.profile", seccomp);
+    if (nret < 0 || (size_t)nret >= len) {
         ERROR("Sprintf failed");
         goto cleanup;
     }
@@ -400,8 +400,8 @@ static char *lcr_save_seccomp_file(const char *bundle, const char *seccomp_conf)
     int nret;
     ssize_t written_cnt;
 
-    nret = sprintf_s(seccomp, sizeof(seccomp), "%s/seccomp", bundle);
-    if (nret < 0) {
+    nret = snprintf(seccomp, sizeof(seccomp), "%s/seccomp", bundle);
+    if (nret < 0 || (size_t)nret >= sizeof(seccomp)) {
         goto cleanup;
     }
 
@@ -733,8 +733,8 @@ static int lcr_open_config_file(const char *bundle)
     int fd = -1;
     int nret;
 
-    nret = sprintf_s(config, sizeof(config), "%s/config", bundle);
-    if (nret < 0) {
+    nret = snprintf(config, sizeof(config), "%s/config", bundle);
+    if (nret < 0 || (size_t)nret >= sizeof(config)) {
         goto out;
     }
 
@@ -776,8 +776,8 @@ static int lcr_spec_write_config(int fd, const struct lcr_list *lcr_conf)
                 goto cleanup;
             }
 
-            nret = sprintf_s(line, len, "%s = %s", item->name, item->value);
-            if (nret < 0) {
+            nret = snprintf(line, len, "%s = %s", item->name, item->value);
+            if (nret < 0 || (size_t)nret >= len) {
                 ERROR("Sprintf failed");
                 goto cleanup;
             }
@@ -818,8 +818,8 @@ char *lcr_get_bundle(const char *lcrpath, const char *name)
         goto cleanup;
     }
 
-    nret = sprintf_s(bundle, len, "%s/%s", lcrpath, name);
-    if (nret < 0) {
+    nret = snprintf(bundle, len, "%s/%s", lcrpath, name);
+    if (nret < 0 || (size_t)nret >= len) {
         ERROR("Print bundle string failed");
         goto cleanup;
     }

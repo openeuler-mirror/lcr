@@ -190,8 +190,8 @@ static bool create_container_dir(const struct lxc_container *c)
         goto out;
     }
 
-    nret = sprintf_s(s, length, "%s/%s", c->config_path, c->name);
-    if (nret < 0) {
+    nret = snprintf(s, length, "%s/%s", c->config_path, c->name);
+    if (nret < 0 || (size_t)nret >= length) {
         goto out;
     }
     // create container dir
@@ -224,8 +224,8 @@ static bool remove_container_dir(const struct lxc_container *c)
         return false;
     }
 
-    ret = sprintf_s(s, length, "%s/%s", c->config_path, c->name);
-    if (ret < 0) {
+    ret = snprintf(s, length, "%s/%s", c->config_path, c->name);
+    if (ret < 0 || (size_t)ret >= length) {
         free(s);
         return false;
     }
@@ -318,8 +318,8 @@ static bool lcr_save_ocihooks(const char *name, const char *lcrpath, const oci_r
         return false;
     }
 
-    nret = sprintf_s(ocihook, sizeof(ocihook), "%s/%s", bundle, OCIHOOKSFILE);
-    if (nret < 0) {
+    nret = snprintf(ocihook, sizeof(ocihook), "%s/%s", bundle, OCIHOOKSFILE);
+    if (nret < 0 || (size_t)nret >= sizeof(ocihook)) {
         ERROR("Failed to print string");
         goto out_free;
     }
@@ -374,8 +374,8 @@ static bool lcr_save_container(const char *name, const char *lcrpath, const oci_
         goto out_free;
     }
 
-    nret = sprintf_s(ociconfig, sizeof(ociconfig), "%s/%s", bundle, OCICONFIGFILE);
-    if (nret < 0) {
+    nret = snprintf(ociconfig, sizeof(ociconfig), "%s/%s", bundle, OCICONFIGFILE);
+    if (nret < 0 || (size_t)nret >= sizeof(ociconfig)) {
         ERROR("Failed to print string");
         goto out_free;
     }
@@ -428,8 +428,8 @@ static bool mount_get_bundle_file(char **bundle, const char *container_name, con
     if (*bundle == NULL) {
         return false;
     }
-    nret = sprintf_s(*bundle, len, "%s/%s/%s", path, container_name, filename);
-    if (nret < 0) {
+    nret = snprintf(*bundle, len, "%s/%s/%s", path, container_name, filename);
+    if (nret < 0 || (size_t)nret >= len) {
         return false;
     }
     return true;
@@ -446,8 +446,8 @@ static bool mount_file(oci_runtime_spec *container, const char *bundle, const ch
     int nret = 0;
     defs_mount *tmp_mounts = NULL;
 
-    nret = sprintf_s(dest, sizeof(dest), "%s/%s", targetdir, filename);
-    if (nret < 0) {
+    nret = snprintf(dest, sizeof(dest), "%s/%s", targetdir, filename);
+    if (nret < 0 || (size_t)nret >= sizeof(dest)) {
         ERROR("Failed to print string");
         goto out_free;
     }
@@ -616,9 +616,9 @@ static bool mount_hosts(oci_runtime_spec *container, const struct lxc_container 
         goto out_free;
     }
 
-    nret = sprintf_s(content, content_len, "%s%s%s\n", default_config, loop_ip, container->hostname);
-    if (nret < 0) {
-        ERROR("Sprintf_s failed");
+    nret = snprintf(content, content_len, "%s%s%s\n", default_config, loop_ip, container->hostname);
+    if (nret < 0 || (size_t)nret >= content_len) {
+        ERROR("Snprintf failed");
         goto out_free;
     }
     /* 4.get file path for hosts */
@@ -662,8 +662,8 @@ static bool copy_host_file_to_bundle(const struct lxc_container *c, const char *
     bool ret = true;
     int nret;
 
-    nret = sprintf_s(full_path, sizeof(full_path), "%s%s%s", rootfs, "/etc/", filename);
-    if (nret < 0) {
+    nret = snprintf(full_path, sizeof(full_path), "%s%s%s", rootfs, "/etc/", filename);
+    if (nret < 0 || (size_t)nret >= sizeof(full_path)) {
         goto out_free;
     }
 
@@ -819,8 +819,8 @@ static int create_partial(const struct lxc_container *c)
         return -1;
     }
 
-    ret = sprintf_s(path, len, "%s/%s/partial", c->config_path, c->name);
-    if (ret < 0) {
+    ret = snprintf(path, len, "%s/%s/partial", c->config_path, c->name);
+    if (ret < 0 || (size_t)ret >= len) {
         ERROR("Error writing partial pathname");
         goto out_free;
     }
@@ -866,8 +866,8 @@ static void remove_partial(const struct lxc_container *c)
         return;
     }
 
-    ret = sprintf_s(path, len, "%s/%s/partial", c->config_path, c->name);
-    if (ret < 0) {
+    ret = snprintf(path, len, "%s/%s/partial", c->config_path, c->name);
+    if (ret < 0 || (size_t)ret >= len) {
         ERROR("Error writing partial pathname");
         goto out_free;
     }
@@ -1007,8 +1007,8 @@ static bool lcr_start_check_config(const char *lcrpath, const char *name)
         return false;
     }
 
-    nret = sprintf_s(config, sizeof(config), "%s/%s/config", lcrpath, name);
-    if (nret < 0) {
+    nret = snprintf(config, sizeof(config), "%s/%s/config", lcrpath, name);
+    if (nret < 0 || (size_t)nret >= sizeof(config)) {
         SYSERROR("Failed to allocated memory");
         return false;
     }
@@ -1059,8 +1059,8 @@ static int save_container_config_file(const char *rootpath, const char *id, cons
     if (json_data == NULL || strlen(json_data) == 0) {
         goto out;
     }
-    nret = sprintf_s(filename, sizeof(filename), "%s/%s/%s", rootpath, id, fname);
-    if (nret < 0) {
+    nret = snprintf(filename, sizeof(filename), "%s/%s/%s", rootpath, id, fname);
+    if (nret < 0 || (size_t)nret >= sizeof(filename)) {
         ERROR("Failed to print string");
         ret = -1;
         goto out;

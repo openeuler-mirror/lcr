@@ -81,7 +81,6 @@ add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/src)
 OPTION(ENABLE_LLT "llt switch" OFF)
 IF(ENABLE_LLT)
     enable_testing()
-    add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/test)
 ENDIF(ENABLE_LLT)
 
 # install all files

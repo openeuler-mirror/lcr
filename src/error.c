@@ -13,8 +13,9 @@
  * Description: provide container error definition
  ******************************************************************************/
 #include "utils.h"
-#include "securec.h"
 #include "error.h"
+#include <stdarg.h>
+#include <stdlib.h>
 
 // record the lcr error
 __thread engine_error_t g_lcr_error = {
@@ -58,7 +59,7 @@ void lcr_set_error_message(lcr_errno_t errcode, const char *format, ...)
     va_list argp;
     va_start(argp, format);
 
-    ret = vsprintf_s(errbuf, BUFSIZ, format, argp);
+    ret = vsprintf(errbuf, format, argp);
     va_end(argp);
     clear_error_message(&g_lcr_error);
     if (ret < 0) {
@@ -79,7 +80,7 @@ void lcr_try_set_error_message(lcr_errno_t errcode, const char *format, ...)
         return;
     }
     va_start(argp, format);
-    ret = vsprintf_s(errbuf, BUFSIZ, format, argp);
+    ret = vsprintf(errbuf, format, argp);
     va_end(argp);
     clear_error_message(&g_lcr_error);
     if (ret < 0) {
@@ -99,7 +100,7 @@ void lcr_append_error_message(lcr_errno_t errcode, const char *format, ...)
     va_list argp;
     va_start(argp, format);
 
-    ret = vsprintf_s(errbuf, BUFSIZ, format, argp);
+    ret = vsprintf(errbuf, format, argp);
     va_end(argp);
     if (ret < 0) {
         g_lcr_error.errcode = LCR_ERR_FORMAT;
