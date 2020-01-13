@@ -41,7 +41,7 @@ extern "C" {
  * */
 #define ENGINE_LOG_TIME_SIZE 42
 
-/* errmsg that defined in lcrc & lcrd */
+/* errmsg that defined in iSulad */
 #define DAEMON_ERROR_GRPC_INIT_STR "Init failed"
 #define DAEMON_ERROR_GRPC_CONNENCT_STR "Can not connect with server.Is the docker dameon running on the host?"
 #define DAEMON_ERROR_GRPC_SERVER_STR "Server internal error"
