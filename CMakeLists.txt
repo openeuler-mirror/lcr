@@ -1,11 +1,11 @@
-cmake_minimum_required (VERSION 3.12.1)
+cmake_minimum_required (VERSION 2.8)
 project (lcr)
 
 include(cmake/set_build_flags.cmake)
 
 option(VERSION "set lcr version" ON)
 if (VERSION STREQUAL "ON")
-	set(LCR_VERSION "1.0.17")
+	set(LCR_VERSION "1.0.18")
 endif()
 
 option(DEBUG "set lcr gcc option" ON)

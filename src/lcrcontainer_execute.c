@@ -943,6 +943,8 @@ static void execute_lxc_attach(const char *name, const char *path, const struct 
         add_array_elem(params, args_len, &i, request->user);
     }
 
+    add_array_kv(params, args_len, &i, "--suffix", request->suffix);
+
     add_array_elem(params, args_len, &i, "--");
     for (j = 0; j < request->args_len; j++) {
         add_array_elem(params, args_len, &i, request->args[j]);

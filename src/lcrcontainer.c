@@ -1592,6 +1592,106 @@ out:
     return bret;
 }
 
+bool lcr_resize(const char *name, const char *lcrpath, unsigned int height, unsigned int width)
+{
+    struct lxc_container *c = NULL;
+    const char *tmp_path = lcrpath ? lcrpath : LCRPATH;
+    bool bret = true;
+
+    clear_error_message(&g_lcr_error);
+
+    if (name == NULL) {
+        ERROR("Missing container name");
+        return false;
+    }
+
+    engine_set_log_prefix(name);
+    c = lxc_container_new(name, tmp_path);
+    if (c == NULL) {
+        ERROR("Failed to pause container");
+        engine_free_log_prefix();
+        return false;
+    }
+
+    if (!is_container_exists(c)) {
+        ERROR("No such container");
+        bret = false;
+        goto out_put;
+    }
+
+    if (!is_container_can_control(c)) {
+        ERROR("Insufficent privleges to contol");
+        bret = false;
+        goto out_put;
+    }
+
+    if (!lcr_check_container_running(c, name)) {
+        bret = false;
+        goto out_put;
+    }
+
+    if (!c->set_terminal_winch(c, height, width)) {
+        ERROR("Failed to pause");
+        bret = false;
+        goto out_put;
+    }
+
+out_put:
+    lxc_container_put(c);
+    engine_free_log_prefix();
+    return bret;
+}
+
+bool lcr_exec_resize(const char *name, const char *lcrpath, const char *suffix, unsigned int height, unsigned int width)
+{
+    struct lxc_container *c = NULL;
+    const char *tmp_path = lcrpath ? lcrpath : LCRPATH;
+    bool bret = true;
+
+    clear_error_message(&g_lcr_error);
+
+    if (name == NULL) {
+        ERROR("Missing container name");
+        return false;
+    }
+
+    engine_set_log_prefix(name);
+    c = lxc_container_new(name, tmp_path);
+    if (c == NULL) {
+        ERROR("Failed to pause container");
+        engine_free_log_prefix();
+        return false;
+    }
+
+    if (!is_container_exists(c)) {
+        ERROR("No such container");
+        bret = false;
+        goto out_put;
+    }
+
+    if (!is_container_can_control(c)) {
+        ERROR("Insufficent privleges to contol");
+        bret = false;
+        goto out_put;
+    }
+
+    if (!lcr_check_container_running(c, name)) {
+        bret = false;
+        goto out_put;
+    }
+
+    if (!c->set_exec_terminal_winch(c, suffix, height, width)) {
+        ERROR("Failed to resize exec terminal");
+        bret = false;
+        goto out_put;
+    }
+
+out_put:
+    lxc_container_put(c);
+    engine_free_log_prefix();
+    return bret;
+}
+
 bool lcr_console(const char *name, const char *lcrpath, const char *in_fifo, const char *out_fifo, const char *err_fifo)
 {
     struct lxc_container *c = NULL;

@@ -274,6 +274,8 @@ struct lcr_exec_request {
     size_t args_len;
 
     int64_t timeout;
+
+    const char *suffix;
 };
 /*
  * Execute process inside a container
@@ -289,7 +291,9 @@ void lcr_free_errmsg();
 bool lcr_get_container_pids(const char *name, const char *lcrpath, pid_t **pids, size_t *pids_len);
 
 bool translate_spec(const struct lxc_container *c, const char *oci_json_data, const char *container_rootfs);
-
+bool lcr_resize(const char *name, const char *lcrpath, unsigned int height, unsigned int width);
+bool lcr_exec_resize(const char *name, const char *lcrpath, const char *suffix, unsigned int height,
+                     unsigned int width);
 #ifdef __cplusplus
 }
 #endif
