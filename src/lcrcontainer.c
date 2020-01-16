@@ -1968,7 +1968,7 @@ int lcr_log_init(const char *name, const char *file, const char *priority, const
         lconf.driver = "fifo";
         lconf.priority = priority;
     }
-    if (log_enable(&lconf)) {
+    if (engine_log_enable(&lconf)) {
         fprintf(stderr, "Failed to init log");
         goto out;
     }

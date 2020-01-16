@@ -38,13 +38,6 @@ target_include_directories(liblcr
 # set liblcr compile flags
 set_target_properties(liblcr PROPERTIES PREFIX "")
 
-if (LCR_GCOV)
-    set(CMAKE_C_FLAGS_DEBUG "-Wall -fprofile-arcs -ftest-coverage")
-    message("------compile with gcov-------------")
-    message("-----CFLAGS: " ${CMAKE_C_FLAGS_DEBUG})
-    message("------------------------------------")
-endif()
-
 target_link_libraries(liblcr ${check_libs})
 
 if (CMAKE_TOOLCHAIN_FILE)
