@@ -13,8 +13,8 @@
  * Description: provide constant definition
  ******************************************************************************/
 
-#ifndef _LCRD_CONSTANTS_H
-#define _LCRD_CONSTANTS_H
+#ifndef _LCR_CONSTANTS_H
+#define _LCR_CONSTANTS_H
 
 /* mode of file and directory */
 
