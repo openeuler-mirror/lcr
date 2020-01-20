@@ -12,8 +12,8 @@
  * Create: 2018-11-08
  * Description: provide container buffer definition
  ******************************************************************************/
-#ifndef LCRD_BUFFER_H
-#define LCRD_BUFFER_H
+#ifndef LCR_BUFFER_H
+#define LCR_BUFFER_H
 
 #include <stdlib.h>
 #include <strings.h>

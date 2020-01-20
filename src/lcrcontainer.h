@@ -154,7 +154,7 @@ bool lcr_create(const char *name, const char *lcrpath, const char *rootfs, const
  * param loglevel	: log level.
  * param pidfile	: container pidfile path, set to NULL if you don't need.
  * param daemonize	: daemonize the container.
- * console_fifos[]	: path of the console fifos,[0]:input, [1]:output.used internal by lcrd
+ * console_fifos[]	: path of the console fifos,[0]:input, [1]:output.used internal by iSulad
  * console_logpath	:path of console log file,
  *			 set to NULL if want to use the default configure(base on the config file)
 			 set to PATH(for example "/home/XX/XX.log"), LXC will save the console to this file
