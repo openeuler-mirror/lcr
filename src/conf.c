@@ -1000,7 +1000,7 @@ err_out:
     return node;
 }
 
-static bool is_system_container(const oci_runtime_spec *container)
+bool is_system_container(const oci_runtime_spec *container)
 {
     size_t i = 0;
     for (i = 0; container->annotations != NULL && i < container->annotations->len; i++) {

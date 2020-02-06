@@ -144,7 +144,7 @@ void lcr_containers_info_free(struct lcr_container_info **info_arr, size_t size)
  * param rootfs : the path of rootfs used for the container
  * param oci_config_data	: json string of oci config data
  */
-bool lcr_create(const char *name, const char *lcrpath, const char *rootfs, const void *oci_config_data);
+bool lcr_create(const char *name, const char *lcrpath, void *oci_config);
 
 /*
  * Start a container
@@ -180,11 +180,6 @@ struct lcr_start_request {
     uint32_t start_timeout;
     const char *container_pidfile;
     const char *exit_fifo;
-
-    uid_t uid;
-    gid_t gid;
-    gid_t *additional_gids;
-    size_t additional_gids_len;
 };
 bool lcr_start(const struct lcr_start_request *request);
 
@@ -290,7 +285,6 @@ void lcr_free_errmsg();
 
 bool lcr_get_container_pids(const char *name, const char *lcrpath, pid_t **pids, size_t *pids_len);
 
-bool translate_spec(const struct lxc_container *c, const char *oci_json_data, const char *container_rootfs);
 bool lcr_resize(const char *name, const char *lcrpath, unsigned int height, unsigned int width);
 bool lcr_exec_resize(const char *name, const char *lcrpath, const char *suffix, unsigned int height,
                      unsigned int width);
