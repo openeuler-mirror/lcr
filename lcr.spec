@@ -14,7 +14,7 @@ BuildRequires: cmake
 BuildRequires: lxc
 BuildRequires: lxc-devel
 BuildRequires: yajl yajl-devel
-Requires:      rsync bridge-utils lxc
+Requires:      lxc
 ExclusiveArch:  x86_64 aarch64
 
 %ifarch x86_64
