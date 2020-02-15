@@ -240,7 +240,7 @@ static int trans_hostname_hooks_process_mounts(struct lcr_list *lcr_conf, const 
      * lxc.cap.{drop/keep}
      * lxc.limit.*
      * lxc.aa_profile
-     * lxc.se_context
+     * lxc.selinux.context
      */
     node = trans_oci_process(container->process);
     if (node == NULL) {
