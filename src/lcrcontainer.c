@@ -1171,7 +1171,7 @@ bool lcr_update(const char *name, const char *lcrpath, const struct lcr_cgroup_r
         goto out_put;
     }
 
-    if (!do_update(c, name, tmp_path, cr)) {
+    if (!do_update(c, name, tmp_path, (struct lcr_cgroup_resources *)cr)) {
         goto out_put;
     }
 
