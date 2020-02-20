@@ -627,7 +627,7 @@ static int trans_oci_process_selinux(const oci_runtime_spec_process *proc, struc
     int ret = -1;
 
     if (proc->selinux_label != NULL) {
-        node = create_lcr_list_node("lxc.se_context", proc->selinux_label);
+        node = create_lcr_list_node("lxc.selinux.context", proc->selinux_label);
         if (node == NULL) {
             goto out;
         }
