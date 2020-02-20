@@ -68,6 +68,22 @@ static inline void add_array_kv(char **array, size_t total, size_t *pos, const c
     add_array_elem(array, total, pos, v);
 }
 
+static uint64_t stat_get_ull(struct lxc_container *c, const char *item)
+{
+    char buf[80] = { 0 };
+    int len = 0;
+    uint64_t val = 0;
+
+    len = c->get_cgroup_item(c, item, buf, sizeof(buf));
+    if (len <= 0) {
+        DEBUG("unable to read cgroup item %s", item);
+        return 0;
+    }
+
+    val = strtoull(buf, NULL, 0);
+    return val;
+}
+
 static bool update_resources_cpuset_mems(struct lxc_container *c, const struct lcr_cgroup_resources *cr)
 {
     bool ret = false;
@@ -265,16 +281,39 @@ out:
     return ret;
 }
 
-static bool update_resources_mem(struct lxc_container *c, const struct lcr_cgroup_resources *cr)
+static bool update_resources_mem(struct lxc_container *c, struct lcr_cgroup_resources *cr)
 {
     bool ret = false;
 
-    if (update_resources_memory_limit(c, cr) != 0) {
-        goto err_out;
+	// If the memory update is set to -1 we should also set swap to -1, it means unlimited memory.
+    if (cr->memory_limit == -1) {
+        cr->memory_swap = -1;
     }
 
-    if (update_resources_memory_swap(c, cr) != 0) {
-        goto err_out;
+    if (cr->memory_limit != 0 && cr->memory_swap != 0) {
+        uint64_t cur_mem_limit = stat_get_ull(c, "memory.limit_in_bytes");
+        if (cr->memory_swap == -1 || cur_mem_limit < cr->memory_swap) {
+            if (update_resources_memory_swap(c, cr) != 0) {
+                goto err_out;
+            }
+            if (update_resources_memory_limit(c, cr) != 0) {
+                goto err_out;
+            }
+        } else {
+            if (update_resources_memory_limit(c, cr) != 0) {
+                goto err_out;
+            }
+            if (update_resources_memory_swap(c, cr) != 0) {
+                goto err_out;
+            }
+        }
+    } else {
+        if (update_resources_memory_limit(c, cr) != 0) {
+            goto err_out;
+        }
+        if (update_resources_memory_swap(c, cr) != 0) {
+            goto err_out;
+        }
     }
 
     if (update_resources_memory_reservation(c, cr) != 0) {
@@ -309,7 +348,7 @@ out:
     return ret;
 }
 
-static bool update_resources(struct lxc_container *c, const struct lcr_cgroup_resources *cr)
+static bool update_resources(struct lxc_container *c, struct lcr_cgroup_resources *cr)
 {
     bool ret = false;
 
@@ -333,7 +372,7 @@ err_out:
     return ret;
 }
 
-bool do_update(struct lxc_container *c, const char *name, const char *lcrpath, const struct lcr_cgroup_resources *cr)
+bool do_update(struct lxc_container *c, const char *name, const char *lcrpath, struct lcr_cgroup_resources *cr)
 {
     bool bret = false;
 
@@ -458,22 +497,6 @@ static uint64_t stat_match_get_ull(struct lxc_container *c, const char *item, co
 err1:
     lcr_free_array((void **)lines);
 err_out:
-    return val;
-}
-
-static uint64_t stat_get_ull(struct lxc_container *c, const char *item)
-{
-    char buf[80] = { 0 };
-    int len = 0;
-    uint64_t val = 0;
-
-    len = c->get_cgroup_item(c, item, buf, sizeof(buf));
-    if (len <= 0) {
-        DEBUG("unable to read cgroup item %s", item);
-        return 0;
-    }
-
-    val = strtoull(buf, NULL, 0);
     return val;
 }
 
