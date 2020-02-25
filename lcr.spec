@@ -14,6 +14,7 @@ BuildRequires: cmake
 BuildRequires: lxc
 BuildRequires: lxc-devel
 BuildRequires: yajl yajl-devel
+BuildRequires: python2
 Requires:      lxc
 ExclusiveArch:  x86_64 aarch64
 
