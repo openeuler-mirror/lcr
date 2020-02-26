@@ -1,6 +1,6 @@
 project (JSONGenerator)
 
-set(cmdpath python)
+set(cmdpath python3)
 set(pysrcpath ${CMAKE_CURRENT_SOURCE_DIR}/src/generate.py)
 set(schemapath ${CMAKE_CURRENT_SOURCE_DIR}/schema)
 set(outputpath ${CMAKE_BINARY_DIR}/json)
