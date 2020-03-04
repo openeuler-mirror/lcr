@@ -616,21 +616,6 @@ out:
     return bret;
 }
 
-static bool lcr_check_container_stopped(struct lxc_container *c, const char *name)
-{
-    if (!is_container_can_control(c)) {
-        ERROR("Insufficent privileges to control");
-        return false;
-    }
-
-    if (c->is_running(c)) {
-        ERROR("Container is still running");
-        lcr_set_error_message(LCR_ERR_RUNTIME, "Container is still running:%s", name);
-        return false;
-    }
-    return true;
-}
-
 bool lcr_clean(const char *name, const char *lcrpath, const char *logpath, const char *loglevel, pid_t pid)
 {
     struct lxc_container *c = NULL;
@@ -667,7 +652,8 @@ bool lcr_clean(const char *name, const char *lcrpath, const char *logpath, const
         goto out_put;
     }
 
-    if (!lcr_check_container_stopped(c, name)) {
+    if (!is_container_can_control(c)) {
+        ERROR("Insufficent privileges to control");
         bret = false;
         goto out_put;
     }
