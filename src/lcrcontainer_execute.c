@@ -285,7 +285,7 @@ static bool update_resources_mem(struct lxc_container *c, struct lcr_cgroup_reso
 {
     bool ret = false;
 
-	// If the memory update is set to -1 we should also set swap to -1, it means unlimited memory.
+    // If the memory update is set to -1 we should also set swap to -1, it means unlimited memory.
     if (cr->memory_limit == -1) {
         cr->memory_swap = -1;
     }

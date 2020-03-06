@@ -1279,7 +1279,7 @@ static int trans_resources_mem_swap(const oci_runtime_config_linux_resources *re
         }
     }
 
-    if (res->memory->swappiness != INVALID_INT) {
+    if (res->memory->swappiness != -1) {
         /* set swappiness parameter of vmscan */
         nret = trans_conf_uint64(conf, "lxc.cgroup.memory.swappiness", res->memory->swappiness);
         if (nret < 0) {
