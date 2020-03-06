@@ -976,79 +976,6 @@ out_free:
     return bret;
 }
 
-/*
- *Get the file path that needs to be mount
-*/
-static bool mount_get_bundle_file(char **bundle, const char *container_name, const char *lcrpath, const char *filename)
-{
-    const char *path = lcrpath ? lcrpath : LCRPATH;
-    int nret = 0;
-    size_t len = 0;
-
-    if (strlen(container_name) > (((SIZE_MAX - strlen(path)) - strlen(filename)) - 3)) {
-        return false;
-    }
-
-    /* bundle = lcrpath + '/' + container_name + '/' + filename + '\0' */
-    len = strlen(path) + strlen(container_name) + strlen(filename) + 3;
-    *bundle = util_common_calloc_s(len);
-    if (*bundle == NULL) {
-        return false;
-    }
-    nret = snprintf(*bundle, len, "%s/%s/%s", path, container_name, filename);
-    if (nret < 0 || (size_t)nret >= len) {
-        return false;
-    }
-    return true;
-}
-
-static bool copy_host_file_to_bundle(const struct lxc_container *c, const char *rootfs, const char *filename)
-{
-    char *bundle = NULL;
-    char full_path[PATH_MAX] = { 0 };
-    bool ret = true;
-    int nret;
-
-    nret = snprintf(full_path, sizeof(full_path), "%s%s%s", rootfs, "/etc/", filename);
-    if (nret < 0 || (size_t)nret >= sizeof(full_path)) {
-        goto out_free;
-    }
-
-    ret = mount_get_bundle_file(&bundle, c->name, c->config_path, filename);
-    if (!ret) {
-        goto out_free;
-    }
-    ret = util_copy_file(full_path, bundle, NETWORK_MOUNT_FILE_MODE);
-    if (!ret) {
-        goto out_free;
-    }
-
-out_free:
-    free(bundle);
-    return ret;
-}
-
-static bool init_system_container_network(const struct lxc_container *c, const char *rootfs)
-{
-    if (!copy_host_file_to_bundle(c, rootfs, "hostname")) {
-        ERROR("Failed to copy hostname from rootfs to container bundle");
-        return false;
-    }
-
-    if (!copy_host_file_to_bundle(c, rootfs, "hosts")) {
-        ERROR("Failed to copy hosts from rootfs to container bundle");
-        return false;
-    }
-
-    if (!copy_host_file_to_bundle(c, rootfs, "resolv.conf")) {
-        ERROR("Failed to copy resolv.conf from rootfs to container bundle");
-        return false;
-    }
-
-    return true;
-}
-
-
 bool translate_spec(const struct lxc_container *c, oci_runtime_spec *container)
 {
     bool ret = false;
@@ -1056,11 +983,6 @@ bool translate_spec(const struct lxc_container *c, oci_runtime_spec *container)
     char *seccomp_conf = NULL;
 
     INFO("Translate new specification file");
-    if (is_system_container(container)) {
-        if (!init_system_container_network(c, container->root->path)) {
-            goto out_free_conf;
-        }
-    }
 
     lcr_conf = lcr_oci2lcr(c, container, &seccomp_conf);
     if (lcr_conf == NULL) {
