@@ -1,5 +1,5 @@
-%global _version 1.0.18
-%global _release 20200120.104405.git2310fafe
+%global _version 1.0.20
+%global _release 20200215.125545.git330d8cda
 Name:      lcr
 Version:   %{_version}
 Release:   %{_release}
@@ -15,7 +15,7 @@ BuildRequires: lxc
 BuildRequires: lxc-devel
 BuildRequires: yajl yajl-devel
 BuildRequires: python3
-Requires:      rsync bridge-utils lxc
+Requires:      lxc
 ExclusiveArch:  x86_64 aarch64
 
 %ifarch x86_64

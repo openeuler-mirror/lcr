@@ -627,7 +627,7 @@ static int trans_oci_process_selinux(const oci_runtime_spec_process *proc, struc
     int ret = -1;
 
     if (proc->selinux_label != NULL) {
-        node = create_lcr_list_node("lxc.se_context", proc->selinux_label);
+        node = create_lcr_list_node("lxc.selinux.context", proc->selinux_label);
         if (node == NULL) {
             goto out;
         }
@@ -1000,7 +1000,7 @@ err_out:
     return node;
 }
 
-static bool is_system_container(const oci_runtime_spec *container)
+bool is_system_container(const oci_runtime_spec *container)
 {
     size_t i = 0;
     for (i = 0; container->annotations != NULL && i < container->annotations->len; i++) {
@@ -1279,7 +1279,7 @@ static int trans_resources_mem_swap(const oci_runtime_config_linux_resources *re
         }
     }
 
-    if (res->memory->swappiness != INVALID_INT) {
+    if (res->memory->swappiness != -1) {
         /* set swappiness parameter of vmscan */
         nret = trans_conf_uint64(conf, "lxc.cgroup.memory.swappiness", res->memory->swappiness);
         if (nret < 0) {

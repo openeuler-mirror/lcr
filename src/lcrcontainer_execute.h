@@ -21,7 +21,7 @@
 extern "C" {
 #endif
 
-bool do_update(struct lxc_container *c, const char *name, const char *lcrpath, const struct lcr_cgroup_resources *cr);
+bool do_update(struct lxc_container *c, const char *name, const char *lcrpath, struct lcr_cgroup_resources *cr);
 
 void do_lcr_state(struct lxc_container *c, struct lcr_container_state *lcs);
 

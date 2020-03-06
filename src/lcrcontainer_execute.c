@@ -30,6 +30,7 @@
 #include "log.h"
 #include "error.h"
 #include "oci_runtime_spec.h"
+#include "lcrcontainer_extend.h"
 
 // Cgroup Item Definition
 #define CGROUP_BLKIO_WEIGHT "blkio.weight"
@@ -67,88 +68,20 @@ static inline void add_array_kv(char **array, size_t total, size_t *pos, const c
     add_array_elem(array, total, pos, v);
 }
 
-static int make_sure_linux(oci_runtime_spec *oci_spec)
+static uint64_t stat_get_ull(struct lxc_container *c, const char *item)
 {
-    if (oci_spec->linux == NULL) {
-        oci_spec->linux = util_common_calloc_s(sizeof(oci_runtime_config_linux));
-        if (oci_spec->linux == NULL) {
-            return -1;
-        }
-    }
-    return 0;
-}
+    char buf[80] = { 0 };
+    int len = 0;
+    uint64_t val = 0;
 
-static int make_sure_linux_resources(oci_runtime_spec *oci_spec)
-{
-    int ret = 0;
-
-    ret = make_sure_linux(oci_spec);
-    if (ret < 0) {
-        return -1;
+    len = c->get_cgroup_item(c, item, buf, sizeof(buf));
+    if (len <= 0) {
+        DEBUG("unable to read cgroup item %s", item);
+        return 0;
     }
 
-    if (oci_spec->linux->resources == NULL) {
-        oci_spec->linux->resources = util_common_calloc_s(sizeof(oci_runtime_config_linux_resources));
-        if (oci_spec->linux->resources == NULL) {
-            return -1;
-        }
-    }
-    return 0;
-}
-
-static int make_sure_linux_resources_blkio(oci_runtime_spec *oci_spec)
-{
-    int ret = 0;
-
-    ret = make_sure_linux_resources(oci_spec);
-    if (ret < 0) {
-        return -1;
-    }
-
-    if (oci_spec->linux->resources->block_io == NULL) {
-        oci_spec->linux->resources->block_io =
-            util_common_calloc_s(sizeof(oci_runtime_config_linux_resources_block_io));
-        if (oci_spec->linux->resources->block_io == NULL) {
-            return -1;
-        }
-    }
-    return 0;
-}
-
-static int make_sure_linux_resources_cpu(oci_runtime_spec *oci_spec)
-{
-    int ret = 0;
-
-    ret = make_sure_linux_resources(oci_spec);
-    if (ret < 0) {
-        return -1;
-    }
-
-    if (oci_spec->linux->resources->cpu == NULL) {
-        oci_spec->linux->resources->cpu = util_common_calloc_s(sizeof(oci_runtime_config_linux_resources_cpu));
-        if (oci_spec->linux->resources->cpu == NULL) {
-            return -1;
-        }
-    }
-    return 0;
-}
-
-static int make_sure_linux_resources_mem(oci_runtime_spec *oci_spec)
-{
-    int ret = 0;
-
-    ret = make_sure_linux_resources(oci_spec);
-    if (ret < 0) {
-        return -1;
-    }
-
-    if (oci_spec->linux->resources->memory == NULL) {
-        oci_spec->linux->resources->memory = util_common_calloc_s(sizeof(oci_runtime_config_linux_resources_memory));
-        if (oci_spec->linux->resources->memory == NULL) {
-            return -1;
-        }
-    }
-    return 0;
+    val = strtoull(buf, NULL, 0);
+    return val;
 }
 
 static bool update_resources_cpuset_mems(struct lxc_container *c, const struct lcr_cgroup_resources *cr)
@@ -348,16 +281,39 @@ out:
     return ret;
 }
 
-static bool update_resources_mem(struct lxc_container *c, const struct lcr_cgroup_resources *cr)
+static bool update_resources_mem(struct lxc_container *c, struct lcr_cgroup_resources *cr)
 {
     bool ret = false;
 
-    if (update_resources_memory_limit(c, cr) != 0) {
-        goto err_out;
+    // If the memory update is set to -1 we should also set swap to -1, it means unlimited memory.
+    if (cr->memory_limit == -1) {
+        cr->memory_swap = -1;
     }
 
-    if (update_resources_memory_swap(c, cr) != 0) {
-        goto err_out;
+    if (cr->memory_limit != 0 && cr->memory_swap != 0) {
+        uint64_t cur_mem_limit = stat_get_ull(c, "memory.limit_in_bytes");
+        if (cr->memory_swap == -1 || cur_mem_limit < cr->memory_swap) {
+            if (update_resources_memory_swap(c, cr) != 0) {
+                goto err_out;
+            }
+            if (update_resources_memory_limit(c, cr) != 0) {
+                goto err_out;
+            }
+        } else {
+            if (update_resources_memory_limit(c, cr) != 0) {
+                goto err_out;
+            }
+            if (update_resources_memory_swap(c, cr) != 0) {
+                goto err_out;
+            }
+        }
+    } else {
+        if (update_resources_memory_limit(c, cr) != 0) {
+            goto err_out;
+        }
+        if (update_resources_memory_swap(c, cr) != 0) {
+            goto err_out;
+        }
     }
 
     if (update_resources_memory_reservation(c, cr) != 0) {
@@ -392,7 +348,7 @@ out:
     return ret;
 }
 
-static bool update_resources(struct lxc_container *c, const struct lcr_cgroup_resources *cr)
+static bool update_resources(struct lxc_container *c, struct lcr_cgroup_resources *cr)
 {
     bool ret = false;
 
@@ -416,284 +372,9 @@ err_out:
     return ret;
 }
 
-static bool save_container_to_disk(const struct lxc_container *c, const oci_runtime_spec *container)
+bool do_update(struct lxc_container *c, const char *name, const char *lcrpath, struct lcr_cgroup_resources *cr)
 {
-    bool bret = true;
-    char *json_container = NULL;
-    struct parser_context ctr = { 0 };
-    parser_error err = NULL;
-
-    if (c == NULL || container == NULL) {
-        return false;
-    }
-
-    ctr.options = OPT_PARSE_STRICT;
-    ctr.stderr = stderr;
-
-    json_container = oci_runtime_spec_generate_json(container, &ctr, &err);
-    if (json_container == NULL) {
-        ERROR("Can not generate json: %s", err);
-        bret = false;
-        goto err_out;
-    }
-    if (!translate_spec(c, json_container, NULL)) {
-        bret = false;
-        goto err_out;
-    }
-err_out:
-    free(json_container);
-    free(err);
-    return bret;
-}
-
-static int merge_cgroup_resources_cpu_shares(oci_runtime_spec *c, const struct lcr_cgroup_resources *cr)
-{
-    if (cr->cpu_shares != 0) {
-        if (make_sure_linux_resources_cpu(c) != 0) {
-            return -1;
-        }
-        c->linux->resources->cpu->shares = cr->cpu_shares;
-    }
-
-    return 0;
-}
-
-static int merge_cgroup_resources_cpu_period(oci_runtime_spec *c, const struct lcr_cgroup_resources *cr)
-{
-    if (cr->cpu_period != 0) {
-        if (make_sure_linux_resources_cpu(c) != 0) {
-            return -1;
-        }
-        c->linux->resources->cpu->period = cr->cpu_period;
-    }
-
-    return 0;
-}
-
-static int merge_cgroup_resources_cpu_quota(oci_runtime_spec *c, const struct lcr_cgroup_resources *cr)
-{
-    if (cr->cpu_quota != 0) {
-        if (make_sure_linux_resources_cpu(c) != 0) {
-            return -1;
-        }
-        c->linux->resources->cpu->quota = (int64_t)(cr->cpu_quota);
-    }
-
-    return 0;
-}
-
-static int merge_cgroup_resources_cpuset_cpus(oci_runtime_spec *c, const struct lcr_cgroup_resources *cr)
-{
-    if (cr->cpuset_cpus != NULL && strcmp(cr->cpuset_cpus, "") != 0) {
-        if (make_sure_linux_resources_cpu(c) != 0) {
-            return -1;
-        }
-        free(c->linux->resources->cpu->cpus);
-        c->linux->resources->cpu->cpus = util_strdup_s(cr->cpuset_cpus);
-    }
-
-    return 0;
-}
-
-static int merge_cgroup_resources_cpuset_mems(oci_runtime_spec *c, const struct lcr_cgroup_resources *cr)
-{
-    if (cr->cpuset_mems != NULL && strcmp(cr->cpuset_mems, "") != 0) {
-        if (make_sure_linux_resources_cpu(c) != 0) {
-            return -1;
-        }
-        free(c->linux->resources->cpu->mems);
-        c->linux->resources->cpu->mems = util_strdup_s(cr->cpuset_mems);
-    }
-
-    return 0;
-}
-
-static bool merge_cgroup_resources_cpu(oci_runtime_spec *c, const struct lcr_cgroup_resources *cr)
-{
-    bool ret = true;
-
-    if (merge_cgroup_resources_cpu_shares(c, cr) != 0) {
-        ret = false;
-        goto out;
-    }
-
-    if (merge_cgroup_resources_cpu_period(c, cr) != 0) {
-        ret = false;
-        goto out;
-    }
-
-    if (merge_cgroup_resources_cpu_quota(c, cr) != 0) {
-        ret = false;
-        goto out;
-    }
-
-    if (merge_cgroup_resources_cpuset_cpus(c, cr) != 0) {
-        ret = false;
-        goto out;
-    }
-
-    if (merge_cgroup_resources_cpuset_mems(c, cr) != 0) {
-        ret = false;
-        goto out;
-    }
-
-out:
-    return ret;
-}
-
-static int merge_cgroup_resources_mem_limit(oci_runtime_spec *c, const struct lcr_cgroup_resources *cr)
-{
-    if (cr->memory_limit != 0) {
-        if (make_sure_linux_resources_mem(c) != 0) {
-            return -1;
-        }
-        c->linux->resources->memory->limit = (int64_t)(cr->memory_limit);
-    }
-
-    return 0;
-}
-
-static int merge_cgroup_resources_mem_reservation(oci_runtime_spec *c, const struct lcr_cgroup_resources *cr)
-{
-    if (cr->memory_reservation != 0) {
-        if (make_sure_linux_resources_mem(c) != 0) {
-            return -1;
-        }
-        c->linux->resources->memory->reservation = (int64_t)(cr->memory_reservation);
-    }
-
-    return 0;
-}
-
-static int merge_cgroup_resources_mem_swap(oci_runtime_spec *c, const struct lcr_cgroup_resources *cr)
-{
-    if (cr->memory_swap != 0) {
-        if (make_sure_linux_resources_mem(c) != 0) {
-            return -1;
-        }
-        c->linux->resources->memory->swap = (int64_t)(cr->memory_swap);
-    }
-
-    return 0;
-}
-
-static int merge_cgroup_resources_kernel_memory_limit(oci_runtime_spec *c, const struct lcr_cgroup_resources *cr)
-{
-    if (cr->kernel_memory_limit != 0) {
-        if (make_sure_linux_resources_mem(c) != 0) {
-            return -1;
-        }
-        c->linux->resources->memory->kernel = (int64_t)(cr->kernel_memory_limit);
-    }
-
-    return 0;
-}
-
-static bool merge_cgroup_resources_mem(oci_runtime_spec *c, const struct lcr_cgroup_resources *cr)
-{
-    bool ret = true;
-
-    if (merge_cgroup_resources_mem_limit(c, cr) != 0) {
-        ret = false;
-        goto out;
-    }
-
-    if (merge_cgroup_resources_mem_reservation(c, cr) != 0) {
-        ret = false;
-        goto out;
-    }
-
-    if (merge_cgroup_resources_mem_swap(c, cr) != 0) {
-        ret = false;
-        goto out;
-    }
-
-    if (merge_cgroup_resources_kernel_memory_limit(c, cr) != 0) {
-        ret = false;
-        goto out;
-    }
-
-out:
-    return ret;
-}
-
-static int merge_cgroup_resources_blkio_weight(oci_runtime_spec *c, const struct lcr_cgroup_resources *cr)
-{
-    if (cr->blkio_weight != 0) {
-        if (make_sure_linux_resources_blkio(c) != 0) {
-            return -1;
-        }
-        c->linux->resources->block_io->weight = (int)(cr->blkio_weight);
-    }
-
-    return 0;
-}
-
-static bool merge_cgroup_resources(oci_runtime_spec *c, const struct lcr_cgroup_resources *cr)
-{
-    bool ret = true;
-
-    if (c == NULL || cr == NULL) {
-        return false;
-    }
-
-    if (merge_cgroup_resources_blkio_weight(c, cr) != 0) {
-        ret = false;
-        goto out;
-    }
-
-    ret = merge_cgroup_resources_cpu(c, cr);
-    if (!ret) {
-        goto out;
-    }
-
-    ret = merge_cgroup_resources_mem(c, cr);
-    if (!ret) {
-        goto out;
-    }
-
-out:
-    return ret;
-}
-
-bool do_update(struct lxc_container *c, const char *name, const char *lcrpath, const struct lcr_cgroup_resources *cr)
-{
-    int rc = 0;
     bool bret = false;
-    bool restore = false;
-    char *config_json_file = NULL;
-    oci_runtime_spec *container = NULL;
-    oci_runtime_spec *backupcontainer = NULL;
-    struct parser_context ctr = { OPT_PARSE_STRICT, stderr };
-    parser_error err = NULL;
-
-    rc = asprintf(&config_json_file, "%s/%s/%s", lcrpath, name, OCICONFIGFILE);
-    if (rc < 0) {
-        SYSERROR("Failed to allocated memory");
-        return false;
-    }
-
-    backupcontainer = oci_runtime_spec_parse_file(config_json_file, &ctr, &err);
-    if (backupcontainer == NULL) {
-        ERROR("Can not parse %s: %s", OCICONFIGFILE, err);
-        goto out_free;
-    }
-    container = oci_runtime_spec_parse_file(config_json_file, &ctr, &err);
-    if (container == NULL) {
-        ERROR("Can not parse %s: %s", OCICONFIGFILE, err);
-        goto out_free;
-    }
-
-    if (!merge_cgroup_resources(container, cr)) {
-        ERROR("Failed to merge cgroup resources");
-        goto out_free;
-    }
-
-    if (!save_container_to_disk(c, container)) {
-        ERROR("Failed to save config to disk");
-        restore = true;
-        goto restore;
-    }
 
     // If container is not running, update config file is enough,
     // resources will be updated when the container is started again.
@@ -702,24 +383,13 @@ bool do_update(struct lxc_container *c, const char *name, const char *lcrpath, c
     if (c->is_running(c)) {
         if (!update_resources(c, cr) && c->is_running(c)) {
             ERROR("Filed to update cgroup resources");
-            restore = true;
-            goto restore;
+            goto out_free;
         }
     }
 
     bret = true;
 
-restore:
-    if (restore && !save_container_to_disk(c, backupcontainer)) {
-        ERROR("Failed to restore");
-        bret = false;
-    }
-
 out_free:
-    free_oci_runtime_spec(backupcontainer);
-    free_oci_runtime_spec(container);
-    free(config_json_file);
-    free(err);
     if (bret) {
         clear_error_message(&g_lcr_error);
     }
@@ -827,22 +497,6 @@ static uint64_t stat_match_get_ull(struct lxc_container *c, const char *item, co
 err1:
     lcr_free_array((void **)lines);
 err_out:
-    return val;
-}
-
-static uint64_t stat_get_ull(struct lxc_container *c, const char *item)
-{
-    char buf[80] = { 0 };
-    int len = 0;
-    uint64_t val = 0;
-
-    len = c->get_cgroup_item(c, item, buf, sizeof(buf));
-    if (len <= 0) {
-        DEBUG("unable to read cgroup item %s", item);
-        return 0;
-    }
-
-    val = strtoull(buf, NULL, 0);
     return val;
 }
 

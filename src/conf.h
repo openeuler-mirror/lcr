@@ -107,4 +107,7 @@ struct lcr_list *trans_annotations(const json_map_string_string *anno);
  */
 struct lcr_list *get_needed_lxc_conf();
 
-#endif /* __LCR_CONF_H */
+
+bool is_system_container(const oci_runtime_spec *container);
+
+#endif /*__LCR_CONF_H*/
