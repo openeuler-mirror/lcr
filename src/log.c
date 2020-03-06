@@ -65,10 +65,10 @@ void engine_free_log_prefix(void)
 static ssize_t write_nointr(int fd, const void *buf, size_t count);
 
 static void do_fifo_log(const struct engine_log_object_metadata *metadata, const char *timestamp,
-                               const char *msg);
+                        const char *msg);
 
 static void do_stderr_log(const struct engine_log_object_metadata *metadata, const char *timestamp,
-                              const char *msg);
+                          const char *msg);
 
 /* engine change str logdriver to enum */
 static int engine_change_str_logdriver_to_enum(const char *driver)
@@ -212,7 +212,7 @@ out:
 }
 
 static int do_log_by_driver(const struct engine_log_object_metadata *metadata, const char *msg,
-                                   const char *date_time)
+                            const char *date_time)
 {
     switch (g_engine_log_driver) {
         case LOG_DRIVER_STDOUT:
@@ -314,7 +314,7 @@ static void do_write_log_into_file(int log_fd, char *log_msg, size_t max_len, si
 
 /* log append logfile */
 static void do_fifo_log(const struct engine_log_object_metadata *metadata, const char *timestamp,
-                               const char *msg)
+                        const char *msg)
 {
     char log_buffer[ENGINE_LOG_BUFFER_SIZE] = { 0 };
     int log_fd = -1;
@@ -353,7 +353,7 @@ static void do_fifo_log(const struct engine_log_object_metadata *metadata, const
 
 /* log append stderr */
 static void do_stderr_log(const struct engine_log_object_metadata *metadata, const char *timestamp,
-                              const char *msg)
+                          const char *msg)
 {
     char *tmp_prefix = NULL;
     if (metadata->level > g_engine_log_level) {

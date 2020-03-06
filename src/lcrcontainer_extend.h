@@ -58,15 +58,10 @@ bool container_parse(const char *oci_filename, const char *oci_json_data, oci_ru
 
 /*
  * Translate oci specification to lcr configuration.
- *   You should pass oci_filename or oci_spec to this function.
- * param oci_filename	: oci spec filename, in json format
- * param oci_json_data	: json string of oci config data
- * param new_container	: return newest oci_runtime_spec struct
- * param seccomp	: return seccomp parsed from oci spec
+ * You should pass oci_filename or oci_spec to this function.
  * return: a linked list
  */
-struct lcr_list *lcr_oci2lcr(const struct lxc_container *c, const char *container_rootfs,
-                             oci_runtime_spec *new_container,
+struct lcr_list *lcr_oci2lcr(const struct lxc_container *c, oci_runtime_spec *container,
                              char **seccomp);
 
 /*
@@ -83,6 +78,7 @@ int lcr_containers_info_get(const char *lcrpath, struct lcr_container_info **inf
 
 char *lcr_get_bundle(const char *lcrpath, const char *name);
 
+bool translate_spec(const struct lxc_container *c, oci_runtime_spec *container);
 
 #ifdef __cplusplus
 }

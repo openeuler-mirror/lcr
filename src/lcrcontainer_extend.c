@@ -33,6 +33,7 @@
 #include "utils.h"
 #include "log.h"
 #include "conf.h"
+#include "oci_runtime_hooks.h"
 
 static struct lxc_container *lcr_new_container(const char *name, const char *path)
 {
@@ -188,28 +189,11 @@ out:
     return ret ? 0 : -1;
 }
 
-static int trans_rootfs_linux(struct lcr_list *lcr_conf, const char *container_rootfs, oci_runtime_spec *container,
+static int trans_rootfs_linux(struct lcr_list *lcr_conf, oci_runtime_spec *container,
                               char **seccomp)
 {
     int ret = -1;
     struct lcr_list *node = NULL;
-
-    /* merge the rootfs config */
-    if (container_rootfs != NULL) {
-        if (!container->root) {
-            container->root = util_common_calloc_s(sizeof(oci_runtime_spec_root));
-            if (!container->root) {
-                ERROR("Out of memory");
-                goto out;
-            }
-        }
-
-        if (container->root->path) {
-            free(container->root->path);
-        }
-
-        container->root->path = util_strdup_s(container_rootfs);
-    }
 
     /* lxc.rootfs
      * lxc.rootfs.options
@@ -256,7 +240,7 @@ static int trans_hostname_hooks_process_mounts(struct lcr_list *lcr_conf, const 
      * lxc.cap.{drop/keep}
      * lxc.limit.*
      * lxc.aa_profile
-     * lxc.se_context
+     * lxc.selinux.context
      */
     node = trans_oci_process(container->process);
     if (node == NULL) {
@@ -682,7 +666,7 @@ out:
     return ret;
 }
 
-struct lcr_list *lcr_oci2lcr(const struct lxc_container *c, const char *container_rootfs, oci_runtime_spec *container,
+struct lcr_list *lcr_oci2lcr(const struct lxc_container *c, oci_runtime_spec *container,
                              char **seccomp)
 {
     struct lcr_list *lcr_conf = NULL;
@@ -698,7 +682,7 @@ struct lcr_list *lcr_oci2lcr(const struct lxc_container *c, const char *containe
         goto out_free;
     }
 
-    if (trans_rootfs_linux(lcr_conf, container_rootfs, container, seccomp)) {
+    if (trans_rootfs_linux(lcr_conf, container, seccomp)) {
         goto out_free;
     }
 
@@ -896,3 +880,133 @@ out_free:
 
     return bret;
 }
+
+static int lcr_write_file(const char *path, const char *data, size_t len)
+{
+    char *real_path = NULL;
+    int fd = -1;
+    int ret = -1;
+
+    if (path == NULL || strlen(path) == 0 || data == NULL || len == 0) {
+        return -1;
+    }
+
+    if (util_ensure_path(&real_path, path) < 0) {
+        ERROR("Failed to ensure path %s", path);
+        goto out_free;
+    }
+
+    fd = util_open(real_path, O_CREAT | O_TRUNC | O_CLOEXEC | O_WRONLY, CONFIG_FILE_MODE);
+    if (fd == -1) {
+        ERROR("Create file %s failed", real_path);
+        lcr_set_error_message(LCR_ERR_RUNTIME, "Create file %s failed", real_path);
+        goto out_free;
+    }
+
+    if (write(fd, data, len) == -1) {
+        ERROR("write data to %s failed: %s", real_path, strerror(errno));
+        goto out_free;
+    }
+
+    ret = 0;
+
+out_free:
+    if (fd != -1) {
+        close(fd);
+    }
+    free(real_path);
+    return ret;
+}
+
+
+static bool lcr_write_ocihooks(const char *path, const oci_runtime_spec_hooks *hooks)
+{
+    bool ret = false;
+    struct parser_context ctx = { OPT_PARSE_STRICT, stderr };
+    parser_error err = NULL;
+
+    char *json_hooks = oci_runtime_spec_hooks_generate_json(hooks, &ctx, &err);
+    if (json_hooks == NULL) {
+        ERROR("Failed to generate json: %s", err);
+        goto out_free;
+    }
+
+    if (lcr_write_file(path, json_hooks, strlen(json_hooks)) == -1) {
+        ERROR("write json hooks failed: %s", strerror(errno));
+        goto out_free;
+    }
+
+    ret = true;
+
+out_free:
+    free(err);
+    free(json_hooks);
+
+    return ret;
+}
+
+static bool lcr_save_ocihooks(const char *name, const char *lcrpath, const oci_runtime_spec_hooks *hooks)
+{
+    const char *path = lcrpath ? lcrpath : LCRPATH;
+    char ocihook[PATH_MAX] = { 0 };
+    char *bundle = NULL;
+    bool bret = false;
+    int nret = 0;
+
+    if (name == NULL) {
+        ERROR("Missing name");
+        return false;
+    }
+
+    bundle = lcr_get_bundle(path, name);
+    if (bundle == NULL) {
+        return false;
+    }
+
+    nret = snprintf(ocihook, sizeof(ocihook), "%s/%s", bundle, OCIHOOKSFILE);
+    if (nret < 0 || (size_t)nret >= sizeof(ocihook)) {
+        ERROR("Failed to print string");
+        goto out_free;
+    }
+
+    bret = lcr_write_ocihooks(ocihook, hooks);
+
+out_free:
+    free(bundle);
+    return bret;
+}
+
+bool translate_spec(const struct lxc_container *c, oci_runtime_spec *container)
+{
+    bool ret = false;
+    struct lcr_list *lcr_conf = NULL;
+    char *seccomp_conf = NULL;
+
+    INFO("Translate new specification file");
+
+    lcr_conf = lcr_oci2lcr(c, container, &seccomp_conf);
+    if (lcr_conf == NULL) {
+        ERROR("Translate configuration failed");
+        goto out_free_conf;
+    }
+
+    if (container->hooks != NULL && !lcr_save_ocihooks(c->name, c->config_path, container->hooks)) {
+        ERROR("Failed to save %s", OCIHOOKSFILE);
+        goto out_free_conf;
+    }
+
+    if (!lcr_save_spec(c->name, c->config_path, lcr_conf, seccomp_conf)) {
+        ERROR("Failed to save configuration");
+        goto out_free_conf;
+    }
+
+    ret = true;
+
+out_free_conf:
+    lcr_free_config(lcr_conf);
+    free(lcr_conf);
+
+    free(seccomp_conf);
+    return ret;
+}
+

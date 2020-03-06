@@ -5,7 +5,7 @@ include(cmake/set_build_flags.cmake)
 
 option(VERSION "set lcr version" ON)
 if (VERSION STREQUAL "ON")
-	set(LCR_VERSION "1.0.18")
+	set(LCR_VERSION "1.0.20")
 endif()
 
 option(DEBUG "set lcr gcc option" ON)
