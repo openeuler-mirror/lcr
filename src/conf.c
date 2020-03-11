@@ -1011,6 +1011,17 @@ bool is_system_container(const oci_runtime_spec *container)
     return false;
 }
 
+static bool is_external_rootfs(const oci_runtime_spec *container)
+{
+    size_t i = 0;
+    for (i = 0; container->annotations != NULL && i < container->annotations->len; i++) {
+        if (strcmp(container->annotations->keys[i], "external.rootfs") == 0) {
+            return true;
+        }
+    }
+    return false;
+}
+
 static struct lcr_list *trans_oci_mounts_normal(const defs_mount *tmp)
 {
     struct lcr_list *node = NULL;
@@ -1054,9 +1065,9 @@ static inline bool is_mount_destination_dev(const char *destination)
     return destination != NULL && strcmp(destination, "/dev") == 0;
 }
 
-static inline bool should_ignore_dev_mount(const defs_mount *tmp, bool system_container)
+static inline bool should_ignore_dev_mount(const defs_mount *tmp, bool system_container, bool external_rootfs)
 {
-    return system_container && is_mount_destination_dev(tmp->destination);
+    return system_container && external_rootfs && is_mount_destination_dev(tmp->destination);
 }
 
 /* trans oci mounts */
@@ -1067,6 +1078,7 @@ struct lcr_list *trans_oci_mounts(const oci_runtime_spec *c)
     defs_mount *tmp = NULL;
     size_t i;
     bool system_container = is_system_container(c);
+    bool external_rootfs = is_external_rootfs(c);
 
     conf = util_common_calloc_s(sizeof(*conf));
     if (conf == NULL) {
@@ -1080,7 +1092,7 @@ struct lcr_list *trans_oci_mounts(const oci_runtime_spec *c)
             goto out_free;
         }
 
-        if (should_ignore_dev_mount(tmp, system_container)) {
+        if (should_ignore_dev_mount(tmp, system_container, external_rootfs)) {
             continue;
         }
         node = trans_oci_mounts_node(c, tmp);
