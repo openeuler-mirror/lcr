@@ -1,10 +1,10 @@
-%global _version 1.0.20
-%global _release 20200215.125545.git330d8cda
+%global _version 2.0.0
+%global _release 20200318.003237.gitcdd4f8ab
 Name:      lcr
 Version:   %{_version}
 Release:   %{_release}
 URL:       lcr
-Source:    lcr-1.0.tar.gz
+Source:    lcr-2.0.tar.gz
 Summary:   Lightweight Container Runtime
 Group:     Applications/System
 License:   Mulan PSL v1
