@@ -182,6 +182,28 @@ static int check_cgroup_dir(const char *value)
     return 0;
 }
 
+static int check_empty_value(const char *value)
+{
+    if (value == NULL || strlen(value) == 0) {
+        return -1;
+    }
+    return 0;
+}
+
+static int check_console_log_driver(const char *value)
+{
+    if (value == NULL || strlen(value) == 0) {
+        return -1;
+    }
+    if (strcmp(value, "syslog") == 0) {
+        return 0;
+    }
+    if (strcmp(value, "json-file") == 0) {
+        return 0;
+    }
+    return -1;
+}
+
 static const lcr_annotation_item_t g_require_annotations[] = {
     {
         "files.limit",
@@ -202,6 +224,21 @@ static const lcr_annotation_item_t g_require_annotations[] = {
         "log.console.filerotate",
         "lxc.console.rotate",
         check_console_log_filerotate,
+    },
+    {
+        "log.console.driver",
+        "lxc.console.logdriver",
+        check_console_log_driver,
+    },
+    {
+        "log.console.tag",
+        "lxc.console.syslog_tag",
+        check_empty_value,
+    },
+    {
+        "log.console.facility",
+        "lxc.console.syslog_facility",
+        check_empty_value,
     },
     {
         "rootfs.mount",
