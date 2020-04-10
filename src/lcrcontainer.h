@@ -139,10 +139,17 @@ void lcr_containers_info_free(struct lcr_container_info **info_arr, size_t size)
 
 /*
  * Create a container
- * param name   : container name
- * param lcrpath: container path
- * param rootfs : the path of rootfs used for the container
- * param oci_config_data	: json string of oci config data
+ * param name    : container name
+ * param lcrpath : container path
+ * param oci_json_data : json string of oci config data
+ */
+bool lcr_create_from_ocidata(const char *name, const char *lcrpath, const void *oci_json_data);
+
+/*
+ * Create a container
+ * param name    : container name
+ * param lcrpath : container path
+ * param oci_config	: pointer of struct oci config
  */
 bool lcr_create(const char *name, const char *lcrpath, void *oci_config);
 
