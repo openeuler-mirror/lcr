@@ -2587,22 +2587,6 @@ static int add_needed_pty_conf(struct lcr_list *conf)
     return 0;
 }
 
-static int add_needed_tty_conf(struct lcr_list *conf)
-{
-    struct lcr_list *node = create_lcr_list_node("lxc.tty.max", "4");
-    if (node == NULL) {
-        return -1;
-    }
-    lcr_list_add_tail(conf, node);
-
-    node = create_lcr_list_node("lxc.tty.dir", "lxc");
-    if (node == NULL) {
-        return -1;
-    }
-    lcr_list_add_tail(conf, node);
-    return 0;
-}
-
 static int add_needed_net_conf(struct lcr_list *conf)
 {
     struct lcr_list *node = create_lcr_list_node("lxc.net.0.type", "empty");
@@ -2628,9 +2612,6 @@ struct lcr_list *get_needed_lxc_conf()
     }
     lcr_list_init(conf);
 
-    if (add_needed_tty_conf(conf) < 0) {
-        goto out_free;
-    }
     if (add_needed_pty_conf(conf) < 0) {
         goto out_free;
     }
