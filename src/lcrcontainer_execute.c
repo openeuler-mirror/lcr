@@ -599,6 +599,13 @@ static void execute_lxc_attach(const char *name, const char *path, const struct 
 
     add_array_kv(params, args_len, &i, "--suffix", request->suffix);
 
+    if (!request->tty) {
+        add_array_elem(params, PARAM_NUM, &i, "--disable-pty");
+    }
+    if (request->open_stdin) {
+        add_array_elem(params, PARAM_NUM, &i, "--open-stdin");
+    }
+
     add_array_elem(params, args_len, &i, "--");
     for (j = 0; j < request->args_len; j++) {
         add_array_elem(params, args_len, &i, request->args[j]);

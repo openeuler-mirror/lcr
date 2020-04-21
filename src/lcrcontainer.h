@@ -271,6 +271,9 @@ struct lcr_exec_request {
     int64_t timeout;
 
     const char *suffix;
+
+    bool tty;
+    bool open_stdin;
 };
 /*
  * Execute process inside a container
