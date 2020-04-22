@@ -575,6 +575,7 @@ static void execute_lxc_attach(const char *name, const char *path, const struct 
     add_array_kv(params, args_len, &i, "-l", request->loglevel);
     add_array_kv(params, args_len, &i, "--in-fifo", request->console_fifos[0]);
     add_array_kv(params, args_len, &i, "--out-fifo", request->console_fifos[1]);
+    add_array_kv(params, args_len, &i, "--err-fifo", request->console_fifos[2]);
     for (j = 0; j < request->env_len; j++) {
         add_array_elem(params, args_len, &i, "-v");
         add_array_elem(params, args_len, &i, request->env[j]);
