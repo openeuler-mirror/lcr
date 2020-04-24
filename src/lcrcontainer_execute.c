@@ -571,10 +571,12 @@ static void execute_lxc_attach(const char *name, const char *path, const struct 
     add_array_elem(params, args_len, &i, "-P");
     add_array_elem(params, args_len, &i, path);
     add_array_elem(params, args_len, &i, "--clear-env");
+    add_array_elem(params, args_len, &i, "--quiet");
     add_array_kv(params, args_len, &i, "--logfile", request->logpath);
     add_array_kv(params, args_len, &i, "-l", request->loglevel);
     add_array_kv(params, args_len, &i, "--in-fifo", request->console_fifos[0]);
     add_array_kv(params, args_len, &i, "--out-fifo", request->console_fifos[1]);
+    add_array_kv(params, args_len, &i, "--err-fifo", request->console_fifos[2]);
     for (j = 0; j < request->env_len; j++) {
         add_array_elem(params, args_len, &i, "-v");
         add_array_elem(params, args_len, &i, request->env[j]);
@@ -598,6 +600,13 @@ static void execute_lxc_attach(const char *name, const char *path, const struct 
     }
 
     add_array_kv(params, args_len, &i, "--suffix", request->suffix);
+
+    if (!request->tty) {
+        add_array_elem(params, args_len, &i, "--disable-pty");
+    }
+    if (request->open_stdin) {
+        add_array_elem(params, args_len, &i, "--open-stdin");
+    }
 
     add_array_elem(params, args_len, &i, "--");
     for (j = 0; j < request->args_len; j++) {
