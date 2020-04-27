@@ -1,13 +1,13 @@
 /******************************************************************************
  * Copyright (c) Huawei Technologies Co., Ltd. 2018-2019. All rights reserved.
- * lcr licensed under the Mulan PSL v1.
- * You can use this software according to the terms and conditions of the Mulan PSL v1.
- * You may obtain a copy of Mulan PSL v1 at:
- *     http://license.coscl.org.cn/MulanPSL
+ * lcr licensed under the Mulan PSL v2.
+ * You can use this software according to the terms and conditions of the Mulan PSL v2.
+ * You may obtain a copy of Mulan PSL v2 at:
+ *     http://license.coscl.org.cn/MulanPSL2
  * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY OR FIT FOR A PARTICULAR
  * PURPOSE.
- * See the Mulan PSL v1 for more details.
+ * See the Mulan PSL v2 for more details.
  * Author: wujing
  * Create: 2018-11-08
  * Description: provide container definition
@@ -821,6 +821,7 @@ static int lcr_spec_write_config(int fd, const struct lcr_list *lcr_conf)
             }
 
             nret = snprintf(line, len, "%s = %s", item->name, item->value);
+
             if (nret < 0 || (size_t)nret >= len) {
                 ERROR("Sprintf failed");
                 goto cleanup;
