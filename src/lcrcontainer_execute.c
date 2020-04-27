@@ -1,13 +1,13 @@
 /******************************************************************************
  * Copyright (c) Huawei Technologies Co., Ltd. 2018-2019. All rights reserved.
- * lcr licensed under the Mulan PSL v1.
- * You can use this software according to the terms and conditions of the Mulan PSL v1.
- * You may obtain a copy of Mulan PSL v1 at:
- *     http://license.coscl.org.cn/MulanPSL
+ * lcr licensed under the Mulan PSL v2.
+ * You can use this software according to the terms and conditions of the Mulan PSL v2.
+ * You may obtain a copy of Mulan PSL v2 at:
+ *     http://license.coscl.org.cn/MulanPSL2
  * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY OR FIT FOR A PARTICULAR
  * PURPOSE.
- * See the Mulan PSL v1 for more details.
+ * See the Mulan PSL v2 for more details.
  * Author: wujing
  * Create: 2018-11-08
  * Description: provide container definition
@@ -571,10 +571,12 @@ static void execute_lxc_attach(const char *name, const char *path, const struct 
     add_array_elem(params, args_len, &i, "-P");
     add_array_elem(params, args_len, &i, path);
     add_array_elem(params, args_len, &i, "--clear-env");
+    add_array_elem(params, args_len, &i, "--quiet");
     add_array_kv(params, args_len, &i, "--logfile", request->logpath);
     add_array_kv(params, args_len, &i, "-l", request->loglevel);
     add_array_kv(params, args_len, &i, "--in-fifo", request->console_fifos[0]);
     add_array_kv(params, args_len, &i, "--out-fifo", request->console_fifos[1]);
+    add_array_kv(params, args_len, &i, "--err-fifo", request->console_fifos[2]);
     for (j = 0; j < request->env_len; j++) {
         add_array_elem(params, args_len, &i, "-v");
         add_array_elem(params, args_len, &i, request->env[j]);
@@ -598,6 +600,13 @@ static void execute_lxc_attach(const char *name, const char *path, const struct 
     }
 
     add_array_kv(params, args_len, &i, "--suffix", request->suffix);
+
+    if (!request->tty) {
+        add_array_elem(params, args_len, &i, "--disable-pty");
+    }
+    if (request->open_stdin) {
+        add_array_elem(params, args_len, &i, "--open-stdin");
+    }
 
     add_array_elem(params, args_len, &i, "--");
     for (j = 0; j < request->args_len; j++) {

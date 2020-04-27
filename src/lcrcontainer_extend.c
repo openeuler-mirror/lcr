@@ -1,13 +1,13 @@
 /******************************************************************************
  * Copyright (c) Huawei Technologies Co., Ltd. 2018-2019. All rights reserved.
- * lcr licensed under the Mulan PSL v1.
- * You can use this software according to the terms and conditions of the Mulan PSL v1.
- * You may obtain a copy of Mulan PSL v1 at:
- *     http://license.coscl.org.cn/MulanPSL
+ * lcr licensed under the Mulan PSL v2.
+ * You can use this software according to the terms and conditions of the Mulan PSL v2.
+ * You may obtain a copy of Mulan PSL v2 at:
+ *     http://license.coscl.org.cn/MulanPSL2
  * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY OR FIT FOR A PARTICULAR
  * PURPOSE.
- * See the Mulan PSL v1 for more details.
+ * See the Mulan PSL v2 for more details.
  * Author: wujing
  * Create: 2018-11-08
  * Description: provide container definition
@@ -739,11 +739,71 @@ out:
     return fd;
 }
 
+// escape_string_encode unzip some escape characters
+static char *escape_string_encode(const char *src)
+{
+    size_t src_end = 0;
+    size_t dst_end = 0;
+    size_t len = 0;
+    char *dst = NULL;
+
+    if (src == NULL) {
+        return NULL;
+    }
+
+    len = strlen(src);
+    if (len == 0) {
+        return NULL;
+    }
+
+    dst = util_common_calloc_s(2 * len + 1);
+    if (dst == NULL) {
+        ERROR("Out of memory");
+        return NULL;
+    }
+
+    while (src_end < len) {
+        switch (src[src_end++]) {
+            case '\r':
+                dst[dst_end++] = '\\';
+                dst[dst_end++] = 'r';
+                break;
+            case '\n':
+                dst[dst_end++] = '\\';
+                dst[dst_end++] = 'n';
+                break;
+            case '\f':
+                dst[dst_end++] = '\\';
+                dst[dst_end++] = 'f';
+                break;
+            case '\b':
+                dst[dst_end++] = '\\';
+                dst[dst_end++] = 'b';
+                break;
+            case '\t':
+                dst[dst_end++] = '\\';
+                dst[dst_end++] = 't';
+                break;
+            case '\\':
+                dst[dst_end++] = '\\';
+                dst[dst_end++] = '\\';
+                break;
+            // default do not encode
+            default:
+                dst[dst_end++] = src[src_end - 1];
+                break;
+        }
+    }
+
+    return dst;
+}
+
 static int lcr_spec_write_config(int fd, const struct lcr_list *lcr_conf)
 {
     struct lcr_list *it = NULL;
     size_t len;
     char *line = NULL;
+    char *line_encode = NULL;
     int ret = -1;
 
     lcr_list_for_each(it, lcr_conf) {
@@ -761,25 +821,35 @@ static int lcr_spec_write_config(int fd, const struct lcr_list *lcr_conf)
             }
 
             nret = snprintf(line, len, "%s = %s", item->name, item->value);
+
             if (nret < 0 || (size_t)nret >= len) {
                 ERROR("Sprintf failed");
                 goto cleanup;
             }
-            if ((size_t)nret > len - 1) {
-                nret = (int)(len - 1);
+
+            line_encode = escape_string_encode(line);
+            if (line_encode == NULL) {
+                ERROR("String encode failed");
+                goto cleanup;
             }
-            line[nret] = '\n';
-            if (write(fd, line, len) == -1) {
+
+            nret = strlen(line_encode);
+
+            line_encode[nret] = '\n';
+            if (write(fd, line_encode, nret + 1) == -1) {
                 SYSERROR("Write failed");
                 goto cleanup;
             }
             free(line);
             line = NULL;
+            free(line_encode);
+            line_encode = NULL;
         }
     }
     ret = 0;
 cleanup:
     free(line);
+    free(line_encode);
     return ret;
 }
 

@@ -1,13 +1,13 @@
 /******************************************************************************
  * Copyright (c) Huawei Technologies Co., Ltd. 2018-2019. All rights reserved.
- * lcr licensed under the Mulan PSL v1.
- * You can use this software according to the terms and conditions of the Mulan PSL v1.
- * You may obtain a copy of Mulan PSL v1 at:
- *     http://license.coscl.org.cn/MulanPSL
+ * lcr licensed under the Mulan PSL v2.
+ * You can use this software according to the terms and conditions of the Mulan PSL v2.
+ * You may obtain a copy of Mulan PSL v2 at:
+ *     http://license.coscl.org.cn/MulanPSL2
  * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY OR FIT FOR A PARTICULAR
  * PURPOSE.
- * See the Mulan PSL v1 for more details.
+ * See the Mulan PSL v2 for more details.
  * Author: wujing
  * Create: 2018-11-08
  * Description: provide container definition
@@ -268,6 +268,22 @@ static void remove_partial(const struct lxc_container *c)
 
 out_free:
     free(path);
+}
+
+bool lcr_create_from_ocidata(const char *name, const char *lcrpath, const void *oci_json_data)
+{
+    oci_runtime_spec *oci_spec = NULL;
+    bool ret = true;
+
+    if (!container_parse(NULL, oci_json_data, &oci_spec)) {
+        ret = false;
+        goto out_free;
+    }
+
+    ret = lcr_create(name, lcrpath, oci_spec);
+out_free:
+    free_oci_runtime_spec(oci_spec);
+    return ret;
 }
 
 static bool lcr_create_spec(struct lxc_container *c, oci_runtime_spec *oci_spec)
