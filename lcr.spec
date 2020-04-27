@@ -1,5 +1,5 @@
 %global _version 2.0.0
-%global _release 20200418.180849.git0944f121
+%global _release 20200418.180709.gitaabdb4e4
 Name:      lcr
 Version:   %{_version}
 Release:   %{_release}
