@@ -270,22 +270,6 @@ out_free:
     free(path);
 }
 
-bool lcr_create_from_ocidata(const char *name, const char *lcrpath, const void *oci_json_data)
-{
-    oci_runtime_spec *oci_spec = NULL;
-    bool ret = true;
-
-    if (!container_parse(NULL, oci_json_data, &oci_spec)) {
-        ret = false;
-        goto out_free;
-    }
-
-    ret = lcr_create(name, lcrpath, oci_spec);
-out_free:
-    free_oci_runtime_spec(oci_spec);
-    return ret;
-}
-
 static bool lcr_create_spec(struct lxc_container *c, oci_runtime_spec *oci_spec)
 {
     // Translate oci config
