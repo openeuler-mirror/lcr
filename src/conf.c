@@ -1,13 +1,13 @@
 /******************************************************************************
  * Copyright (c) Huawei Technologies Co., Ltd. 2018-2019. All rights reserved.
- * lcr licensed under the Mulan PSL v1.
- * You can use this software according to the terms and conditions of the Mulan PSL v1.
- * You may obtain a copy of Mulan PSL v1 at:
- *     http://license.coscl.org.cn/MulanPSL
+ * lcr licensed under the Mulan PSL v2.
+ * You can use this software according to the terms and conditions of the Mulan PSL v2.
+ * You may obtain a copy of Mulan PSL v2 at:
+ *     http://license.coscl.org.cn/MulanPSL2
  * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY OR FIT FOR A PARTICULAR
  * PURPOSE.
- * See the Mulan PSL v1 for more details.
+ * See the Mulan PSL v2 for more details.
  * Author: wujing
  * Create: 2018-11-08
  * Description: provide container conf function
@@ -182,6 +182,28 @@ static int check_cgroup_dir(const char *value)
     return 0;
 }
 
+static int check_empty_value(const char *value)
+{
+    if (value == NULL || strlen(value) == 0) {
+        return -1;
+    }
+    return 0;
+}
+
+static int check_console_log_driver(const char *value)
+{
+    if (value == NULL || strlen(value) == 0) {
+        return -1;
+    }
+    if (strcmp(value, "syslog") == 0) {
+        return 0;
+    }
+    if (strcmp(value, "json-file") == 0) {
+        return 0;
+    }
+    return -1;
+}
+
 static const lcr_annotation_item_t g_require_annotations[] = {
     {
         "files.limit",
@@ -202,6 +224,21 @@ static const lcr_annotation_item_t g_require_annotations[] = {
         "log.console.filerotate",
         "lxc.console.rotate",
         check_console_log_filerotate,
+    },
+    {
+        "log.console.driver",
+        "lxc.console.logdriver",
+        check_console_log_driver,
+    },
+    {
+        "log.console.tag",
+        "lxc.console.syslog_tag",
+        check_empty_value,
+    },
+    {
+        "log.console.facility",
+        "lxc.console.syslog_facility",
+        check_empty_value,
     },
     {
         "rootfs.mount",

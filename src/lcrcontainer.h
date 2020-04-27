@@ -1,13 +1,13 @@
 /******************************************************************************
  * Copyright (c) Huawei Technologies Co., Ltd. 2018-2019. All rights reserved.
- * lcr licensed under the Mulan PSL v1.
- * You can use this software according to the terms and conditions of the Mulan PSL v1.
- * You may obtain a copy of Mulan PSL v1 at:
- *     http://license.coscl.org.cn/MulanPSL
+ * lcr licensed under the Mulan PSL v2.
+ * You can use this software according to the terms and conditions of the Mulan PSL v2.
+ * You may obtain a copy of Mulan PSL v2 at:
+ *     http://license.coscl.org.cn/MulanPSL2
  * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY OR FIT FOR A PARTICULAR
  * PURPOSE.
- * See the Mulan PSL v1 for more details.
+ * See the Mulan PSL v2 for more details.
  * Author: wujing
  * Create: 2018-11-08
  * Description: provide container definition
@@ -139,10 +139,17 @@ void lcr_containers_info_free(struct lcr_container_info **info_arr, size_t size)
 
 /*
  * Create a container
- * param name   : container name
- * param lcrpath: container path
- * param rootfs : the path of rootfs used for the container
- * param oci_config_data	: json string of oci config data
+ * param name    : container name
+ * param lcrpath : container path
+ * param oci_json_data : json string of oci config data
+ */
+bool lcr_create_from_ocidata(const char *name, const char *lcrpath, const void *oci_json_data);
+
+/*
+ * Create a container
+ * param name    : container name
+ * param lcrpath : container path
+ * param oci_config	: pointer of struct oci config
  */
 bool lcr_create(const char *name, const char *lcrpath, void *oci_config);
 
