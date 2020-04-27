@@ -821,7 +821,6 @@ static int lcr_spec_write_config(int fd, const struct lcr_list *lcr_conf)
             }
 
             nret = snprintf(line, len, "%s = %s", item->name, item->value);
-
             if (nret < 0 || (size_t)nret >= len) {
                 ERROR("Sprintf failed");
                 goto cleanup;
