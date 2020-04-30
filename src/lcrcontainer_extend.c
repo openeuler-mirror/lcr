@@ -73,7 +73,7 @@ static int realloc_annotations(oci_runtime_spec *oci_spec, size_t new_lens)
     }
 
     if (!oci_spec->annotations) {
-        oci_spec->annotations = util_common_calloc_s(sizeof(json_map_string_string));
+        oci_spec->annotations = lcr_util_common_calloc_s(sizeof(json_map_string_string));
         if (!oci_spec->annotations) {
             ERROR("Out of memory");
             nret = -1;
@@ -88,7 +88,7 @@ static int realloc_annotations(oci_runtime_spec *oci_spec, size_t new_lens)
     }
     new_size = (oci_spec->annotations->len + new_lens) * sizeof(char *);
     old_size = oci_spec->annotations->len * sizeof(char *);
-    nret = mem_realloc((void **)&fkey, new_size, oci_spec->annotations->keys, old_size);
+    nret = lcr_mem_realloc((void **)&fkey, new_size, oci_spec->annotations->keys, old_size);
     if (nret) {
         ERROR("Failed to realloc memory for files limit variables");
         nret = -1;
@@ -96,7 +96,7 @@ static int realloc_annotations(oci_runtime_spec *oci_spec, size_t new_lens)
     }
     oci_spec->annotations->keys = fkey;
 
-    nret = mem_realloc((void **)&fval, new_size, oci_spec->annotations->values, old_size);
+    nret = lcr_mem_realloc((void **)&fval, new_size, oci_spec->annotations->values, old_size);
     if (nret) {
         ERROR("Failed to realloc memory for files limit variables");
         nret = -1;
@@ -123,7 +123,7 @@ static int make_annotations(oci_runtime_spec *container, const struct lxc_contai
             goto out;
         }
         fpos = (int)(anno->len - 1);
-        anno->keys[fpos] = util_strdup_s("log.console.file");
+        anno->keys[fpos] = lcr_util_strdup_s("log.console.file");
         anno->values[fpos] = NULL;
     }
 
@@ -136,14 +136,14 @@ static int make_annotations(oci_runtime_spec *container, const struct lxc_contai
         if (anno->values[fpos]) {
             free(anno->values[fpos]);
         }
-        anno->values[fpos] = util_strdup_s(default_path);
+        anno->values[fpos] = lcr_util_strdup_s(default_path);
     }
     if (strcmp("none", anno->values[fpos]) == 0) {
         DEBUG("Disable console log.");
         ret = 0;
         goto out;
     }
-    if (util_ensure_path(&realpath, anno->values[fpos])) {
+    if (lcr_util_ensure_path(&realpath, anno->values[fpos])) {
         ERROR("Invalid log path: %s, error: %s.", anno->values[fpos], strerror(errno));
         goto out;
     }
@@ -351,7 +351,7 @@ static int lcr_spec_write_seccomp_line(int fd, const char *seccomp)
 
     len = strlen("lxc.seccomp.profile") + 3 + strlen(seccomp) + 1;
 
-    line = util_common_calloc_s(len * sizeof(char));
+    line = lcr_util_common_calloc_s(len * sizeof(char));
     if (line == NULL) {
         ERROR("Out of memory");
         goto cleanup;
@@ -389,13 +389,13 @@ static char *lcr_save_seccomp_file(const char *bundle, const char *seccomp_conf)
         goto cleanup;
     }
 
-    nret = util_ensure_path(&real_seccomp, seccomp);
+    nret = lcr_util_ensure_path(&real_seccomp, seccomp);
     if (nret < 0) {
         ERROR("Failed to ensure path %s", seccomp);
         goto cleanup;
     }
 
-    fd = util_open(real_seccomp, O_CREAT | O_TRUNC | O_CLOEXEC | O_WRONLY, CONFIG_FILE_MODE);
+    fd = lcr_util_open(real_seccomp, O_CREAT | O_TRUNC | O_CLOEXEC | O_WRONLY, CONFIG_FILE_MODE);
     if (fd == -1) {
         SYSERROR("Create file %s failed", real_seccomp);
         goto cleanup;
@@ -426,7 +426,7 @@ static struct lcr_container_info *info_new(struct lcr_container_info **info, siz
 
     length = (*size + 1) * sizeof(struct lcr_container_info);
 
-    nret = mem_realloc((void **)&n, length, (void *)(*info), (*size) * sizeof(struct lcr_container_info));
+    nret = lcr_mem_realloc((void **)&n, length, (void *)(*info), (*size) * sizeof(struct lcr_container_info));
     if (nret < 0) {
         return NULL;
     }
@@ -592,8 +592,8 @@ int lcr_containers_info_get(const char *lcrpath, struct lcr_container_info **inf
             goto put_container;
         }
         in->running = run_flag;
-        in->name = util_strdup_s(name);
-        in->state = util_strdup_s(st);
+        in->name = lcr_util_strdup_s(name);
+        in->state = lcr_util_strdup_s(st);
         if (run_flag) {
             in->init = c->init_pid(c);
         }
@@ -671,7 +671,7 @@ struct lcr_list *lcr_oci2lcr(const struct lxc_container *c, oci_runtime_spec *co
 {
     struct lcr_list *lcr_conf = NULL;
 
-    lcr_conf = util_common_calloc_s(sizeof(*lcr_conf));
+    lcr_conf = lcr_util_common_calloc_s(sizeof(*lcr_conf));
     if (lcr_conf == NULL) {
         goto out_free;
     }
@@ -722,13 +722,13 @@ static int lcr_open_config_file(const char *bundle)
         goto out;
     }
 
-    nret = util_ensure_path(&real_config, config);
+    nret = lcr_util_ensure_path(&real_config, config);
     if (nret < 0) {
         ERROR("Failed to ensure path %s", config);
         goto out;
     }
 
-    fd = util_open(real_config, O_CREAT | O_TRUNC | O_CLOEXEC | O_WRONLY, CONFIG_FILE_MODE);
+    fd = lcr_util_open(real_config, O_CREAT | O_TRUNC | O_CLOEXEC | O_WRONLY, CONFIG_FILE_MODE);
     if (fd == -1) {
         ERROR("Create file %s failed, %s", real_config, strerror(errno));
         lcr_set_error_message(LCR_ERR_RUNTIME, "Create file %s failed, %s", real_config, strerror(errno));
@@ -756,7 +756,7 @@ static char *escape_string_encode(const char *src)
         return NULL;
     }
 
-    dst = util_common_calloc_s(2 * len + 1);
+    dst = lcr_util_common_calloc_s(2 * len + 1);
     if (dst == NULL) {
         ERROR("Out of memory");
         return NULL;
@@ -814,7 +814,7 @@ static int lcr_spec_write_config(int fd, const struct lcr_list *lcr_conf)
                 goto cleanup;
             }
             len = strlen(item->name) + 3 + strlen(item->value) + 1;
-            line = util_common_calloc_s(len);
+            line = lcr_util_common_calloc_s(len);
             if (line == NULL) {
                 ERROR("Out of memory");
                 goto cleanup;
@@ -866,7 +866,7 @@ char *lcr_get_bundle(const char *lcrpath, const char *name)
 
     /* bundle = lcrpath + '/' + name + '\0' */
     len = strlen(lcrpath) + strlen(name) + 2;
-    bundle = util_common_calloc_s(len);
+    bundle = lcr_util_common_calloc_s(len);
     if (bundle == NULL) {
         ERROR("Out of memory");
         goto cleanup;
@@ -961,12 +961,12 @@ static int lcr_write_file(const char *path, const char *data, size_t len)
         return -1;
     }
 
-    if (util_ensure_path(&real_path, path) < 0) {
+    if (lcr_util_ensure_path(&real_path, path) < 0) {
         ERROR("Failed to ensure path %s", path);
         goto out_free;
     }
 
-    fd = util_open(real_path, O_CREAT | O_TRUNC | O_CLOEXEC | O_WRONLY, CONFIG_FILE_MODE);
+    fd = lcr_util_open(real_path, O_CREAT | O_TRUNC | O_CLOEXEC | O_WRONLY, CONFIG_FILE_MODE);
     if (fd == -1) {
         ERROR("Create file %s failed", real_path);
         lcr_set_error_message(LCR_ERR_RUNTIME, "Create file %s failed", real_path);

@@ -118,15 +118,15 @@ struct lcr_container_info *lcr_container_info_get(const char *name, const char *
     run_flag = (strcmp(st, "STOPPED") != 0);
 
     /* Now it makes sense to allocate memory */
-    info = util_common_calloc_s(sizeof(*info));
+    info = lcr_util_common_calloc_s(sizeof(*info));
     if (info == NULL) {
         nret = -1;
         goto put_and_finish;
     }
     info->init = -1;
     info->running = run_flag;
-    info->name = util_strdup_s(name);
-    info->state = util_strdup_s(st);
+    info->name = lcr_util_strdup_s(name);
+    info->state = lcr_util_strdup_s(st);
     if (run_flag) {
         info->init = c->init_pid(c);
     }
@@ -204,7 +204,7 @@ static int create_partial(const struct lxc_container *c)
     // $lxcpath + '/' + $name + '/partial' + \0
     len = strlen(c->config_path) + strlen(c->name) + 10;
 
-    char *path = util_common_calloc_s(len);
+    char *path = lcr_util_common_calloc_s(len);
     if (path == NULL) {
         ERROR("Out of memory in create_partial");
         return -1;
@@ -216,7 +216,7 @@ static int create_partial(const struct lxc_container *c)
         goto out_free;
     }
 
-    fd = util_open(path, O_RDWR | O_CREAT | O_EXCL, DEFAULT_SECURE_FILE_MODE);
+    fd = lcr_util_open(path, O_RDWR | O_CREAT | O_EXCL, DEFAULT_SECURE_FILE_MODE);
     if (fd < 0) {
         SYSERROR("Error creating partial file: %s", path);
         goto out_free;
@@ -251,7 +251,7 @@ static void remove_partial(const struct lxc_container *c)
     // $lxcpath + '/' + $name + '/partial' + \0
     len = strlen(c->config_path) + strlen(c->name) + 10;
 
-    char *path = util_common_calloc_s(len);
+    char *path = lcr_util_common_calloc_s(len);
     if (path == NULL) {
         ERROR("Out of memory in remove_partial");
         return;
@@ -371,7 +371,7 @@ static bool wait_start_pid(pid_t pid, int rfd, const char *name, const char *pat
     ssize_t size_read = 0;
     char buffer[BUFSIZ] = { 0 };
 
-    ret = wait_for_pid(pid);
+    ret = lcr_wait_for_pid(pid);
     if (ret == 0) {
         return true;
     }
@@ -1036,7 +1036,7 @@ static char *lcr_get_config_item(struct lxc_container *c, const char *key, bool 
         goto out;
     }
 
-    cret = util_common_calloc_s((len + 1) * sizeof(char));
+    cret = lcr_util_common_calloc_s((len + 1) * sizeof(char));
     if (cret == NULL) {
         ERROR("Out of memory");
         goto out;
@@ -1079,7 +1079,7 @@ static bool lcr_get_console_config_items(struct lxc_container *c, struct lcr_con
     if (item == NULL) {
         DEBUG("Log rotate is NULL");
     } else {
-        if (util_safe_uint(item, &trotate) == 0) {
+        if (lcr_util_safe_uint(item, &trotate) == 0) {
             config->log_rotate = trotate;
         } else {
             ERROR("trans to uint failed");
@@ -1226,7 +1226,7 @@ int lcr_log_init(const char *name, const char *file, const char *priority, const
         lconf.priority = priority ? priority : "ERROR";
     } else {
         /* File has prefix "fifo:", */
-        full_path = util_string_split_prefix(pre_len, file);
+        full_path = lcr_util_string_split_prefix(pre_len, file);
         lconf.file = full_path;
         lconf.driver = "fifo";
         lconf.priority = priority;

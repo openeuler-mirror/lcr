@@ -67,7 +67,7 @@ void lcr_set_error_message(lcr_errno_t errcode, const char *format, ...)
         return;
     }
     g_lcr_error.errcode = errcode;
-    g_lcr_error.errmsg = util_strdup_s(errbuf);
+    g_lcr_error.errmsg = lcr_util_strdup_s(errbuf);
 }
 
 void lcr_try_set_error_message(lcr_errno_t errcode, const char *format, ...)
@@ -88,7 +88,7 @@ void lcr_try_set_error_message(lcr_errno_t errcode, const char *format, ...)
         return;
     }
     g_lcr_error.errcode = errcode;
-    g_lcr_error.errmsg = util_strdup_s(errbuf);
+    g_lcr_error.errmsg = lcr_util_strdup_s(errbuf);
 }
 
 void lcr_append_error_message(lcr_errno_t errcode, const char *format, ...)
@@ -107,7 +107,7 @@ void lcr_append_error_message(lcr_errno_t errcode, const char *format, ...)
         return;
     }
     g_lcr_error.errcode = errcode;
-    result = util_string_append(g_lcr_error.errmsg, errbuf);
+    result = lcr_util_string_append(g_lcr_error.errmsg, errbuf);
     if (result == NULL) {
         g_lcr_error.errcode = LCR_ERR_MEMOUT;
         return;

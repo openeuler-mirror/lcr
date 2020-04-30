@@ -144,37 +144,8 @@ error:
     return NULL;
 }
 
-bool file_exists(const char *path)
-{
-    struct stat s;
-
-    if (path == NULL) {
-        return false;
-    }
-
-    return stat(path, &s) == 0;
-}
-
-/* dir exists */
-bool dir_exists(const char *path)
-{
-    struct stat s;
-    int nret;
-
-    if (path == NULL) {
-        return false;
-    }
-
-    nret = stat(path, &s);
-    if (nret < 0) {
-        return false;
-    }
-
-    return S_ISDIR(s.st_mode);
-}
-
 /* wait for pid */
-int wait_for_pid(pid_t pid)
+int lcr_wait_for_pid(pid_t pid)
 {
     int st;
     int nret = 0;
@@ -197,7 +168,7 @@ again:
 }
 
 /* wait for pid status */
-int wait_for_pid_status(pid_t pid)
+int lcr_wait_for_pid_status(pid_t pid)
 {
     int st;
     int nret = 0;
@@ -232,7 +203,7 @@ static char *do_string_join(const char *sep, const char **parts, size_t parts_le
     return res_string;
 }
 
-char *util_string_join(const char *sep, const char **parts, size_t len)
+char *lcr_util_string_join(const char *sep, const char **parts, size_t len)
 {
     size_t sep_len;
     size_t result_len;
@@ -258,47 +229,6 @@ char *util_string_join(const char *sep, const char **parts, size_t len)
     return do_string_join(sep, parts, len, result_len);
 }
 
-int util_mkdir_p(const char *dir, mode_t mode)
-{
-    const char *tmp_pos = NULL;
-    const char *base = NULL;
-    char *cur_dir = NULL;
-    ssize_t len = 0;
-
-    if (dir == NULL || strlen(dir) > PATH_MAX) {
-        goto err_out;
-    }
-
-    tmp_pos = dir;
-    base = dir;
-
-    do {
-        dir = tmp_pos + strspn(tmp_pos, "/");
-        tmp_pos = dir + strcspn(dir, "/");
-        len = dir - base;
-        if (len <= 0) {
-            break;
-        }
-        cur_dir = strndup(base, (size_t)len);
-        if (cur_dir == NULL) {
-            ERROR("strndup failed");
-            goto err_out;
-        }
-        if (*cur_dir) {
-            if (mkdir(cur_dir, mode) && (errno != EEXIST || !util_dir_exists(cur_dir))) {
-                ERROR("failed to create directory '%s': %s", cur_dir, strerror(errno));
-                goto err_out;
-            }
-        }
-        free(cur_dir);
-    } while (tmp_pos != dir);
-
-    return 0;
-err_out:
-    free(cur_dir);
-    return -1;
-}
-
 /* lcr shrink array */
 static char **lcr_shrink_array(char **orig_array, size_t new_size)
 {
@@ -312,7 +242,7 @@ static char **lcr_shrink_array(char **orig_array, size_t new_size)
     if (new_size > SIZE_MAX / sizeof(char *)) {
         return orig_array;
     }
-    res_array = (char **)util_common_calloc_s(new_size * sizeof(char *));
+    res_array = (char **)lcr_util_common_calloc_s(new_size * sizeof(char *));
     if (res_array == NULL) {
         return orig_array;
     }
@@ -340,7 +270,7 @@ char **lcr_string_split_and_trim(const char *orig_str, char _sep)
         return calloc(1, sizeof(char *));
     }
 
-    str = util_strdup_s(orig_str);
+    str = lcr_util_strdup_s(orig_str);
 
     token = strtok_r(str, deli, &reserve_ptr);
     while (token != NULL) {
@@ -356,7 +286,7 @@ char **lcr_string_split_and_trim(const char *orig_str, char _sep)
         if (r < 0) {
             goto error_out;
         }
-        res_array[count] = util_strdup_s(token);
+        res_array[count] = lcr_util_strdup_s(token);
         count++;
         token = strtok_r(NULL, deli, &reserve_ptr);
     }
@@ -410,7 +340,7 @@ int lcr_grow_array(void ***orig_array, size_t *orig_capacity, size_t size, size_
         if (add_capacity > SIZE_MAX / sizeof(void *)) {
             return -1;
         }
-        add_array = util_common_calloc_s(add_capacity * sizeof(void *));
+        add_array = lcr_util_common_calloc_s(add_capacity * sizeof(void *));
         if (add_array == NULL) {
             return -1;
         }
@@ -440,7 +370,7 @@ size_t lcr_array_len(void **orig_array)
 }
 
 /* util common malloc s */
-void *util_common_calloc_s(size_t size)
+void *lcr_util_common_calloc_s(size_t size)
 {
     if (size == 0) {
         return NULL;
@@ -449,7 +379,7 @@ void *util_common_calloc_s(size_t size)
     return calloc(1, size);
 }
 
-int mem_realloc(void **newptr, size_t newsize, void *oldptr, size_t oldsize)
+int lcr_mem_realloc(void **newptr, size_t newsize, void *oldptr, size_t oldsize)
 {
     void *addr = NULL;
 
@@ -461,7 +391,7 @@ int mem_realloc(void **newptr, size_t newsize, void *oldptr, size_t oldsize)
         goto err_out;
     }
 
-    addr = util_common_calloc_s(newsize);
+    addr = lcr_util_common_calloc_s(newsize);
     if (addr == NULL) {
         goto err_out;
     }
@@ -478,18 +408,13 @@ err_out:
     return -1;
 }
 
-bool util_valid_cmd_arg(const char *arg)
-{
-    return arg && strchr(arg, '|') == NULL && strchr(arg, '`') == NULL && strchr(arg, '&') == NULL &&
-           strchr(arg, ';') == NULL;
-}
 
 static inline bool is_invalid_error_str(const char *err_str, const char *numstr)
 {
     return err_str == NULL || err_str == numstr || *err_str != '\0';
 }
 
-int util_safe_strtod(const char *numstr, double *converted)
+int lcr_util_safe_strtod(const char *numstr, double *converted)
 {
     char *err_str = NULL;
     double ld;
@@ -512,32 +437,8 @@ int util_safe_strtod(const char *numstr, double *converted)
     return 0;
 }
 
-/* util safe ullong */
-int util_safe_ullong(const char *numstr, unsigned long long *converted)
-{
-    char *err_str = NULL;
-    unsigned long long sli;
-
-    if (numstr == NULL || converted == NULL) {
-        return -EINVAL;
-    }
-
-    errno = 0;
-    sli = strtoull(numstr, &err_str, 0);
-    if (errno > 0) {
-        return -errno;
-    }
-
-    if (is_invalid_error_str(err_str, numstr)) {
-        return -EINVAL;
-    }
-
-    *converted = (unsigned long long)sli;
-    return 0;
-}
-
 /* util safe uint */
-int util_safe_uint(const char *numstr, unsigned int *converted)
+int lcr_util_safe_uint(const char *numstr, unsigned int *converted)
 {
     char *err_str = NULL;
     unsigned long int ui;
@@ -619,7 +520,7 @@ static int util_parse_size_int_and_float(const char *numstr, int64_t mlt, int64_
         tmp = *(dot - 1);
         *(dot - 1) = '0';
         // parsing 0.456
-        nret = util_safe_strtod(dot - 1, &float_size);
+        nret = lcr_util_safe_strtod(dot - 1, &float_size);
         // recover 120.456 to 123.456
         *(dot - 1) = tmp;
         if (nret < 0) {
@@ -634,7 +535,7 @@ static int util_parse_size_int_and_float(const char *numstr, int64_t mlt, int64_
         }
         *dot = '\0';
     }
-    nret = util_safe_llong(numstr, &int_size);
+    nret = lcr_util_safe_llong(numstr, &int_size);
     if (nret < 0) {
         return nret;
     }
@@ -654,7 +555,7 @@ static int util_parse_size_int_and_float(const char *numstr, int64_t mlt, int64_
 }
 
 /* parse byte size string */
-int parse_byte_size_string(const char *s, int64_t *converted)
+int lcr_parse_byte_size_string(const char *s, int64_t *converted)
 {
     int ret;
     int64_t mltpl = 0;
@@ -665,7 +566,7 @@ int parse_byte_size_string(const char *s, int64_t *converted)
         return -EINVAL;
     }
 
-    dup = util_strdup_s(s);
+    dup = lcr_util_strdup_s(s);
 
     pmlt = dup;
     while (*pmlt != '\0' && (isdigit(*pmlt) || *pmlt == '.')) {
@@ -688,7 +589,7 @@ int parse_byte_size_string(const char *s, int64_t *converted)
 /*
  * if path do not exist, this function will create it.
  */
-int util_ensure_path(char **confpath, const char *path)
+int lcr_util_ensure_path(char **confpath, const char *path)
 {
     int err = -1;
     int fd;
@@ -698,7 +599,7 @@ int util_ensure_path(char **confpath, const char *path)
         return -1;
     }
 
-    fd = util_open(path, O_WRONLY | O_CREAT | O_TRUNC | O_EXCL, DEFAULT_SECURE_FILE_MODE);
+    fd = lcr_util_open(path, O_WRONLY | O_CREAT | O_TRUNC | O_EXCL, DEFAULT_SECURE_FILE_MODE);
     if (fd < 0 && errno != EEXIST) {
         ERROR("failed to open '%s'", path);
         goto err;
@@ -712,7 +613,7 @@ int util_ensure_path(char **confpath, const char *path)
         goto err;
     }
 
-    *confpath = util_strdup_s(real_path);
+    *confpath = lcr_util_strdup_s(real_path);
 
     err = EXIT_SUCCESS;
 
@@ -721,7 +622,7 @@ err:
 }
 
 /* util dir exists */
-bool util_dir_exists(const char *path)
+bool lcr_util_dir_exists(const char *path)
 {
     struct stat s;
     int nret;
@@ -775,7 +676,7 @@ static void util_rmdir_one(const char *dirpath, const struct dirent *pdirent, in
     }
 
     if (S_ISDIR(fstat.st_mode)) {
-        if (util_recursive_rmdir(fname, (recursive_depth + 1)) < 0) {
+        if (lcr_util_recursive_rmdir(fname, (recursive_depth + 1)) < 0) {
             *failure = 1;
         }
     } else {
@@ -787,7 +688,7 @@ static void util_rmdir_one(const char *dirpath, const struct dirent *pdirent, in
 }
 
 /* util recursive rmdir */
-int util_recursive_rmdir(const char *dirpath, int recursive_depth)
+int lcr_util_recursive_rmdir(const char *dirpath, int recursive_depth)
 {
     struct dirent *pdirent = NULL;
     DIR *directory = NULL;
@@ -800,7 +701,7 @@ int util_recursive_rmdir(const char *dirpath, int recursive_depth)
         goto err_out;
     }
 
-    if (!util_dir_exists(dirpath)) { /* dir not exists */
+    if (!lcr_util_dir_exists(dirpath)) { /* dir not exists */
         goto err_out;
     }
 
@@ -833,7 +734,7 @@ err_out:
 }
 
 /* util string replace one */
-static ssize_t util_string_replace_one(const char *needle, const char *replace, const char *haystack, char **result)
+static ssize_t lcr_util_string_replace_one(const char *needle, const char *replace, const char *haystack, char **result)
 {
     char *res_string = *result;
     char *p = NULL;
@@ -865,7 +766,7 @@ static ssize_t util_string_replace_one(const char *needle, const char *replace, 
 }
 
 /* util string replace */
-char *util_string_replace(const char *needle, const char *replace, const char *haystack)
+char *lcr_util_string_replace(const char *needle, const char *replace, const char *haystack)
 {
     ssize_t length = -1;
     ssize_t reserve_len = -1;
@@ -884,7 +785,7 @@ char *util_string_replace(const char *needle, const char *replace, const char *h
             }
             reserve_len = length;
         }
-        length = util_string_replace_one(needle, replace, haystack, &res_string);
+        length = lcr_util_string_replace_one(needle, replace, haystack, &res_string);
         if (length < 0) {
             free(res_string);
             return NULL;
@@ -903,7 +804,7 @@ char *util_string_replace(const char *needle, const char *replace, const char *h
     return res_string;
 }
 
-int util_open(const char *filename, int flags, mode_t mode)
+int lcr_util_open(const char *filename, int flags, mode_t mode)
 {
     char rpath[PATH_MAX] = { 0x00 };
 
@@ -917,53 +818,7 @@ int util_open(const char *filename, int flags, mode_t mode)
     }
 }
 
-FILE *util_fopen(const char *filename, const char *mode)
-{
-    unsigned int fdmode = 0;
-    int f_fd = -1;
-    int tmperrno;
-    FILE *fp = NULL;
-    char rpath[PATH_MAX] = { 0x00 };
-
-    if (mode == NULL) {
-        return NULL;
-    }
-
-    if (cleanpath(filename, rpath, sizeof(rpath)) == NULL) {
-        ERROR("cleanpath failed");
-        return NULL;
-    }
-    if (!strncmp(mode, "a+", 2)) {
-        fdmode = O_RDWR | O_CREAT | O_APPEND;
-    } else if (!strncmp(mode, "a", 1)) {
-        fdmode = O_WRONLY | O_CREAT | O_APPEND;
-    } else if (!strncmp(mode, "w+", 2)) {
-        fdmode = O_RDWR | O_TRUNC | O_CREAT;
-    } else if (!strncmp(mode, "w", 1)) {
-        fdmode = O_WRONLY | O_TRUNC | O_CREAT;
-    } else if (!strncmp(mode, "r+", 2)) {
-        fdmode = O_RDWR;
-    } else if (!strncmp(mode, "r", 1)) {
-        fdmode = O_RDONLY;
-    }
-
-    fdmode |= O_CLOEXEC;
-
-    f_fd = open(rpath, (int)fdmode, 0666);
-    if (f_fd < 0) {
-        return NULL;
-    }
-
-    fp = fdopen(f_fd, mode);
-    tmperrno = errno;
-    if (fp == NULL) {
-        close(f_fd);
-    }
-    errno = tmperrno;
-    return fp;
-}
-
-int util_safe_int(const char *num_str, int *converted)
+int lcr_util_safe_int(const char *num_str, int *converted)
 {
     char *err_str = NULL;
     signed long int li;
@@ -1008,7 +863,7 @@ static bool util_is_std_fileno(int fd)
     return fd == STDIN_FILENO || fd == STDOUT_FILENO || fd == STDERR_FILENO;
 }
 
-int util_check_inherited(bool closeall, int fd_to_ignore)
+int lcr_util_check_inherited(bool closeall, int fd_to_ignore)
 {
     struct dirent *pdirent = NULL;
     int fd = -1;
@@ -1032,7 +887,7 @@ restart:
             continue;
         }
 
-        if (util_safe_int(pdirent->d_name, &fd) < 0) {
+        if (lcr_util_safe_int(pdirent->d_name, &fd) < 0) {
             continue;
         }
 
@@ -1054,7 +909,7 @@ restart:
 }
 
 /* util string append */
-char *util_string_append(const char *post, const char *pre)
+char *lcr_util_string_append(const char *post, const char *pre)
 {
     char *res_string = NULL;
     size_t length = 0;
@@ -1063,17 +918,17 @@ char *util_string_append(const char *post, const char *pre)
         return NULL;
     }
     if (pre == NULL) {
-        return util_strdup_s(post);
+        return lcr_util_strdup_s(post);
     }
     if (post == NULL) {
-        return util_strdup_s(pre);
+        return lcr_util_strdup_s(pre);
     }
     if (strlen(post) > ((SIZE_MAX - strlen(pre)) - 1)) {
         ERROR("String is too long to be appended");
         return NULL;
     }
     length = strlen(post) + strlen(pre) + 1;
-    res_string = util_common_calloc_s(length);
+    res_string = lcr_util_common_calloc_s(length);
     if (res_string == NULL) {
         return NULL;
     }
@@ -1084,7 +939,7 @@ char *util_string_append(const char *post, const char *pre)
 }
 
 /* util string split prefix */
-char *util_string_split_prefix(size_t prefix_len, const char *file)
+char *lcr_util_string_split_prefix(size_t prefix_len, const char *file)
 {
     size_t file_len = 0;
     size_t len = 0;
@@ -1102,7 +957,7 @@ char *util_string_split_prefix(size_t prefix_len, const char *file)
     if (len > SIZE_MAX / sizeof(char) - 1) {
         return NULL;
     }
-    path = util_common_calloc_s((len + 1) * sizeof(char));
+    path = lcr_util_common_calloc_s((len + 1) * sizeof(char));
     if (path == NULL) {
         return NULL;
     }
@@ -1120,7 +975,7 @@ static void set_char_to_terminator(char *p)
  * @name is absolute path of this file.
  * make all directory in this absolute path.
  * */
-int util_build_dir(const char *name)
+int lcr_util_build_dir(const char *name)
 {
     char *n = NULL; // because we'll be modifying it
     char *p = NULL;
@@ -1131,7 +986,7 @@ int util_build_dir(const char *name)
         return -1;
     }
 
-    n = util_strdup_s(name);
+    n = lcr_util_strdup_s(name);
     e = &(n[strlen(n)]);
     for (p = n + 1; p < e; p++) {
         if (*p != '/') {
@@ -1140,7 +995,7 @@ int util_build_dir(const char *name)
         set_char_to_terminator(p);
         if (access(n, F_OK)) {
             nret = mkdir(n, DEFAULT_SECURE_DIRECTORY_MODE);
-            if (nret && (errno != EEXIST || !dir_exists(n))) {
+            if (nret && (errno != EEXIST || !lcr_util_dir_exists(n))) {
                 ERROR("failed to create directory '%s'.", n);
                 free(n);
                 return -1;
@@ -1153,7 +1008,7 @@ int util_build_dir(const char *name)
 }
 
 /* util write nointr */
-ssize_t util_write_nointr(int fd, const void *buf, size_t count)
+ssize_t lcr_util_write_nointr(int fd, const void *buf, size_t count)
 {
     ssize_t nret;
 
@@ -1175,7 +1030,7 @@ ssize_t util_write_nointr(int fd, const void *buf, size_t count)
 }
 
 /* util read nointr */
-ssize_t util_read_nointr(int fd, void *buf, size_t count)
+ssize_t lcr_util_read_nointr(int fd, void *buf, size_t count)
 {
     ssize_t nret;
 
@@ -1195,102 +1050,8 @@ ssize_t util_read_nointr(int fd, void *buf, size_t count)
     return nret;
 }
 
-/* util free array */
-void util_free_array(char **array)
-{
-    char **p = NULL;
-
-    if (array == NULL) {
-        return;
-    }
-
-    for (p = array; p && *p; p++) {
-        free(*p);
-        *p = NULL;
-    }
-    free((void *)array);
-}
-
-/* sig num */
-static int sig_num(const char *sig)
-{
-    int n;
-
-    if (util_safe_int(sig, &n) < 0) {
-        return -1;
-    }
-
-    return n;
-}
-
-struct signame {
-    int num;
-    const char *name;
-};
-
-/* util sig parse */
-int util_sig_parse(const char *signame)
-{
-    size_t n;
-    const struct signame signames[] = SIGNAL_MAP_DEFAULT;
-
-    if (signame == NULL) {
-        return -1;
-    }
-
-    if (isdigit(*signame)) {
-        return sig_num(signame);
-    } else if (strncasecmp(signame, "sig", 3) == 0) {
-        signame += 3;
-        for (n = 0; n < sizeof(signames) / sizeof(signames[0]); n++) {
-            if (strcasecmp(signames[n].name, signame) == 0) {
-                return signames[n].num;
-            }
-        }
-    } else {
-        for (n = 0; n < sizeof(signames) / sizeof(signames[0]); n++) {
-            if (strcasecmp(signames[n].name, signame) == 0) {
-                return signames[n].num;
-            }
-        }
-    }
-
-    return -1;
-}
-
-/* util valid signal */
-bool util_valid_signal(int sig)
-{
-    size_t n = 0;
-    const struct signame signames[] = SIGNAL_MAP_DEFAULT;
-
-    for (n = 0; n < sizeof(signames) / sizeof(signames[0]); n++) {
-        if (signames[n].num == sig) {
-            return true;
-        }
-    }
-
-    return false;
-}
-
-/* str skip str */
-const char *str_skip_str(const char *str, const char *skip)
-{
-    if (str == NULL || skip == NULL) {
-        return NULL;
-    }
-
-    for (;; str++, skip++) {
-        if (!*skip) {
-            return str;
-        } else if (*str != *skip) {
-            return NULL;
-        }
-    }
-}
-
 /* util array len */
-size_t util_array_len(char **array)
+size_t lcr_util_array_len(char **array)
 {
     char **pos = NULL;
     size_t len = 0;
@@ -1302,40 +1063,8 @@ size_t util_array_len(char **array)
     return len;
 }
 
-/* util array append */
-int util_array_append(char ***array, const char *element)
-{
-    size_t len;
-    char **new_array = NULL;
-
-    if (array == NULL || element == NULL) {
-        return -1;
-    }
-
-    // let newlen to len + 2 for element and null
-    len = util_array_len(*array);
-    if (len > SIZE_MAX / sizeof(char *) - 2) {
-        ERROR("Array size is too big!");
-        return -1;
-    }
-    new_array = util_common_calloc_s((len + 2) * sizeof(char *));
-    if (new_array == NULL) {
-        ERROR("Out of memory");
-        return -1;
-    }
-    if (*array) {
-        (void)memcpy(new_array, *array, len * sizeof(char *));
-        free((void *)*array);
-    }
-    *array = new_array;
-
-    new_array[len] = util_strdup_s(element);
-
-    return 0;
-}
-
 /* util safe llong */
-int util_safe_llong(const char *numstr, long long *converted)
+int lcr_util_safe_llong(const char *numstr, long long *converted)
 {
     char *err_str = NULL;
     long long ll;
@@ -1358,7 +1087,7 @@ int util_safe_llong(const char *numstr, long long *converted)
     return 0;
 }
 
-char *util_strdup_s(const char *src)
+char *lcr_util_strdup_s(const char *src)
 {
     char *dst = NULL;
 
@@ -1410,7 +1139,7 @@ static int set_stdfds(int fd)
     return 0;
 }
 
-int util_null_stdfds(void)
+int lcr_util_null_stdfds(void)
 {
     int ret = -1;
     int fd;
@@ -1421,88 +1150,6 @@ int util_null_stdfds(void)
         close(fd);
     }
 
-    return ret;
-}
-
-bool util_copy_file(const char *src_file, const char *dst_file, mode_t mode)
-{
-    bool ret = false;
-    char *nret = NULL;
-    char real_src_file[PATH_MAX + 1] = { 0 };
-    int src_fd = -1;
-    int dst_fd = -1;
-    char buf[BUFSIZE + 1] = { 0 };
-
-    if (src_file == NULL || dst_file == NULL) {
-        return ret;
-    }
-    nret = realpath(src_file, real_src_file);
-    if (nret == NULL) {
-        ERROR("real path: %s, return: %s", src_file, strerror(errno));
-        return ret;
-    }
-    src_fd = util_open(real_src_file, O_RDONLY, CONFIG_FILE_MODE);
-    if (src_fd < 0) {
-        ERROR("Open src file: %s, failed: %s", real_src_file, strerror(errno));
-        goto free_out;
-    }
-    dst_fd = util_open(dst_file, O_WRONLY | O_CREAT | O_TRUNC, mode);
-    if (dst_fd < 0) {
-        ERROR("Creat file: %s, failed: %s", dst_file, strerror(errno));
-        goto free_out;
-    }
-    while (true) {
-        ssize_t len = util_read_nointr(src_fd, buf, BUFSIZE);
-        if (len < 0) {
-            ERROR("Read src file failed: %s", strerror(errno));
-            goto free_out;
-        } else if (len == 0) {
-            break;
-        }
-        if (util_write_nointr(dst_fd, buf, (size_t)len) != len) {
-            ERROR("Write file failed: %s", strerror(errno));
-            goto free_out;
-        }
-    }
-    ret = true;
-free_out:
-    if (src_fd >= 0) {
-        close(src_fd);
-    }
-    if (dst_fd >= 0) {
-        close(dst_fd);
-    }
-    return ret;
-}
-
-bool util_write_file(const char *filepath, const char *content, size_t len, bool add_newline, mode_t mode)
-{
-    bool ret = true;
-    int rfd = -1;
-
-    if (filepath == NULL || content == NULL) {
-        return false;
-    }
-
-    rfd = util_open(filepath, O_CREAT | O_TRUNC | O_WRONLY, mode);
-    if (rfd == -1) {
-        ERROR("Create file %s failed: %s", filepath, strerror(errno));
-        return false;
-    }
-    if (write(rfd, content, len) == -1) {
-        ERROR("Write hostname failed: %s", strerror(errno));
-        ret = false;
-        goto out_free;
-    }
-
-    if (add_newline && write(rfd, "\n", 1) == -1) {
-        ERROR("Write new line failed: %s", strerror(errno));
-        ret = false;
-        goto out_free;
-    }
-
-out_free:
-    close(rfd);
     return ret;
 }
 
@@ -1543,7 +1190,7 @@ static int append_new_content_to_file(FILE *fp, const char *content)
             goto out;
         }
         content_len = strlen(content) + strlen("\n") + 1;
-        tmp_str = util_common_calloc_s(content_len);
+        tmp_str = lcr_util_common_calloc_s(content_len);
         if (tmp_str == NULL) {
             ERROR("Out of memory");
             ret = -1;
@@ -1568,7 +1215,7 @@ out:
     return ret;
 }
 
-int util_atomic_write_file(const char *filepath, const char *content)
+int lcr_util_atomic_write_file(const char *filepath, const char *content)
 {
     int fd;
     int ret = 0;
@@ -1578,7 +1225,7 @@ int util_atomic_write_file(const char *filepath, const char *content)
     if (filepath == NULL || content == NULL) {
         return -1;
     }
-    fd = util_open(filepath, O_RDWR | O_CREAT | O_APPEND, DEFAULT_SECURE_FILE_MODE);
+    fd = lcr_util_open(filepath, O_RDWR | O_CREAT | O_APPEND, DEFAULT_SECURE_FILE_MODE);
     if (fd < 0) {
         ERROR("Failed to open: %s", filepath);
         return -1;

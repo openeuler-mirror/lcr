@@ -55,7 +55,7 @@ static inline void add_array_elem(char **array, size_t total, size_t *pos, const
     if (*pos + 1 >= total - 1) {
         return;
     }
-    array[*pos] = util_strdup_s(elem);
+    array[*pos] = lcr_util_strdup_s(elem);
     *pos += 1;
 }
 
@@ -507,10 +507,10 @@ void do_lcr_state(struct lxc_container *c, struct lcr_container_state *lcs)
     clear_error_message(&g_lcr_error);
     (void)memset(lcs, 0x00, sizeof(struct lcr_container_state));
 
-    lcs->name = util_strdup_s(c->name);
+    lcs->name = lcr_util_strdup_s(c->name);
 
     state = c->state(c);
-    lcs->state = state ? util_strdup_s(state) : util_strdup_s("-");
+    lcs->state = state ? lcr_util_strdup_s(state) : lcr_util_strdup_s("-");
 
     if (c->is_running(c)) {
         lcs->init = c->init_pid(c);
@@ -549,7 +549,7 @@ static void execute_lxc_attach(const char *name, const char *path, const struct 
     size_t j = 0;
     size_t args_len = PARAM_NUM;
 
-    if (util_check_inherited(true, -1) != 0) {
+    if (lcr_util_check_inherited(true, -1) != 0) {
         COMMAND_ERROR("Close inherited fds failed");
         exit(EXIT_FAILURE);
     }
@@ -560,7 +560,7 @@ static void execute_lxc_attach(const char *name, const char *path, const struct 
         exit(EXIT_FAILURE);
     }
 
-    params = util_common_calloc_s(args_len * sizeof(char *));
+    params = lcr_util_common_calloc_s(args_len * sizeof(char *));
     if (params == NULL) {
         COMMAND_ERROR("Out of memory");
         exit(EXIT_FAILURE);
@@ -661,7 +661,7 @@ bool do_attach(const char *name, const char *path, const struct lcr_exec_request
     }
 
     if (pid == (pid_t)0) {
-        if (util_null_stdfds() < 0) {
+        if (lcr_util_null_stdfds() < 0) {
             COMMAND_ERROR("Failed to close fds");
             exit(EXIT_FAILURE);
         }
@@ -676,7 +676,7 @@ bool do_attach(const char *name, const char *path, const struct lcr_exec_request
 
     close(pipefd[1]);
 
-    status = wait_for_pid_status(pid);
+    status = lcr_wait_for_pid_status(pid);
     if (status < 0) {
         ERROR("Failed to wait lxc-attach");
         goto close_out;
@@ -707,7 +707,7 @@ void execute_lxc_start(const char *name, const char *path, const struct lcr_star
     char *params[PARAM_NUM] = { NULL };
     size_t i = 0;
 
-    if (util_check_inherited(true, -1) != 0) {
+    if (lcr_util_check_inherited(true, -1) != 0) {
         COMMAND_ERROR("Close inherited fds failed");
     }
 
