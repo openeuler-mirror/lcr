@@ -52,7 +52,7 @@ void engine_set_log_prefix(const char *prefix)
     }
 
     free(g_engine_log_prefix);
-    g_engine_log_prefix = util_strdup_s(prefix);
+    g_engine_log_prefix = lcr_util_strdup_s(prefix);
 }
 
 /* engine free log prefix */
@@ -100,7 +100,7 @@ static int open_fifo(const char *fifo_path)
         return nret;
     }
 
-    fifo_fd = util_open(fifo_path, O_RDWR | O_NONBLOCK, 0);
+    fifo_fd = lcr_util_open(fifo_path, O_RDWR | O_NONBLOCK, 0);
     if (fifo_fd == -1) {
         COMMAND_ERROR("Open fifo %s failed: %s", fifo_path, strerror(errno));
         return -1;
@@ -185,11 +185,11 @@ int engine_log_enable(const struct engine_log_config *log)
     }
 
     free(g_engine_log_module);
-    g_engine_log_module = util_strdup_s(log->name);
+    g_engine_log_module = lcr_util_strdup_s(log->name);
 
-    full_path = util_strdup_s(log->file);
+    full_path = lcr_util_strdup_s(log->file);
 
-    nret = util_build_dir(full_path);
+    nret = lcr_util_build_dir(full_path);
     if (nret != 0) {
         COMMAND_ERROR("failed to create dir for log file");
         goto out;
@@ -262,7 +262,7 @@ static char *parse_timespec_to_human()
         return NULL;
     }
 
-    return util_strdup_s(date_time);
+    return lcr_util_strdup_s(date_time);
 }
 
 /* use to add log to driver */

@@ -31,7 +31,7 @@ Buffer *buffer_alloc(size_t initial_size)
         return NULL;
     }
 
-    buf = util_common_calloc_s(sizeof(Buffer));
+    buf = lcr_util_common_calloc_s(sizeof(Buffer));
     if (buf == NULL) {
         return NULL;
     }
@@ -104,7 +104,7 @@ static int buffer_grow(Buffer *buf, size_t minimum_size)
         return -1;
     }
 
-    tmp = util_common_calloc_s(new_size);
+    tmp = lcr_util_common_calloc_s(new_size);
     if (tmp == NULL) {
         ERROR("Out of memory");
         return -1;
