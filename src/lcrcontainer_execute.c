@@ -27,9 +27,9 @@
 #include "constants.h"
 #include "lcrcontainer_execute.h"
 #include "utils.h"
-#include "log.h"
+#include "isula_libutils/log.h"
 #include "error.h"
-#include "oci_runtime_spec.h"
+#include "isula_libutils/oci_runtime_spec.h"
 #include "lcrcontainer_extend.h"
 
 // Cgroup Item Definition

@@ -27,7 +27,7 @@
 #include "lcrcontainer_extend.h"
 #include "error.h"
 #include "utils.h"
-#include "log.h"
+#include "isula_libutils/log.h"
 #include "buffer.h"
 
 #define SUB_UID_PATH "/etc/subuid"
@@ -374,7 +374,7 @@ static char *capabilities_join(const char *sep, const char **parts, size_t len)
 
 #define UID_MAX_SIZE 21
 /* UID to use within a private user namespace for init */
-static int trans_oci_process_init_uid(const oci_runtime_spec_process *proc, struct lcr_list *conf)
+static int trans_oci_process_init_uid(const defs_process *proc, struct lcr_list *conf)
 {
     struct lcr_list *node = NULL;
     char buf[UID_MAX_SIZE] = { 0 };
@@ -398,7 +398,7 @@ out:
 }
 
 /* GID to use within a private user namespace for init */
-static int trans_oci_process_init_gid(const oci_runtime_spec_process *proc, struct lcr_list *conf)
+static int trans_oci_process_init_gid(const defs_process *proc, struct lcr_list *conf)
 {
     struct lcr_list *node = NULL;
     char buf[UID_MAX_SIZE] = { 0 };
@@ -422,7 +422,7 @@ out:
 }
 
 /* additional groups for init command */
-static int trans_oci_process_init_groups(const oci_runtime_spec_process *proc, struct lcr_list *conf)
+static int trans_oci_process_init_groups(const defs_process *proc, struct lcr_list *conf)
 {
     struct lcr_list *node = NULL;
     int nret;
@@ -467,7 +467,7 @@ out:
 }
 
 /* Sets the command to use as the init system for the containers */
-static int trans_oci_process_init_args(const oci_runtime_spec_process *proc, struct lcr_list *conf)
+static int trans_oci_process_init_args(const defs_process *proc, struct lcr_list *conf)
 {
     struct lcr_list *node = NULL;
     size_t i = 0;
@@ -485,7 +485,7 @@ out:
 }
 
 /* working directory to use within container */
-static int trans_oci_process_init_cwd(const oci_runtime_spec_process *proc, struct lcr_list *conf)
+static int trans_oci_process_init_cwd(const defs_process *proc, struct lcr_list *conf)
 {
     struct lcr_list *node = NULL;
     int ret = -1;
@@ -502,7 +502,7 @@ out:
 }
 
 /* trans oci process init */
-static int trans_oci_process_init(const oci_runtime_spec_process *proc, struct lcr_list *conf)
+static int trans_oci_process_init(const defs_process *proc, struct lcr_list *conf)
 {
     int ret = -1;
     if (trans_oci_process_init_uid(proc, conf)) {
@@ -531,7 +531,7 @@ out:
 }
 
 /* trans oci process env and cap */
-static int trans_oci_process_env_and_cap(const oci_runtime_spec_process *proc, struct lcr_list *conf)
+static int trans_oci_process_env_and_cap(const defs_process *proc, struct lcr_list *conf)
 {
     struct lcr_list *node = NULL;
     char *boundings = NULL;
@@ -578,7 +578,7 @@ out:
 }
 
 /* trans oci process prlimit */
-static int trans_oci_process_prlimit(const oci_runtime_spec_process *proc, struct lcr_list *conf)
+static int trans_oci_process_prlimit(const defs_process *proc, struct lcr_list *conf)
 {
     struct lcr_list *node = NULL;
     int ret = -1;
@@ -586,7 +586,7 @@ static int trans_oci_process_prlimit(const oci_runtime_spec_process *proc, struc
     size_t i;
 
     for (i = 0; i < proc->rlimits_len; i++) {
-        oci_runtime_spec_process_rlimits_element *lr = proc->rlimits[i];
+        defs_process_rlimits_element *lr = proc->rlimits[i];
         char buf_key[30] = { 0 };
         char buf_value[60] = { 0 };
         size_t j;
@@ -623,7 +623,7 @@ out:
 }
 
 /* trans oci process no new privs */
-static int trans_oci_process_no_new_privs(const oci_runtime_spec_process *proc, struct lcr_list *conf)
+static int trans_oci_process_no_new_privs(const defs_process *proc, struct lcr_list *conf)
 {
     struct lcr_list *node = NULL;
     int ret = -1;
@@ -640,7 +640,7 @@ out:
     return ret;
 }
 
-static int trans_oci_process_apparmor(const oci_runtime_spec_process *proc, struct lcr_list *conf)
+static int trans_oci_process_apparmor(const defs_process *proc, struct lcr_list *conf)
 {
     struct lcr_list *node = NULL;
     int ret = -1;
@@ -658,7 +658,7 @@ out:
     return ret;
 }
 
-static int trans_oci_process_selinux(const oci_runtime_spec_process *proc, struct lcr_list *conf)
+static int trans_oci_process_selinux(const defs_process *proc, struct lcr_list *conf)
 {
     struct lcr_list *node = NULL;
     int ret = -1;
@@ -677,7 +677,7 @@ out:
 }
 
 /* trans oci process apparmor and selinux */
-static int trans_oci_process_apparmor_and_selinux(const oci_runtime_spec_process *proc, struct lcr_list *conf)
+static int trans_oci_process_apparmor_and_selinux(const defs_process *proc, struct lcr_list *conf)
 {
     int ret = -1;
 
@@ -695,7 +695,7 @@ out:
 }
 
 /* trans oci process */
-struct lcr_list *trans_oci_process(const oci_runtime_spec_process *proc)
+struct lcr_list *trans_oci_process(const defs_process *proc)
 {
     struct lcr_list *conf = NULL;
 
@@ -1308,7 +1308,7 @@ static int trans_conf_uint64(struct lcr_list *conf, const char *lxc_key, uint64_
 }
 
 /* trans resources mem swap */
-static int trans_resources_mem_swap(const oci_runtime_config_linux_resources *res, struct lcr_list *conf)
+static int trans_resources_mem_swap(const defs_resources *res, struct lcr_list *conf)
 {
     int ret = -1;
     int nret;
@@ -1340,7 +1340,7 @@ out:
     return ret;
 }
 
-static int trans_resources_mem_limit(const oci_runtime_config_linux_resources *res, struct lcr_list *conf)
+static int trans_resources_mem_limit(const defs_resources *res, struct lcr_list *conf)
 {
     if (res->memory->limit != INVALID_INT) {
         /* set limit of memory usage */
@@ -1353,7 +1353,7 @@ static int trans_resources_mem_limit(const oci_runtime_config_linux_resources *r
 }
 
 /* trans resources mem kernel */
-static int trans_resources_mem_kernel(const oci_runtime_config_linux_resources *res, struct lcr_list *conf)
+static int trans_resources_mem_kernel(const defs_resources *res, struct lcr_list *conf)
 {
     int ret = -1;
     int nret;
@@ -1377,7 +1377,7 @@ out:
     return ret;
 }
 
-static int trans_resources_mem_disable_oom(const oci_runtime_config_linux_resources *res, struct lcr_list *conf)
+static int trans_resources_mem_disable_oom(const defs_resources *res, struct lcr_list *conf)
 {
     struct lcr_list *node = NULL;
     if (res->memory->disable_oom_killer) {
@@ -1391,7 +1391,7 @@ static int trans_resources_mem_disable_oom(const oci_runtime_config_linux_resour
 }
 
 /* trans resources memory */
-static int trans_resources_memory(const oci_runtime_config_linux_resources *res, struct lcr_list *conf)
+static int trans_resources_memory(const defs_resources *res, struct lcr_list *conf)
 {
     int ret = -1;
 
@@ -1419,7 +1419,7 @@ out:
     return ret;
 }
 
-static int trans_resources_devices_node(const oci_runtime_defs_linux_device_cgroup *lrd, struct lcr_list *conf,
+static int trans_resources_devices_node(const defs_device_cgroup *lrd, struct lcr_list *conf,
                                         const char *buf_value)
 {
     struct lcr_list *node = NULL;
@@ -1440,7 +1440,7 @@ out:
     return ret;
 }
 
-static int trans_resources_devices_no_match(const oci_runtime_defs_linux_device_cgroup *lrd, char *buf_value,
+static int trans_resources_devices_no_match(const defs_device_cgroup *lrd, char *buf_value,
                                             size_t size)
 {
     int ret = 0;
@@ -1455,7 +1455,7 @@ static int trans_resources_devices_no_match(const oci_runtime_defs_linux_device_
     return ret;
 }
 
-static int trans_resources_devices_match(const oci_runtime_defs_linux_device_cgroup *lrd, char *buf_value, size_t size)
+static int trans_resources_devices_match(const defs_device_cgroup *lrd, char *buf_value, size_t size)
 {
     int ret = 0;
     if (lrd->minor != WILDCARD) {
@@ -1468,7 +1468,7 @@ static int trans_resources_devices_match(const oci_runtime_defs_linux_device_cgr
     return ret;
 }
 
-static int trans_resources_devices_ret(const oci_runtime_defs_linux_device_cgroup *lrd, char *buf_value, size_t size)
+static int trans_resources_devices_ret(const defs_device_cgroup *lrd, char *buf_value, size_t size)
 {
     int ret = 0;
     if (lrd->major != WILDCARD) {
@@ -1481,14 +1481,14 @@ static int trans_resources_devices_ret(const oci_runtime_defs_linux_device_cgrou
 }
 
 /* trans resources devices */
-static int trans_resources_devices(const oci_runtime_config_linux_resources *res, struct lcr_list *conf)
+static int trans_resources_devices(const defs_resources *res, struct lcr_list *conf)
 {
     int ret = -1;
     size_t i = 0;
     char buf_value[300] = { 0 };
 
     for (i = 0; i < res->devices_len; i++) {
-        oci_runtime_defs_linux_device_cgroup *lrd = res->devices[i];
+        defs_device_cgroup *lrd = res->devices[i];
         if (trans_resources_devices_ret(lrd, buf_value, sizeof(buf_value)) < 0) {
             goto out;
         }
@@ -1503,7 +1503,7 @@ out:
 }
 
 /* trans resources cpu cfs */
-static int trans_resources_cpu_cfs(const oci_runtime_config_linux_resources *res, struct lcr_list *conf)
+static int trans_resources_cpu_cfs(const defs_resources *res, struct lcr_list *conf)
 {
     int ret = -1;
 
@@ -1523,7 +1523,7 @@ out:
 }
 
 /* trans resources cpu rt */
-static int trans_resources_cpu_rt(const oci_runtime_config_linux_resources *res, struct lcr_list *conf)
+static int trans_resources_cpu_rt(const defs_resources *res, struct lcr_list *conf)
 {
     int ret = -1;
 
@@ -1543,7 +1543,7 @@ out:
 }
 
 /* trans resources cpu set */
-static int trans_resources_cpu_set(const oci_runtime_config_linux_resources *res, struct lcr_list *conf)
+static int trans_resources_cpu_set(const defs_resources *res, struct lcr_list *conf)
 {
     struct lcr_list *node = NULL;
     int ret = -1;
@@ -1568,7 +1568,7 @@ out:
 }
 
 /* trans resources cpu shares */
-static int trans_resources_cpu_shares(const oci_runtime_config_linux_resources *res, struct lcr_list *conf)
+static int trans_resources_cpu_shares(const defs_resources *res, struct lcr_list *conf)
 {
     if (res->cpu->shares != INVALID_INT) {
         int nret = trans_conf_int64(conf, "lxc.cgroup.cpu.shares", (int64_t)(res->cpu->shares));
@@ -1580,7 +1580,7 @@ static int trans_resources_cpu_shares(const oci_runtime_config_linux_resources *
 }
 
 /* trans resources cpu */
-static int trans_resources_cpu(const oci_runtime_config_linux_resources *res, struct lcr_list *conf)
+static int trans_resources_cpu(const defs_resources *res, struct lcr_list *conf)
 {
     int ret = -1;
 
@@ -1611,7 +1611,7 @@ out:
 }
 
 /* trans resources blkio weight */
-static int trans_blkio_weight(const oci_runtime_config_linux_resources_block_io *block_io, struct lcr_list *conf)
+static int trans_blkio_weight(const defs_resources_block_io *block_io, struct lcr_list *conf)
 {
     int ret = -1;
 
@@ -1632,7 +1632,7 @@ out:
 }
 
 /* trans resources blkio wdevice */
-static int trans_blkio_wdevice(const oci_runtime_config_linux_resources_block_io *block_io, struct lcr_list *conf)
+static int trans_blkio_wdevice(const defs_resources_block_io *block_io, struct lcr_list *conf)
 {
     struct lcr_list *node = NULL;
     int ret = -1;
@@ -1641,7 +1641,7 @@ static int trans_blkio_wdevice(const oci_runtime_config_linux_resources_block_io
 
     for (i = 0; i < block_io->weight_device_len; i++) {
         int nret;
-        oci_runtime_defs_linux_block_io_device_weight *wd = block_io->weight_device[i];
+        defs_block_io_device_weight *wd = block_io->weight_device[i];
         if ((wd != NULL) && wd->weight != INVALID_INT) {
             nret = snprintf(buf_value, sizeof(buf_value), "%lld:%lld %d", (long long)(wd->major), (long long)wd->minor,
                             wd->weight);
@@ -1675,7 +1675,7 @@ out:
 }
 
 /* trans resources blkio throttle */
-static int trans_blkio_throttle(oci_runtime_defs_linux_block_io_device_throttle **throttle, size_t len,
+static int trans_blkio_throttle(defs_block_io_device_throttle **throttle, size_t len,
                                 const char *lxc_key, struct lcr_list *conf)
 {
     struct lcr_list *node = NULL;
@@ -1709,7 +1709,7 @@ out:
 }
 
 /* trans resources blkio */
-static int trans_resources_blkio(const oci_runtime_config_linux_resources_block_io *block_io, struct lcr_list *conf)
+static int trans_resources_blkio(const defs_resources_block_io *block_io, struct lcr_list *conf)
 {
     int ret = -1;
 
@@ -1751,14 +1751,14 @@ out:
 }
 
 /* trans resources hugetlb */
-static int trans_resources_hugetlb(const oci_runtime_config_linux_resources *res, struct lcr_list *conf)
+static int trans_resources_hugetlb(const defs_resources *res, struct lcr_list *conf)
 {
     int ret = -1;
     size_t i = 0;
     char buf_key[300] = { 0 };
 
     for (i = 0; i < res->hugepage_limits_len; i++) {
-        oci_runtime_config_linux_resources_hugepage_limits_element *lrhl = res->hugepage_limits[i];
+        defs_resources_hugepage_limits_element *lrhl = res->hugepage_limits[i];
         if (lrhl->page_size != NULL) {
             int nret = snprintf(buf_key, sizeof(buf_key), "lxc.cgroup.hugetlb.%s.limit_in_bytes", lrhl->page_size);
             if (nret < 0 || (size_t)nret >= sizeof(buf_key)) {
@@ -1777,7 +1777,7 @@ out:
 }
 
 /* trans resources network */
-static int trans_resources_network(const oci_runtime_config_linux_resources *res, struct lcr_list *conf)
+static int trans_resources_network(const defs_resources *res, struct lcr_list *conf)
 {
     int ret = -1;
     size_t i = 0;
@@ -1794,7 +1794,7 @@ static int trans_resources_network(const oci_runtime_config_linux_resources *res
     }
 
     for (i = 0; i < res->network->priorities_len; i++) {
-        oci_runtime_defs_linux_network_interface_priority *lrnp = res->network->priorities[i];
+        defs_network_interface_priority *lrnp = res->network->priorities[i];
         if ((lrnp != NULL) && lrnp->name != NULL && lrnp->priority != INVALID_INT) {
             int nret = snprintf(buf_value, sizeof(buf_value), "%s %u", lrnp->name, lrnp->priority);
             if (nret < 0 || (size_t)nret >= sizeof(buf_value)) {
@@ -1815,7 +1815,7 @@ out:
 }
 
 /* trans resources pids */
-static int trans_resources_pids(const oci_runtime_config_linux_resources *res, struct lcr_list *conf)
+static int trans_resources_pids(const defs_resources *res, struct lcr_list *conf)
 {
     int ret = -1;
     char buf_value[300] = { 0 };
@@ -1848,7 +1848,7 @@ out:
 }
 
 /* trans oci resources */
-static struct lcr_list *trans_oci_resources(const oci_runtime_config_linux_resources *res)
+static struct lcr_list *trans_oci_resources(const defs_resources *res)
 {
     struct lcr_list *conf = NULL;
 
@@ -1924,7 +1924,7 @@ static struct lcr_list *trans_oci_namespaces(const oci_runtime_config_linux *l)
     struct lcr_list *conf = NULL;
     struct lcr_list *node = NULL;
     size_t i;
-    oci_runtime_defs_linux_namespace_reference *ns = NULL;
+    defs_namespace_reference *ns = NULL;
 
     conf = lcr_util_common_calloc_s(sizeof(*conf));
     if (conf == NULL) {
@@ -2017,7 +2017,7 @@ static struct lcr_list *trans_oci_linux_devices(const oci_runtime_config_linux *
     struct lcr_list *node = NULL;
     size_t i = 0;
     int nret = 0;
-    oci_runtime_defs_linux_device *device = NULL;
+    defs_device *device = NULL;
     char buf_value[POPULATE_DEVICE_SIZE] = { 0 };
 
     conf = lcr_util_common_calloc_s(sizeof(*conf));
@@ -2241,7 +2241,7 @@ static int seccomp_append_arch(char *arch, Buffer *buffer)
 }
 
 /* seccomp append rule */
-static int seccomp_append_rule(const oci_runtime_defs_linux_syscall *syscall, size_t i, Buffer *buffer, char *action)
+static int seccomp_append_rule(const defs_syscall *syscall, size_t i, Buffer *buffer, char *action)
 {
     int ret = 0;
     size_t j = 0;
@@ -2282,7 +2282,7 @@ out:
 }
 
 /* seccomp append rules */
-static int seccomp_append_rules(const oci_runtime_defs_linux_syscall *syscall, Buffer *buffer)
+static int seccomp_append_rules(const defs_syscall *syscall, Buffer *buffer)
 {
     int ret = 0;
     size_t i = 0;

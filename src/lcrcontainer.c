@@ -31,9 +31,9 @@
 #include "lcrcontainer.h"
 #include "lcrcontainer_execute.h"
 #include "lcrcontainer_extend.h"
-#include "log.h"
+#include "isula_libutils/log.h"
 #include "utils.h"
-#include "oci_runtime_spec.h"
+#include "isula_libutils/oci_runtime_spec.h"
 
 /*
  * Free lcr_container_info array returned by lcr_list_{active,all}_containers
@@ -306,11 +306,11 @@ bool lcr_create(const char *name, const char *lcrpath, void *oci_config)
     oci_runtime_spec *oci_spec = (oci_runtime_spec *)oci_config;
 
     clear_error_message(&g_lcr_error);
-    engine_set_log_prefix(name);
+    isula_libutils_set_log_prefix(name);
 
     c = lxc_container_new(name, tmp_path);
     if (c == NULL) {
-        engine_free_log_prefix();
+        isula_libutils_free_log_prefix();
         return false;
     }
 
@@ -318,7 +318,7 @@ bool lcr_create(const char *name, const char *lcrpath, void *oci_config)
     partial_fd = create_partial(c);
     if (partial_fd < 0) {
         lxc_container_put(c);
-        engine_free_log_prefix();
+        isula_libutils_free_log_prefix();
         return false;
     }
 
@@ -338,7 +338,7 @@ out_unlock:
         }
     }
     lxc_container_put(c);
-    engine_free_log_prefix();
+    isula_libutils_free_log_prefix();
     return bret;
 }
 
@@ -409,7 +409,7 @@ bool lcr_start(const struct lcr_start_request *request)
         ERROR("Missing container name");
         return false;
     }
-    engine_set_log_prefix(request->name);
+    isula_libutils_set_log_prefix(request->name);
 
     if (!lcr_start_check_config(path, request->name)) {
         goto out_free;
@@ -441,7 +441,7 @@ bool lcr_start(const struct lcr_start_request *request)
     close(pipefd[0]);
 
 out_free:
-    engine_free_log_prefix();
+    isula_libutils_free_log_prefix();
     return ret;
 }
 
@@ -481,17 +481,17 @@ bool lcr_kill(const char *name, const char *lcrpath, uint32_t signal)
         return false;
     }
 
-    engine_set_log_prefix(name);
+    isula_libutils_set_log_prefix(name);
     if (signal >= NSIG) {
         ERROR("'%u' isn't a valid signal number", signal);
-        engine_free_log_prefix();
+        isula_libutils_free_log_prefix();
         return false;
     }
 
     c = lxc_container_new(name, path);
     if (c == NULL) {
         ERROR("Failed to stop container.");
-        engine_free_log_prefix();
+        isula_libutils_free_log_prefix();
         return false;
     }
 
@@ -520,7 +520,7 @@ bool lcr_kill(const char *name, const char *lcrpath, uint32_t signal)
 
 out_put:
     lxc_container_put(c);
-    engine_free_log_prefix();
+    isula_libutils_free_log_prefix();
     return ret;
 }
 
@@ -535,11 +535,11 @@ bool lcr_delete(const char *name, const char *lcrpath)
         ERROR("Missing container name");
         return false;
     }
-    engine_set_log_prefix(name);
+    isula_libutils_set_log_prefix(name);
     c = lxc_container_new(name, path);
     if (c == NULL) {
         ERROR("Failed to delete container.");
-        engine_free_log_prefix();
+        isula_libutils_free_log_prefix();
         return false;
     }
 
@@ -574,7 +574,7 @@ bool lcr_delete(const char *name, const char *lcrpath)
 
 out_put:
     lxc_container_put(c);
-    engine_free_log_prefix();
+    isula_libutils_free_log_prefix();
     return ret;
 }
 
@@ -600,7 +600,7 @@ bool lcr_exec(const struct lcr_exec_request *request, int *exit_code)
         return bret;
     }
 
-    engine_set_log_prefix(name);
+    isula_libutils_set_log_prefix(name);
 
     if (geteuid()) {
         if (access(tmp_path, O_RDONLY) < 0) {
@@ -628,7 +628,7 @@ bool lcr_exec(const struct lcr_exec_request *request, int *exit_code)
 out_put:
     lxc_container_put(c);
 out:
-    engine_free_log_prefix();
+    isula_libutils_free_log_prefix();
     return bret;
 }
 
@@ -644,12 +644,12 @@ bool lcr_clean(const char *name, const char *lcrpath, const char *logpath, const
         ERROR("Missing container name");
         return false;
     }
-    engine_set_log_prefix(name);
+    isula_libutils_set_log_prefix(name);
 
     if (geteuid()) {
         if (access(tmp_path, O_RDONLY) < 0) {
             ERROR("You lack access to %s", tmp_path);
-            engine_free_log_prefix();
+            isula_libutils_free_log_prefix();
             return false;
         }
     }
@@ -657,7 +657,7 @@ bool lcr_clean(const char *name, const char *lcrpath, const char *logpath, const
     c = lxc_container_new(name, tmp_path);
     if (c == NULL) {
         ERROR("Failed to delete container.");
-        engine_free_log_prefix();
+        isula_libutils_free_log_prefix();
         return false;
     }
 
@@ -683,7 +683,7 @@ bool lcr_clean(const char *name, const char *lcrpath, const char *logpath, const
 out_put:
     lxc_container_put(c);
 
-    engine_free_log_prefix();
+    isula_libutils_free_log_prefix();
     return bret;
 }
 
@@ -697,11 +697,11 @@ bool lcr_state(const char *name, const char *lcrpath, struct lcr_container_state
         ERROR("Missing container name");
         return false;
     }
-    engine_set_log_prefix(name);
+    isula_libutils_set_log_prefix(name);
     c = lxc_container_new(name, tmp_path);
     if (c == NULL) {
         ERROR("Failure to retrieve state infomation on %s", tmp_path);
-        engine_free_log_prefix();
+        isula_libutils_free_log_prefix();
         return false;
     }
 
@@ -720,7 +720,7 @@ bool lcr_state(const char *name, const char *lcrpath, struct lcr_container_state
     do_lcr_state(c, lcs);
 out_put:
     lxc_container_put(c);
-    engine_free_log_prefix();
+    isula_libutils_free_log_prefix();
     return bret;
 }
 
@@ -734,11 +734,11 @@ bool lcr_get_container_pids(const char *name, const char *lcrpath, pid_t **pids,
         ERROR("Missing container name");
         return false;
     }
-    engine_set_log_prefix(name);
+    isula_libutils_set_log_prefix(name);
     c = lxc_container_new(name, tmp_path);
     if (c == NULL) {
         ERROR("Failure to retrieve state infomation on %s", tmp_path);
-        engine_free_log_prefix();
+        isula_libutils_free_log_prefix();
         return false;
     }
 
@@ -756,7 +756,7 @@ bool lcr_get_container_pids(const char *name, const char *lcrpath, pid_t **pids,
 
 out_put:
     lxc_container_put(c);
-    engine_free_log_prefix();
+    isula_libutils_free_log_prefix();
     return bret;
 }
 
@@ -781,11 +781,11 @@ bool lcr_pause(const char *name, const char *lcrpath)
         return false;
     }
 
-    engine_set_log_prefix(name);
+    isula_libutils_set_log_prefix(name);
     c = lxc_container_new(name, tmp_path);
     if (c == NULL) {
         ERROR("Failed to pause container");
-        engine_free_log_prefix();
+        isula_libutils_free_log_prefix();
         return false;
     }
 
@@ -809,7 +809,7 @@ bool lcr_pause(const char *name, const char *lcrpath)
 
 out_put:
     lxc_container_put(c);
-    engine_free_log_prefix();
+    isula_libutils_free_log_prefix();
     return bret;
 }
 
@@ -824,7 +824,7 @@ bool lcr_resume(const char *name, const char *lcrpath)
         ERROR("Missing container name");
         return false;
     }
-    engine_set_log_prefix(name);
+    isula_libutils_set_log_prefix(name);
     c = lxc_container_new(name, tmp_path);
     if (c == NULL) {
         ERROR("Failed to resume container");
@@ -851,7 +851,7 @@ bool lcr_resume(const char *name, const char *lcrpath)
 out_put:
     lxc_container_put(c);
 out:
-    engine_free_log_prefix();
+    isula_libutils_free_log_prefix();
     return bret;
 }
 
@@ -868,11 +868,11 @@ bool lcr_resize(const char *name, const char *lcrpath, unsigned int height, unsi
         return false;
     }
 
-    engine_set_log_prefix(name);
+    isula_libutils_set_log_prefix(name);
     c = lxc_container_new(name, tmp_path);
     if (c == NULL) {
         ERROR("Failed to pause container");
-        engine_free_log_prefix();
+        isula_libutils_free_log_prefix();
         return false;
     }
 
@@ -901,7 +901,7 @@ bool lcr_resize(const char *name, const char *lcrpath, unsigned int height, unsi
 
 out_put:
     lxc_container_put(c);
-    engine_free_log_prefix();
+    isula_libutils_free_log_prefix();
     return bret;
 }
 
@@ -918,11 +918,11 @@ bool lcr_exec_resize(const char *name, const char *lcrpath, const char *suffix, 
         return false;
     }
 
-    engine_set_log_prefix(name);
+    isula_libutils_set_log_prefix(name);
     c = lxc_container_new(name, tmp_path);
     if (c == NULL) {
         ERROR("Failed to pause container");
-        engine_free_log_prefix();
+        isula_libutils_free_log_prefix();
         return false;
     }
 
@@ -951,7 +951,7 @@ bool lcr_exec_resize(const char *name, const char *lcrpath, const char *suffix, 
 
 out_put:
     lxc_container_put(c);
-    engine_free_log_prefix();
+    isula_libutils_free_log_prefix();
     return bret;
 }
 
@@ -966,7 +966,7 @@ bool lcr_console(const char *name, const char *lcrpath, const char *in_fifo, con
         ERROR("Missing container name");
         return false;
     }
-    engine_set_log_prefix(name);
+    isula_libutils_set_log_prefix(name);
 
     c = lxc_container_new(name, tmp_path);
     if (c == NULL) {
@@ -1000,7 +1000,7 @@ bool lcr_console(const char *name, const char *lcrpath, const char *in_fifo, con
 out_put:
     lxc_container_put(c);
 out:
-    engine_free_log_prefix();
+    isula_libutils_free_log_prefix();
     return bresult;
 }
 
@@ -1101,11 +1101,11 @@ bool lcr_get_console_config(const char *name, const char *lcrpath, struct lcr_co
         ERROR("Parameter is NULL");
         return false;
     }
-    engine_set_log_prefix(name);
+    isula_libutils_set_log_prefix(name);
     c = lxc_container_new(name, tmp_path);
     if (c == NULL) {
         ERROR("Failed to create container.");
-        engine_free_log_prefix();
+        isula_libutils_free_log_prefix();
         return false;
     }
 
@@ -1128,7 +1128,7 @@ bool lcr_get_console_config(const char *name, const char *lcrpath, struct lcr_co
 
 out_put:
     lxc_container_put(c);
-    engine_free_log_prefix();
+    isula_libutils_free_log_prefix();
     return ret;
 }
 
@@ -1143,12 +1143,12 @@ bool lcr_update(const char *name, const char *lcrpath, const struct lcr_cgroup_r
         ERROR("Invalid input");
         return false;
     }
-    engine_set_log_prefix(name);
+    isula_libutils_set_log_prefix(name);
 
     tmp_path = lcrpath ? lcrpath : LCRPATH;
     if (access(tmp_path, O_RDONLY) < 0) {
         ERROR("You lack permission to access %s", tmp_path);
-        engine_free_log_prefix();
+        isula_libutils_free_log_prefix();
         return false;
     }
 
@@ -1183,7 +1183,7 @@ out_put:
     lxc_container_put(c);
 
 out_free:
-    engine_free_log_prefix();
+    isula_libutils_free_log_prefix();
     if (!bret) {
         lcr_try_set_error_message(LCR_ERR_RUNTIME, "Runtime error when updating cgroup");
     }
@@ -1215,7 +1215,7 @@ int lcr_log_init(const char *name, const char *file, const char *priority, const
     char *full_path = NULL;
     char *pre_name = "fifo:";
     size_t pre_len = 0;
-    struct engine_log_config lconf = { 0 };
+    struct isula_libutils_log_config lconf = { 0 };
     struct lxc_log lxc_log_conf = { 0 };
 
     pre_len = strlen(pre_name);
@@ -1231,7 +1231,7 @@ int lcr_log_init(const char *name, const char *file, const char *priority, const
         lconf.driver = "fifo";
         lconf.priority = priority;
     }
-    if (engine_log_enable(&lconf)) {
+    if (isula_libutils_log_enable(&lconf)) {
         fprintf(stderr, "Failed to init log");
         goto out;
     }

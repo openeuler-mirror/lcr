@@ -15,7 +15,7 @@
 #ifndef __LCR_CONF_H
 #define __LCR_CONF_H
 
-#include "oci_runtime_spec.h"
+#include "isula_libutils/oci_runtime_spec.h"
 #include "lcr_list.h"
 
 #define INVALID_INT 0
@@ -80,7 +80,7 @@ struct lcr_list *trans_oci_hostname(const char *hostname);
 /*
  * Translate oci process struct to lcr config
  */
-struct lcr_list *trans_oci_process(const oci_runtime_spec_process *proc);
+struct lcr_list *trans_oci_process(const defs_process *proc);
 
 /*
  * Translate oci root struct to lcr config

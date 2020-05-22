@@ -31,9 +31,9 @@
 #include "lcrcontainer.h"
 #include "lcrcontainer_extend.h"
 #include "utils.h"
-#include "log.h"
+#include "isula_libutils/log.h"
 #include "conf.h"
-#include "oci_runtime_hooks.h"
+#include "isula_libutils/oci_runtime_hooks.h"
 
 static struct lxc_container *lcr_new_container(const char *name, const char *path)
 {
@@ -493,10 +493,10 @@ bool lcr_delete_with_force(const char *name, const char *lcrpath, bool force)
         ERROR("Missing container name");
         return false;
     }
-    engine_set_log_prefix(name);
+    isula_libutils_set_log_prefix(name);
     c = lcr_new_container(name, path);
     if (c == NULL) {
-        engine_free_log_prefix();
+        isula_libutils_free_log_prefix();
         return false;
     }
 
@@ -532,7 +532,7 @@ clean_delete:
 
 out_put:
     lxc_container_put(c);
-    engine_free_log_prefix();
+    isula_libutils_free_log_prefix();
     return ret;
 }
 

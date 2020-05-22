@@ -1,5 +1,5 @@
-%global _version 2.0.0
-%global _release 20200418.180849.git0944f121
+%global _version 2.0.1
+%global _release 20200522.155058.git32001591
 Name:      lcr
 Version:   %{_version}
 Release:   %{_release}
@@ -13,9 +13,8 @@ BuildRoot: %{_tmppath}/lcr-%{version}
 BuildRequires: cmake
 BuildRequires: lxc
 BuildRequires: lxc-devel
-BuildRequires: yajl yajl-devel
-BuildRequires: python3
-Requires:      lxc
+BuildRequires: iSula-libutils-devel yajl-devel
+Requires:      lxc iSula-libutils
 ExclusiveArch:  x86_64 aarch64
 
 %ifarch x86_64
