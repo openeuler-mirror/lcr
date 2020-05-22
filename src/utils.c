@@ -26,7 +26,7 @@
 #include <fcntl.h>
 #include "constants.h"
 #include "utils.h"
-#include "log.h"
+#include "isula_libutils/log.h"
 
 #define ISSLASH(C) ((C) == '/')
 #define IS_ABSOLUTE_FILE_NAME(F) (ISSLASH((F)[0]))

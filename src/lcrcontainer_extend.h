@@ -17,7 +17,7 @@
 
 #include <lxc/lxccontainer.h>
 
-#include "oci_runtime_spec.h"
+#include "isula_libutils/oci_runtime_spec.h"
 
 #ifdef __cplusplus
 extern "C" {

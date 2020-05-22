@@ -10,10 +10,6 @@ else()
 endif()
 endmacro()
 
-#check python3
-find_program(CMD_PYTHON python3)
-_CHECK(CMD_PYTHON "CMD_PYTHON-NOTFOUND" "python3")
-
 # check liblxc
 pkg_check_modules(PC_LIBLXC REQUIRED "lxc>=3")
 find_path(LIBLXC_INCLUDE_DIR lxc/lxccontainer.h
@@ -24,12 +20,12 @@ find_library(LIBLXC_LIBRARY lxc
 	HINTS ${PC_LIBLXC_LIBDIR} ${PC_LIBLXC_LIBRARY_DIRS})
 _CHECK(LIBLXC_LIBRARY "LIBLXC_LIBRARY-NOTFOUND" "liblxc.so")
 
-# check libyajl
-pkg_check_modules(PC_LIBYAJL REQUIRED "yajl>=2")
-find_path(LIBYAJL_INCLUDE_DIR yajl/yajl_tree.h
-	HINTS ${PC_LIBYAJL_INCLUDEDIR} ${PC_LIBYAJL_INCLUDE_DIRS})
-_CHECK(LIBYAJL_INCLUDE_DIR "LIBYAJL_INCLUDE_DIR-NOTFOUND" "yajl/yajl_tree.h")
+# check iSula libutils
+pkg_check_modules(PC_ISULA_LIBUTILS REQUIRED "isula_libutils")
+find_path(ISULA_LIBUTILS_INCLUDE_DIR isula_libutils/log.h
+	HINTS ${PC_ISULA_LIBUTILS_INCLUDEDIR} ${PC_ISULA_LIBUTILS_INCLUDE_DIRS})
+_CHECK(ISULA_LIBUTILS_INCLUDE_DIR "ISULA_LIBUTILS_INCLUDE_DIR-NOTFOUND" "isula_libutils/log.h")
 
-find_library(LIBYAJL_LIBRARY yajl
-	HINTS ${PC_LIBYAJL_LIBDIR} ${PC_LIBYAJL_LIBRARY_DIRS})
-_CHECK(LIBYAJL_LIBRARY "LIBYAJL_LIBRARY-NOTFOUND" "libyajl.so")
+find_library(ISULA_LIBUTILS_LIBRARY isula_libutils
+	HINTS ${PC_ISULA_LIBUTILS_LIBDIR} ${PC_ISULA_LIBUTILS_LIBRARY_DIRS})
+_CHECK(ISULA_LIBUTILS_LIBRARY "ISULA_LIBUTILS_LIBRARY-NOTFOUND" "libisula_libutils.so")
