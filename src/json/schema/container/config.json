@@ -89,7 +89,7 @@
         "StopSignal": {
             "type": "string"
         },
-        "HealthCheck": {
+        "Healthcheck": {
             "$ref": "../defs.json#/definitions/HealthCheck"
         },
     	"SystemContainer": {

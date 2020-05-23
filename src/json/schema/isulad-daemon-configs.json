@@ -65,9 +65,6 @@
         "image-opt-timeout": {
             "type": "string"
         },
-        "image-server-sock-addr": {
-            "type": "string"
-        },
         "pod-sandbox-image": {
             "type": "string"
         },
