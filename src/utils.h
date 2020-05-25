@@ -154,55 +154,40 @@ extern "C" {
         { SIGRTMAX - 1, "RTMAX-1" }, { SIGRTMAX, "RTMAX" },                                                    \
     }
 
-bool file_exists(const char *path);
-bool dir_exists(const char *path);
-int wait_for_pid(pid_t pid);
-int wait_for_pid_status(pid_t pid);
-char *util_string_join(const char *sep, const char **parts, size_t len);
-int util_mkdir_p(const char *dir, mode_t mode);
+int lcr_wait_for_pid(pid_t pid);
+int lcr_wait_for_pid_status(pid_t pid);
+char *lcr_util_string_join(const char *sep, const char **parts, size_t len);
 char **lcr_string_split_and_trim(const char *str, char _sep);
 void lcr_free_array(void **array);
 int lcr_grow_array(void ***array, size_t *capacity, size_t new_size, size_t capacity_increment);
 size_t lcr_array_len(void **array);
-int mem_realloc(void **newptr, size_t newsize, void *oldptr, size_t oldsize);
-bool util_valid_cmd_arg(const char *arg);
-int util_safe_ullong(const char *numstr, unsigned long long *converted);
-int util_safe_strtod(const char *numstr, double *converted);
-int util_safe_uint(const char *numstr, unsigned int *converted);
-int parse_byte_size_string(const char *s, int64_t *converted);
-bool util_dir_exists(const char *path);
-int util_ensure_path(char **confpath, const char *path);
-int util_recursive_rmdir(const char *dirpath, int recursive_depth);
-char *util_string_replace(const char *needle, const char *replacement, const char *haystack);
-int util_open(const char *filename, int flags, mode_t mode);
+int lcr_mem_realloc(void **newptr, size_t newsize, void *oldptr, size_t oldsize);
+int lcr_util_safe_strtod(const char *numstr, double *converted);
+int lcr_util_safe_uint(const char *numstr, unsigned int *converted);
+int lcr_parse_byte_size_string(const char *s, int64_t *converted);
+bool lcr_util_dir_exists(const char *path);
+int lcr_util_ensure_path(char **confpath, const char *path);
+int lcr_util_recursive_rmdir(const char *dirpath, int recursive_depth);
+char *lcr_util_string_replace(const char *needle, const char *replacement, const char *haystack);
+int lcr_util_open(const char *filename, int flags, mode_t mode);
 
-FILE *util_fopen(const char *filename, const char *mode);
+void *lcr_util_common_calloc_s(size_t size);
+int lcr_util_safe_int(const char *numstr, int *converted);
+int lcr_util_check_inherited(bool closeall, int fd_to_ignore);
+char *lcr_util_string_append(const char *post, const char *pre);
+char *lcr_util_string_split_prefix(size_t prefix_len, const char *file);
 
-void *util_common_calloc_s(size_t size);
-int util_safe_int(const char *numstr, int *converted);
-int util_check_inherited(bool closeall, int fd_to_ignore);
-char *util_string_append(const char *post, const char *pre);
-char *util_string_split_prefix(size_t prefix_len, const char *file);
+int lcr_util_build_dir(const char *name);
+ssize_t lcr_util_write_nointr(int fd, const void *buf, size_t count);
+ssize_t lcr_util_read_nointr(int fd, void *buf, size_t count);
 
-int util_build_dir(const char *name);
-ssize_t util_write_nointr(int fd, const void *buf, size_t count);
-ssize_t util_read_nointr(int fd, void *buf, size_t count);
-void util_free_array(char **array);
+size_t lcr_util_array_len(char **array);
 
-int util_sig_parse(const char *signame);
-bool util_valid_signal(int sig);
-size_t util_array_len(char **array);
-const char *str_skip_str(const char *str, const char *skip);
-int util_array_append(char ***array, const char *element);
-int util_safe_llong(const char *numstr, long long *converted);
-char *util_strdup_s(const char *src);
-int util_null_stdfds(void);
+int lcr_util_safe_llong(const char *numstr, long long *converted);
+char *lcr_util_strdup_s(const char *src);
+int lcr_util_null_stdfds(void);
 
-bool util_copy_file(const char *src_file, const char *dst_file, mode_t mode);
-
-bool util_write_file(const char *filepath, const char *content, size_t len, bool add_newline, mode_t mode);
-
-int util_atomic_write_file(const char *filepath, const char *content);
+int lcr_util_atomic_write_file(const char *filepath, const char *content);
 
 #ifdef __cplusplus
 }
