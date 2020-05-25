@@ -40,7 +40,7 @@ static int files_limit_checker(const char *value)
     long long limit = 0;
     int ret = 0;
 
-    ret = util_safe_llong(value, &limit);
+    ret = lcr_util_safe_llong(value, &limit);
     if (ret) {
         ret = -1;
     }
@@ -75,7 +75,7 @@ static int check_console_log_filesize(const char *value)
         return ret;
     }
 
-    if (parse_byte_size_string(value, &tmp) == 0 && tmp >= min) {
+    if (lcr_parse_byte_size_string(value, &tmp) == 0 && tmp >= min) {
         ret = 0;
     }
 
@@ -94,7 +94,7 @@ static int check_oom_score_adj(const char *value)
         return ret;
     }
 
-    if (util_safe_int(value, &tmp) == 0 && tmp >= min && tmp <= max) {
+    if (lcr_util_safe_int(value, &tmp) == 0 && tmp >= min && tmp <= max) {
         ret = 0;
     }
     lcr_set_error_message(LCR_ERR_RUNTIME, "Invalid value %s, range for oom score adj is [%d, %d]", value, min, max);
@@ -110,7 +110,7 @@ static int check_console_log_filerotate(const char *value)
         return ret;
     }
 
-    if (util_safe_uint(value, &tmp) == 0) {
+    if (lcr_util_safe_uint(value, &tmp) == 0) {
         ret = 0;
     }
 
@@ -124,7 +124,7 @@ static int check_rootfs_mount(const char *value)
         return -1;
     }
 
-    if (!dir_exists(value)) {
+    if (!lcr_util_dir_exists(value)) {
         lcr_set_error_message(LCR_ERR_RUNTIME, "Container rootfs mount path '%s' is not exist", value);
         return -1;
     }
@@ -236,18 +236,18 @@ struct lcr_list *create_lcr_list_node(const char *key, const char *value)
     struct lcr_list *node = NULL;
     lcr_config_item_t *entry = NULL;
 
-    node = util_common_calloc_s(sizeof(*node));
+    node = lcr_util_common_calloc_s(sizeof(*node));
     if (node == NULL) {
         return NULL;
     }
-    entry = util_common_calloc_s(sizeof(*entry));
+    entry = lcr_util_common_calloc_s(sizeof(*entry));
     if (entry == NULL) {
         free(node);
         return NULL;
     }
-    entry->name = util_strdup_s(key);
+    entry->name = lcr_util_strdup_s(key);
 
-    entry->value = util_strdup_s(value);
+    entry->value = lcr_util_strdup_s(value);
 
     node->elem = entry;
     return node;
@@ -397,7 +397,7 @@ static int trans_oci_process_init_groups(const oci_runtime_spec_process *proc, s
         }
 
         size_t total_len = (LCR_NUMSTRLEN64 + 1) * proc->user->additional_gids_len;
-        char *gids = util_common_calloc_s(total_len);
+        char *gids = lcr_util_common_calloc_s(total_len);
         if (gids == NULL) {
             goto out;
         }
@@ -502,7 +502,7 @@ static int trans_oci_process_env_and_cap(const oci_runtime_spec_process *proc, s
     size_t i;
 
     for (i = 0; i < proc->env_len; i++) {
-        char *replaced = util_string_replace(" ", SPACE_MAGIC_STR, proc->env[i]);
+        char *replaced = lcr_util_string_replace(" ", SPACE_MAGIC_STR, proc->env[i]);
         if (replaced == NULL) {
             ERROR("memory allocation error");
             goto out;
@@ -553,7 +553,7 @@ static int trans_oci_process_prlimit(const oci_runtime_spec_process *proc, struc
         char buf_key[30] = { 0 };
         char buf_value[60] = { 0 };
         size_t j;
-        char *type = util_strdup_s(lr->type);
+        char *type = lcr_util_strdup_s(lr->type);
 
         // Lower case type,eg. RLIMIT_NOFILE -> RLIMIT_nofile
         for (j = strlen("RLIMIT_"); j < strlen(type); j++) {
@@ -662,7 +662,7 @@ struct lcr_list *trans_oci_process(const oci_runtime_spec_process *proc)
 {
     struct lcr_list *conf = NULL;
 
-    conf = util_common_calloc_s(sizeof(struct lcr_list));
+    conf = lcr_util_common_calloc_s(sizeof(struct lcr_list));
     if (conf == NULL) {
         return NULL;
     }
@@ -733,7 +733,7 @@ static int trans_oci_root_rootfs_options(const oci_runtime_spec_root *root, stru
     int nret;
 
     if (is_root_readonly(root)) {
-        value = util_strdup_s("ro");
+        value = lcr_util_strdup_s("ro");
     }
 
     if ((linux != NULL) && linux->rootfs_propagation != NULL) {
@@ -744,7 +744,7 @@ static int trans_oci_root_rootfs_options(const oci_runtime_spec_root *root, stru
                 goto out;
             }
             newsize = strlen(linux->rootfs_propagation) + strlen(value) + APPEND_COMMA_END_SIZE;
-            nret = mem_realloc((void **)&tmpvalue, newsize, value, strlen(value));
+            nret = lcr_mem_realloc((void **)&tmpvalue, newsize, value, strlen(value));
             if (nret < 0) {
                 ERROR("Out of memory");
                 goto out;
@@ -756,7 +756,7 @@ static int trans_oci_root_rootfs_options(const oci_runtime_spec_root *root, stru
                 goto out;
             }
         } else {
-            value = util_strdup_s(linux->rootfs_propagation);
+            value = lcr_util_strdup_s(linux->rootfs_propagation);
         }
     }
 
@@ -778,7 +778,7 @@ struct lcr_list *trans_oci_root(const oci_runtime_spec_root *root, const oci_run
 {
     struct lcr_list *conf = NULL;
 
-    conf = util_common_calloc_s(sizeof(*conf));
+    conf = lcr_util_common_calloc_s(sizeof(*conf));
     if (conf == NULL) {
         return NULL;
     }
@@ -850,12 +850,12 @@ static char *trans_mount_to_lxc_options(const defs_mount *mount)
 
     lxc_options = isdir ? ",create=dir" : ",create=file";
 
-    prefix = util_string_join(",", (const char **)mount->options, mount->options_len);
+    prefix = lcr_util_string_join(",", (const char **)mount->options, mount->options_len);
     if (prefix == NULL) {
-        prefix = util_strdup_s("defaults");
+        prefix = lcr_util_strdup_s("defaults");
     }
 
-    result = util_string_append(lxc_options, prefix);
+    result = lcr_util_string_append(lxc_options, prefix);
     free(prefix);
     return result;
 
@@ -889,15 +889,15 @@ static char *get_mount_readmode_options(const defs_mount *mount, const char *typ
 
     if (is_mount_type_cgroup(type)) {
         if (readonly) {
-            options = util_strdup_s("ro:force");
+            options = lcr_util_strdup_s("ro:force");
         } else {
-            options = util_strdup_s("rw:force");
+            options = lcr_util_strdup_s("rw:force");
         }
     } else {
         if (readonly) {
-            options = util_strdup_s("ro");
+            options = lcr_util_strdup_s("ro");
         } else {
-            options = util_strdup_s("rw");
+            options = lcr_util_strdup_s("rw");
         }
     }
 
@@ -959,12 +959,12 @@ static struct lcr_list *trans_mount_entry_to_lxc(const defs_mount *mount)
     char *replaced_dest = NULL;
     int ret;
 
-    char *replaced_source = util_string_replace(" ", SPACE_MAGIC_STR, mount->source);
+    char *replaced_source = lcr_util_string_replace(" ", SPACE_MAGIC_STR, mount->source);
     if (replaced_source == NULL) {
         ERROR("memory allocation error");
         goto err_out;
     }
-    replaced_dest = util_string_replace(" ", SPACE_MAGIC_STR, mount->destination);
+    replaced_dest = lcr_util_string_replace(" ", SPACE_MAGIC_STR, mount->destination);
     if (replaced_dest == NULL) {
         ERROR("memory allocation error");
         free(replaced_source);
@@ -1080,7 +1080,7 @@ struct lcr_list *trans_oci_mounts(const oci_runtime_spec *c)
     bool system_container = is_system_container(c);
     bool external_rootfs = is_external_rootfs(c);
 
-    conf = util_common_calloc_s(sizeof(*conf));
+    conf = lcr_util_common_calloc_s(sizeof(*conf));
     if (conf == NULL) {
         return NULL;
     }
@@ -1132,7 +1132,7 @@ static int trans_one_oci_id_mapping(struct lcr_list *conf, const char *typ, cons
     if (nret < 0 || (size_t)nret >= sizeof(subid)) {
         return -1;
     }
-    nret = util_atomic_write_file(path, subid);
+    nret = lcr_util_atomic_write_file(path, subid);
     if (nret < 0) {
         return -1;
     }
@@ -1171,7 +1171,7 @@ static struct lcr_list *trans_oci_id_mapping(const oci_runtime_config_linux *l)
     struct lcr_list *conf = NULL;
     int nret = 0;
 
-    conf = util_common_calloc_s(sizeof(*conf));
+    conf = lcr_util_common_calloc_s(sizeof(*conf));
     if (conf == NULL) {
         return NULL;
     }
@@ -1815,7 +1815,7 @@ static struct lcr_list *trans_oci_resources(const oci_runtime_config_linux_resou
 {
     struct lcr_list *conf = NULL;
 
-    conf = util_common_calloc_s(sizeof(*conf));
+    conf = lcr_util_common_calloc_s(sizeof(*conf));
     if (conf == NULL) {
         return NULL;
     }
@@ -1875,7 +1875,7 @@ static char *trans_oci_namespace_to_lxc(const char *typ)
 
     for (p = namespaces_map; p != NULL && p->ns_name != NULL; p++) {
         if (strcmp(typ, p->ns_name) == 0) {
-            return util_strdup_s(p->lxc_name);
+            return lcr_util_strdup_s(p->lxc_name);
         }
     }
     return NULL;
@@ -1889,7 +1889,7 @@ static struct lcr_list *trans_oci_namespaces(const oci_runtime_config_linux *l)
     size_t i;
     oci_runtime_defs_linux_namespace_reference *ns = NULL;
 
-    conf = util_common_calloc_s(sizeof(*conf));
+    conf = lcr_util_common_calloc_s(sizeof(*conf));
     if (conf == NULL) {
         return NULL;
     }
@@ -1933,7 +1933,7 @@ static struct lcr_list *trans_oci_mask_ro_paths(const oci_runtime_config_linux *
     size_t i;
     char *path = NULL;
 
-    conf = util_common_calloc_s(sizeof(*conf));
+    conf = lcr_util_common_calloc_s(sizeof(*conf));
     if (conf == NULL) {
         return NULL;
     }
@@ -1983,7 +1983,7 @@ static struct lcr_list *trans_oci_linux_devices(const oci_runtime_config_linux *
     oci_runtime_defs_linux_device *device = NULL;
     char buf_value[POPULATE_DEVICE_SIZE] = { 0 };
 
-    conf = util_common_calloc_s(sizeof(*conf));
+    conf = lcr_util_common_calloc_s(sizeof(*conf));
     if (conf == NULL) {
         return NULL;
     }
@@ -2052,15 +2052,15 @@ static inline bool is_seccomp_action_errno(const char *value)
 static char *seccomp_trans_action(const char *action)
 {
     if (is_seccomp_action_kill(action)) {
-        return util_strdup_s("kill");
+        return lcr_util_strdup_s("kill");
     } else if (is_seccomp_action_trap(action)) {
-        return util_strdup_s("trap");
+        return lcr_util_strdup_s("trap");
     } else if (is_seccomp_action_allow(action)) {
-        return util_strdup_s("allow");
+        return lcr_util_strdup_s("allow");
     } else if (is_seccomp_action_trace(action)) {
-        return util_strdup_s("trace 1");
+        return lcr_util_strdup_s("trace 1");
     } else if (is_seccomp_action_errno(action)) {
-        return util_strdup_s("errno 1");
+        return lcr_util_strdup_s("errno 1");
     }
 
     return NULL;
@@ -2127,11 +2127,11 @@ static char *get_hostarch(void)
     for (i = 0; i < len; i++) {
         if (i == 0 || i == 1 || i == 2) {
             if (strcmp(uts.machine, arch_type[i].arch) == 0) {
-                return util_strdup_s(arch_type[i].value);
+                return lcr_util_strdup_s(arch_type[i].value);
             }
         } else {
             if (strncmp(uts.machine, arch_type[i].arch, (size_t)(arch_type[i].num)) == 0) {
-                return util_strdup_s(arch_type[i].value);
+                return lcr_util_strdup_s(arch_type[i].value);
             }
         }
     }
@@ -2172,7 +2172,7 @@ static char *seccomp_trans_arch(const char *arch)
         if (strcmp(arch_type[i].arch, "SCMP_ARCH_AUTO") == 0) {
             return get_hostarch();
         } else if (strcmp(arch, arch_type[i].arch) == 0) {
-            return util_strdup_s(arch_type[i].value);
+            return lcr_util_strdup_s(arch_type[i].value);
         }
     }
     return NULL;
@@ -2283,7 +2283,7 @@ static struct lcr_list *trans_oci_linux_sysctl(const json_map_string_string *sys
     struct lcr_list *node = NULL;
     size_t i;
 
-    conf = util_common_calloc_s(sizeof(*conf));
+    conf = lcr_util_common_calloc_s(sizeof(*conf));
     if (conf == NULL) {
         return NULL;
     }
@@ -2420,7 +2420,7 @@ struct lcr_list *trans_oci_linux(const oci_runtime_config_linux *l, char **secco
     int ret = 0;
     struct lcr_list *tmp = NULL;
 
-    struct lcr_list *conf = util_common_calloc_s(sizeof(*conf));
+    struct lcr_list *conf = lcr_util_common_calloc_s(sizeof(*conf));
     if (conf == NULL) {
         return NULL;
     }
@@ -2495,7 +2495,7 @@ struct lcr_list *trans_annotations(const json_map_string_string *anno)
     size_t len;
     int ret = 0;
 
-    struct lcr_list *conf = util_common_calloc_s(sizeof(*conf));
+    struct lcr_list *conf = lcr_util_common_calloc_s(sizeof(*conf));
     if (conf == NULL) {
         return NULL;
     }
@@ -2569,7 +2569,7 @@ static int add_needed_net_conf(struct lcr_list *conf)
 /* get needed lxc conf */
 struct lcr_list *get_needed_lxc_conf()
 {
-    struct lcr_list *conf = util_common_calloc_s(sizeof(*conf));
+    struct lcr_list *conf = lcr_util_common_calloc_s(sizeof(*conf));
     if (conf == NULL) {
         return NULL;
     }
