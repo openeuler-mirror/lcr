@@ -1,0 +1,30 @@
+{
+	"$schema": "http://json-schema.org/draft-04/schema#",
+	"type": "object",
+	"properties": {
+		"cniVersion": {
+			"type": "string"
+		},
+		"interfaces": {
+			"type": "array",
+			"items": {
+				"$ref": "network/interface.json"
+			}
+		},
+		"ips": {
+			"type": "array",
+			"items": {
+				"$ref": "network/ipconfig.json"
+			}
+		},
+		"routes": {
+			"type": "array",
+			"items": {
+				"$ref": "network/route.json"
+			}
+		},
+		"ip4": {"$ref": "network/ipconfig_020.json"},
+		"ip6": {"$ref": "network/ipconfig_020.json"},
+		"dns": {"$ref": "network/dns.json"}
+	}
+}

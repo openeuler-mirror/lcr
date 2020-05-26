@@ -1,0 +1,18 @@
+{
+	"$schema": "http://json-schema.org/draft-04/schema#",
+	"type": "object",
+	"properties": {
+		"hostPort": {
+			"type": "int32"
+		},
+		"containerPort": {
+			"type": "int32"
+		},
+		"protocol": {
+			"type": "string"
+		},
+		"hostIP": {
+			"type": "string"
+		}
+	}
+}

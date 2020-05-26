@@ -1,0 +1,35 @@
+{
+	"$schema": "http://json-schema.org/draft-04/schema#",
+	"type": "object",
+	"properties": {
+		"author": {
+			"type": "string"
+		},
+		"id": {
+			"type": "string"
+		},
+		"comment": {
+			"type": "string"
+		},
+		"parent": {
+			"type": "string"
+		},
+		"created": {
+			"type": "string"
+		},
+		"throwaway": {
+			"type": "boolean"
+		},
+		"container_config": {
+			"type": "object",
+			"properties": {
+				"Cmd" : {
+					"type": "array",
+					"items": {
+						"type": "string"
+					}
+				}
+			}
+		}
+	}
+}

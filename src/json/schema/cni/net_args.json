@@ -1,0 +1,85 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "type": "object",
+    "properties": {
+        "K8S_POD_NAME": {
+            "type": "string"
+        },
+        "K8S_POD_NAMESPACE": {
+            "type": "string"
+        },
+        "SECURE_CONTAINER": {
+            "type": "string"
+        },
+        "multi_port": {
+            "type": "int32"
+        },
+        "phy-direct": {
+            "type": "string"
+        },
+        "dpdk-direct": {
+            "type": "string"
+        },
+        "phynet": {
+            "type": "string"
+        },
+        "tenant_id": {
+            "type": "string"
+        },
+        "vpc_id": {
+            "type": "string"
+        },
+        "secret_name": {
+            "type": "string"
+        },
+        "IP": {
+            "type": "string"
+        },
+        "K8S_POD_NETWORK_ARGS": {
+            "type": "string"
+        },
+        "INSTANCE_NAME": {
+            "type": "string"
+        },
+        "dist_gateway_disable": {
+            "type": "boolean"
+        },
+        "endpoint_policies": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "Type": {
+                        "type": "string"
+                    },
+                    "ExceptionList": {
+                        "type": "ArrayOfStrings"
+                    },
+                    "NeedEncap": {
+                        "type": "boolean"
+                    },
+                    "DestinationPrefix": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "port_map": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "local_port": {
+                        "type": "int32"
+                    },
+                    "host_port": {
+                        "type": "int32"
+                    },
+                    "protocol": {
+                        "type": "ArrayOfStrings"
+                    }
+                }
+            }
+        }
+    }
+}

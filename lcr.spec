@@ -1,5 +1,7 @@
 %global _version 2.0.1
-%global _release 20200523.161100.git42cdcb48
+%global _release 20200526.114445.gitf39e0a3a
+%global _inner_name isula_libutils
+
 Name:      lcr
 Version:   %{_version}
 Release:   %{_release}
@@ -13,16 +15,18 @@ BuildRoot: %{_tmppath}/lcr-%{version}
 BuildRequires: cmake
 BuildRequires: lxc
 BuildRequires: lxc-devel
-BuildRequires: iSula-libutils-devel yajl-devel
-Requires:      lxc iSula-libutils
+BuildRequires: zlib-devel yajl-devel gtest-devel
+Requires:      lxc yajl zlib
 ExclusiveArch:  x86_64 aarch64
 
 %ifarch x86_64
 Provides:       liblcr.so()(64bit)
+Provides:       libisula_libutils.so()(64bit)
 %endif
 
 %ifarch aarch64
 Provides:       liblcr.so()(64bit)
+Provides:       libisula_libutils.so()(64bit)
 %endif
 
 %description
@@ -33,6 +37,15 @@ kernel.
 
 This package provides the lightweight container tools and library to control
 lxc-based containers.
+
+%package devel
+Summary: Huawei container runtime, json and log C Library
+Group:   Libraries
+ExclusiveArch:  x86_64 aarch64
+Requires:       %{name} = %{version}-%{release}
+
+%description devel
+the %{name}-libs package contains libraries for running iSula applications.
 
 %global debug_package %{nil}
 
@@ -53,6 +66,12 @@ install -m 0644 ./src/liblcr.so            %{buildroot}/%{_libdir}/liblcr.so
 install -m 0644 ./conf/lcr.pc          %{buildroot}/%{_libdir}/pkgconfig/lcr.pc
 install -m 0644 ../src/lcrcontainer.h  %{buildroot}/%{_includedir}/lcr/lcrcontainer.h
 
+install -m 0644 ./src/libisula_libutils.so        %{buildroot}/%{_libdir}/libisula_libutils.so
+install -d $RPM_BUILD_ROOT/%{_includedir}/%{_inner_name}
+install -m 0644 ../build/json/*.h  %{buildroot}/%{_includedir}/%{_inner_name}/
+install -m 0644 ../src/json/*.h  %{buildroot}/%{_includedir}/%{_inner_name}/
+install -m 0644 ../third_party/log.h  %{buildroot}/%{_includedir}/%{_inner_name}/log.h
+
 find %{buildroot} -type f -name '*.la' -exec rm -f {} ';'
 find %{buildroot} -name '*.a' -exec rm -f {} ';'
 find %{buildroot} -name '*.cmake' -exec rm -f {} ';'
@@ -70,7 +89,12 @@ rm -rf %{buildroot}
 %defattr(-,root,root,-)
 %{_libdir}/*
 %{_libdir}/pkgconfig/lcr.pc
+
+%files devel
+%defattr(-,root,root,-)
 %{_includedir}/lcr/lcrcontainer.h
+%{_includedir}/%{_inner_name}/*.h
+
 
 %changelog
 * Fri Apr 14 2017 Hui Wang <hw.huiwang@huawei.com> - 0.0.1

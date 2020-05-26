@@ -1,0 +1,42 @@
+/******************************************************************************
+ * iSula-libutils: utils library for iSula
+ *
+ * Copyright (c) Huawei Technologies Co., Ltd. 2020. All rights reserved.
+ *
+ * Authors:
+ * Haozi007 <liuhao27@huawei.com>
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+ ********************************************************************************/
+#include "parse_common.h"
+#include "log.h"
+
+docker_seccomp *get_seccomp_security_opt_spec(const char *file)
+{
+    docker_seccomp *seccomp_spec = NULL;
+    parser_error err = NULL;
+
+    /* parse the input seccomp file */
+    seccomp_spec = docker_seccomp_parse_file(file, NULL, &err);
+    if (seccomp_spec == NULL) {
+        ERROR("Can not parse seccomp file: %s", err);
+        goto out;
+    }
+
+out:
+    free(err);
+    return seccomp_spec;
+}
+

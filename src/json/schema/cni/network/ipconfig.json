@@ -1,0 +1,22 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "type": "object",
+    "properties": {
+        "version": {
+            "type": "string"
+        },
+        "interface": {
+            "$ref": "../../defs.json#/definitions/int32Pointer"
+        },
+        "address": {
+            "type": "string"
+        },
+        "gateway": {
+            "type": "string"
+        }
+    },
+    "required": [
+        "version",
+        "address"
+    ]
+}
