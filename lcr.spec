@@ -9,7 +9,7 @@ URL:       lcr
 Source:    lcr-2.0.tar.gz
 Summary:   Lightweight Container Runtime
 Group:     Applications/System
-License:   Mulan PSL v2
+License:   LGPLv2.1+
 BuildRoot: %{_tmppath}/lcr-%{version}
 
 BuildRequires: cmake
