@@ -1,0 +1,80 @@
+From 74c5abe35a931aca850d5619faecbd62e75d9fb2 Mon Sep 17 00:00:00 2001
+From: haozi007 <liuhao27@huawei.com>
+Date: Tue, 26 May 2020 20:04:13 +0800
+Subject: [PATCH] fix wrong license
+
+Signed-off-by: haozi007 <liuhao27@huawei.com>
+---
+ README.md           |  2 +-
+ lcr.spec            |  2 +-
+ update-version.bash | 33 +++++++++++++++++++++------------
+ 3 files changed, 23 insertions(+), 14 deletions(-)
+
+diff --git a/README.md b/README.md
+index 1984855..a1289c5 100644
+--- a/README.md
++++ b/README.md
+@@ -12,4 +12,4 @@ iSulad follows the kernel coding conventions. You can find a detailed introducti
+ 
+ ## Licensing
+ 
+-lcr is licensed under the Mulan PSL v2.
++lcr is licensed under the LGPLv2.1+.
+diff --git a/lcr.spec b/lcr.spec
+index a706537..5644fdf 100644
+--- a/lcr.spec
++++ b/lcr.spec
+@@ -9,7 +9,7 @@ URL:       lcr
+ Source:    lcr-2.0.tar.gz
+ Summary:   Lightweight Container Runtime
+ Group:     Applications/System
+-License:   Mulan PSL v2
++License:   LGPLv2.1+
+ BuildRoot: %{_tmppath}/lcr-%{version}
+ 
+ BuildRequires: cmake
+diff --git a/update-version.bash b/update-version.bash
+index 77a6434..76697b8 100755
+--- a/update-version.bash
++++ b/update-version.bash
+@@ -1,16 +1,25 @@
+ #######################################################################
+-##- @Copyright (C) Huawei Technologies., Ltd. 2019. All rights reserved.
+-# - lcr licensed under the Mulan PSL v2.
+-# - You can use this software according to the terms and conditions of the Mulan PSL v2.
+-# - You may obtain a copy of Mulan PSL v2 at:
+-# -     http://license.coscl.org.cn/MulanPSL2
+-# - THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR
+-# - IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY OR FIT FOR A PARTICULAR
+-# - PURPOSE.
+-# - See the Mulan PSL v2 for more details.
+-##- @Description: generate cetification
+-##- @Author: wujing
+-##- @Create: 2019-04-25
++# lcr: utils library for iSula
++#
++# Copyright (c) Huawei Technologies Co., Ltd. 2020. All rights reserved.
++#
++# Authors:
++# Haozi007 <liuhao27@huawei.com>
++#
++# This library is free software; you can redistribute it and/or
++# modify it under the terms of the GNU Lesser General Public
++# License as published by the Free Software Foundation; either
++# version 2.1 of the License, or (at your option) any later version.
++#
++# This library is distributed in the hope that it will be useful,
++# but WITHOUT ANY WARRANTY; without even the implied warranty of
++# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++# Lesser General Public License for more details.
++#
++# You should have received a copy of the GNU Lesser General Public
++# License along with this library; if not, write to the Free Software
++# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
++#
+ #######################################################################
+ #!/bin/bash
+ #
+-- 
+2.25.1
+
