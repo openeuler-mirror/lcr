@@ -1,0 +1,18 @@
+{
+	"$schema": "http://json-schema.org/draft-04/schema#",
+	"type": "object",
+	"properties": {
+		"ingressRate": {
+			"type": "int64"
+		},
+		"ingressBurst": {
+			"type": "int64"
+		},
+		"egressRate": {
+			"type": "int64"
+		},
+		"egressBurst": {
+			"type": "int64"
+		}
+	}
+}

@@ -1,0 +1,18 @@
+{
+	"$schema": "http://json-schema.org/draft-04/schema#",
+	"type": "object",
+	"properties": {
+		"nameservers": {
+			"type": "ArrayOfStrings"
+		},
+		"domain": {
+			"type": "string"
+		},
+		"search": {
+			"type": "ArrayOfStrings"
+		},
+		"options": {
+			"type": "ArrayOfStrings"
+		}
+	}
+}

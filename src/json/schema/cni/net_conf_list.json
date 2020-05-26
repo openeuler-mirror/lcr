@@ -1,0 +1,18 @@
+{
+	"$schema": "http://json-schema.org/draft-04/schema#",
+	"type": "object",
+	"properties": {
+		"cniVersion": {
+			"type": "string"
+		},
+		"name": {
+			"type": "string"
+		},
+		"plugins": {
+			"type": "array",
+			"items": {
+				"$ref": "net_conf.json"
+			}
+		}
+	}
+}

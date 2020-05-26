@@ -1,3 +1,25 @@
+# lcr: utils library for iSula
+#
+# Copyright (c) Huawei Technologies Co., Ltd. 2020. All rights reserved.
+#
+# Authors:
+# Haozi007 <liuhao27@huawei.com>
+#
+# This library is free software; you can redistribute it and/or
+# modify it under the terms of the GNU Lesser General Public
+# License as published by the Free Software Foundation; either
+# version 2.1 of the License, or (at your option) any later version.
+#
+# This library is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public
+# License along with this library; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+#
+
 cmake_minimum_required (VERSION 2.8)
 project (lcr)
 
@@ -76,10 +98,13 @@ IF(ENABLE_COVERAGE)
     SET(CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG} -g -fprofile-arcs -ftest-coverage -lgcov")
 ENDIF(ENABLE_COVERAGE)
 
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/third_party)
+
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/src)
+
 OPTION(ENABLE_LLT "llt switch" OFF)
 IF(ENABLE_LLT)
-    enable_testing()
+    add_subdirectory(tests)
 ENDIF(ENABLE_LLT)
 
 # install all files
@@ -87,3 +112,9 @@ install(FILES ${CMAKE_BINARY_DIR}/conf/lcr.pc
 	DESTINATION ${LIB_INSTALL_DIR_DEFAULT}/pkgconfig PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ GROUP_WRITE)
 install(FILES src/lcrcontainer.h
 	DESTINATION include/lcr)
+
+install(FILES third_party/log.h DESTINATION include/isula_libutils)
+install(FILES src/json/oci_runtime_hooks.h DESTINATION include/isula_libutils)
+install(FILES src/json/parse_common.h DESTINATION include/isula_libutils)
+install(DIRECTORY ${CMAKE_BINARY_DIR}/json/ DESTINATION include/isula_libutils
+        FILES_MATCHING PATTERN "*.h")

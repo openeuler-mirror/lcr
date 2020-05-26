@@ -7,6 +7,6 @@ Name: liblcr
 Description: light-weighted container runtime library
 Version: @LCR_VERSION@
 URL: liblcr
-Libs: -L@CMAKE_INSTALL_PREFIX@/lib -llcr
+Libs: -L@CMAKE_INSTALL_PREFIX@/lib -llcr -lisula_libutils
 Cflags: -I@CMAKE_INSTALL_PREFIX@/include
 

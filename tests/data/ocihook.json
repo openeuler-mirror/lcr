@@ -1,0 +1,32 @@
+{
+  "prestart": [
+    {
+      "path": "prestart.sh",
+      "args": [
+        "prestart.sh"
+      ],
+      "env": ["haozi=007", "type=prestart"],
+      "timeout": 1
+    }
+  ],
+  "poststart": [
+    {
+      "path": "poststart.sh",
+      "args": [
+        "poststart.sh"
+      ],
+      "env": ["haozi=008", "type=poststart"],
+      "timeout": 2
+    }
+  ],
+  "poststop": [
+    {
+      "path": "poststop.sh",
+      "args": [
+        "poststop.sh"
+      ],
+      "env": ["haozi=009", "type=poststop"],
+      "timeout": 3
+    }
+  ]
+}

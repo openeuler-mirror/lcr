@@ -1,0 +1,15 @@
+{
+	"$schema": "http://json-schema.org/draft-04/schema#",
+	"type": "object",
+	"properties": {
+		"dst": {
+			"type": "string"
+		},
+		"gw": {
+			"type": "string"
+		}
+	},
+	"required": [
+		"dst"
+	]
+}
