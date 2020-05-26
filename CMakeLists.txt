@@ -27,7 +27,7 @@ include(cmake/set_build_flags.cmake)
 
 option(VERSION "set lcr version" ON)
 if (VERSION STREQUAL "ON")
-	set(LCR_VERSION "2.0.1")
+	set(LCR_VERSION "2.0.2")
 endif()
 
 option(DEBUG "set lcr gcc option" ON)
