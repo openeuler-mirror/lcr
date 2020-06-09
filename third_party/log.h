@@ -448,6 +448,7 @@ void isula_libutils_default_log_config(const char *name, struct isula_libutils_l
 int isula_libutils_log_enable(const struct isula_libutils_log_config *log);
 void isula_libutils_set_log_prefix(const char *prefix);
 void isula_libutils_free_log_prefix(void);
+void isula_libutils_log_disable();
 
 int isula_libutils_get_log_fd(void);
 

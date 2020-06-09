@@ -79,7 +79,8 @@ void isula_libutils_default_log_config(const char *name, struct isula_libutils_l
 {
     log->name = name;
     log->file = NULL;
-    log->priority = "FATAL";
+    // use to disable log
+    log->priority = "NOTSET";
     if (!log->quiet) {
         log->driver = ISULA_LOG_DRIVER_STDOUT;
     }
@@ -87,7 +88,7 @@ void isula_libutils_default_log_config(const char *name, struct isula_libutils_l
 
 void isula_libutils_set_log_prefix(const char *prefix)
 {
-    if (prefix == NULL) {
+    if (prefix == NULL || strlen(prefix) == 0) {
         return;
     }
 
@@ -336,12 +337,45 @@ static int open_fifo(const char *fifo_path)
     return fifo_fd;
 }
 
-static bool check_log_driver(const struct isula_libutils_log_config *log)
+static void clean_pre_init()
+{
+    g_lxc_log_category_lxc.appender = &log_appender_stderr;
+    g_lxc_log_category_lxc.priority = LXC_LOG_LEVEL_ERROR;
+}
+
+static bool init_log_file(const char *fname)
+{
+    if (fname == NULL) {
+        return false;
+    }
+    if (strcmp(fname, "none") == 0) {
+        return true;
+    }
+    if (lcr_util_build_dir(fname) != 0) {
+        CMD_SYSERROR("build log path \"%s\" failed", fname);
+        goto clean_out;
+    }
+    g_lxc_log_fd = open_fifo(fname);
+    if (g_lxc_log_fd == -1) {
+        CMD_SYSERROR("Open log fifo \"%s\" failed", fname);
+        goto clean_out;
+    }
+
+    free(log_fname);
+    log_fname = lcr_util_strdup_s(fname);
+    return true;
+clean_out:
+    clean_pre_init();
+    return false;
+}
+
+static bool choice_log_driver(const struct isula_libutils_log_config *log)
 {
     bool is_fifo = false;
 
     // if driver is null, mean disable log
     if (log->driver == NULL) {
+        g_lxc_log_category_lxc.priority = LXC_LOG_LEVEL_NOTSET;
         return true;
     }
 	g_lxc_log_category_lxc.appender = &log_appender_logfile;
@@ -350,10 +384,11 @@ static bool check_log_driver(const struct isula_libutils_log_config *log)
 
     // if set file, only use log_append_logfile
     // we only support fifo driver with file
-    if (log->file != NULL) {
-        return is_fifo;
-    }
     if (is_fifo) {
+        return init_log_file(log->file);
+    }
+    if (log->file != NULL) {
+        clean_pre_init();
         return false;
     }
 
@@ -363,16 +398,8 @@ static bool check_log_driver(const struct isula_libutils_log_config *log)
     return true;
 }
 
-static void clean_pre_init()
-{
-    g_lxc_log_category_lxc.appender = &log_appender_stderr;
-
-	g_lxc_log_category_lxc.priority = LXC_LOG_LEVEL_ERROR;
-}
-
 int isula_libutils_log_enable(const struct isula_libutils_log_config *log)
 {
-	int ret = 0;
 	int lxc_priority = LXC_LOG_LEVEL_ERROR;
 
 	if (log == NULL)
@@ -383,7 +410,7 @@ int isula_libutils_log_enable(const struct isula_libutils_log_config *log)
 		return 0;
 	}
 
-    if (!check_log_driver(log)) {
+    if (!choice_log_driver(log)) {
         COMMAND_ERROR("Invalid log config of driver");
         return -1;
     }
@@ -395,29 +422,8 @@ int isula_libutils_log_enable(const struct isula_libutils_log_config *log)
 
     isula_libutils_set_log_prefix(log->prefix != NULL ? log->prefix : log->name);
 
-	if (log->file) {
-		if (strcmp(log->file, "none") == 0) {
-            ret = 0;
-            goto clean_out;
-        }
-        if (lcr_util_build_dir(log->file) != 0) {
-            CMD_SYSERROR("build log path \"%s\" failed", log->file);
-            ret = -1;
-            goto clean_out;
-        }
-        g_lxc_log_fd = open_fifo(log->file);
-        if (g_lxc_log_fd == -1) {
-            CMD_SYSERROR("Open log fifo \"%s\" failed", log->file);
-            ret = -1;
-            goto clean_out;
-        }
-        log_fname = lcr_util_strdup_s(log->file);
-	}
 
 	return 0;
-clean_out:
-    clean_pre_init();
-    return ret;
 }
 
 static inline void lxc_log_close(void)

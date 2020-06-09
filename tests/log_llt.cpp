@@ -42,7 +42,7 @@ TEST(log_testcases, test_isula_libutils_default_log_config)
     ASSERT_EQ(tconf.file, nullptr);
     ASSERT_EQ(tconf.driver, nullptr);
     EXPECT_STREQ(name, tconf.name);
-    EXPECT_STREQ("FATAL", tconf.priority);
+    EXPECT_STREQ("NOTSET", tconf.priority);
 
     // not quiet configs check
     tconf.quiet = false;
@@ -79,28 +79,65 @@ TEST(log_testcases, test_isula_libutils_log_enable)
     struct isula_libutils_log_config tconf = {0};
     const char *prefix = "fake";
     const char *prio = "INFO";
+    const char *invalid_prio = "INVALID";
     const char *fname = "/tmp/fake.fifo";
     int fd = -1;
+    int ret = 0;
+
+    ret = isula_libutils_log_enable(nullptr);
+    ASSERT_NE(ret, 0);
+    fd = isula_libutils_get_log_fd();
+    ASSERT_EQ(fd, -1);
+
+    tconf.driver = ISULA_LOG_DRIVER_FIFO;
+    tconf.prefix = prefix;
+    tconf.priority = prio;
+    tconf.file = nullptr;
+    ret = isula_libutils_log_enable(&tconf);
+    ASSERT_NE(ret, 0);
+    fd = isula_libutils_get_log_fd();
+    ASSERT_EQ(fd, -1);
+
+    tconf.driver = nullptr;
+    tconf.prefix = prefix;
+    tconf.priority = prio;
+    tconf.file = fname;
+    ret = isula_libutils_log_enable(&tconf);
+    ASSERT_EQ(ret, 0);
+    fd = isula_libutils_get_log_fd();
+    ASSERT_EQ(fd, -1);
+
+    tconf.driver = ISULA_LOG_DRIVER_FIFO;
+    tconf.prefix = prefix;
+    tconf.priority = invalid_prio;
+    tconf.file = fname;
+    ret = isula_libutils_log_enable(&tconf);
+    ASSERT_EQ(ret, 0);
+    fd = isula_libutils_get_log_fd();
+    ASSERT_GE(fd, 0);
+    DEBUG("debug log");
+    check_log(fd, false, false, "debug log");
+    isula_libutils_log_disable();
 
     tconf.driver = ISULA_LOG_DRIVER_FIFO;
     tconf.prefix = prefix;
     tconf.priority = prio;
     tconf.file = fname;
-    isula_libutils_log_enable(&tconf);
-
+    ret = isula_libutils_log_enable(&tconf);
+    ASSERT_EQ(ret, 0);
     fd = isula_libutils_get_log_fd();
     ASSERT_GE(fd, 0);
-
     INFO("info log");
     check_log(fd, true, true, "info log");
-
     DEBUG("debug log");
     check_log(fd, false, false, "debug log");
+    isula_libutils_log_disable();
 }
 
 TEST(log_testcases, test_isula_libutils_log_prefix)
 {
     struct isula_libutils_log_config tconf = {0};
+    const char *default_prefix = "iSula";
     const char *prefix = "prefix";
     const char *prio = "INFO";
     const char *fname = "/tmp/fake.fifo";
@@ -121,5 +158,15 @@ TEST(log_testcases, test_isula_libutils_log_prefix)
     isula_libutils_free_log_prefix();
     INFO("fake log");
     check_log(fd, true, false, prefix);
+    INFO("fake log");
+    check_log(fd, true, true, default_prefix);
+
+    isula_libutils_set_log_prefix(nullptr);
+    INFO("fake log");
+    check_log(fd, true, true, default_prefix);
+
+    isula_libutils_set_log_prefix("");
+    INFO("fake log");
+    check_log(fd, true, true, default_prefix);
 }
 

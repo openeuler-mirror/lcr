@@ -33,11 +33,11 @@
 TEST(json_testcase, test_oci_runtime_spec_hooks)
 {
     const char *fname = "./ocihook.json";
-    oci_runtime_spec_hooks *hooks = NULL;
+    oci_runtime_spec_hooks *hooks = nullptr;
     parser_error jerr = nullptr;
     char *jstr = nullptr;
 
-    hooks = oci_runtime_spec_hooks_parse_file(fname, NULL, &jerr);
+    hooks = oci_runtime_spec_hooks_parse_file(fname, nullptr, &jerr);
     ASSERT_EQ(jerr, nullptr) << "parse hook failed: " << jerr;
     ASSERT_NE(hooks, nullptr);
 
@@ -82,11 +82,22 @@ TEST(json_testcase, test_oci_runtime_spec_hooks)
 TEST(json_testcase, test_json_readfile)
 {
     const char *fname = "./ocihook.json";
-    char *jstr = NULL;
+    const char *not_exist = "/tmp/not_exist.json";
+    char *jstr = nullptr;
     size_t len = 0;
 
     jstr = read_file(fname, &len);
     ASSERT_NE(jstr, nullptr);
     ASSERT_EQ(len, 527);
+    free(jstr);
+    len = 0;
+
+    jstr = read_file(not_exist, &len);
+    ASSERT_EQ(jstr, nullptr);
+    ASSERT_EQ(len, 0);
+    len = 0;
+
+    jstr = read_file(nullptr, nullptr);
+    ASSERT_EQ(jstr, nullptr);
 }
 
