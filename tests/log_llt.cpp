@@ -42,7 +42,7 @@ TEST(log_testcases, test_isula_libutils_default_log_config)
     ASSERT_EQ(tconf.file, nullptr);
     ASSERT_EQ(tconf.driver, nullptr);
     EXPECT_STREQ(name, tconf.name);
-    EXPECT_STREQ("NOTSET", tconf.priority);
+    EXPECT_STREQ("FATAL", tconf.priority);
 
     // not quiet configs check
     tconf.quiet = false;
