@@ -64,5 +64,35 @@ endmacro()
 _DEFINE_NEW_TEST(log_llt log_testcase)
 _DEFINE_NEW_TEST(json_llt json_testcase)
 
+# mock test for run lcov to generate html
+add_executable(mock_llt main.cpp)
+target_include_directories(mock_llt PUBLIC
+    ${GTEST_INCLUDE_DIR}
+    PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}
+    )
+target_link_libraries(mock_llt
+    gtest
+    pthread
+    )
+add_dependencies(mock_llt log_llt json_llt)
+
+set(result isula_libutils.info)
+set(result_dir lcr_gcovs)
+set(target_dir src/CMakeFiles/isula_libutils.dir)
+
+# generate gcov
+
+add_custom_command(TARGET mock_llt
+    POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E remove -f ${result}
+    COMMAND ${CMAKE_COMMAND} -E make_directory ${result_dir}
+    COMMAND "ctest"
+    COMMAND ${CMD_LCOV} --gcov-tool ${CMD_GCOV} --exclude "*/src/utils.c" --exclude "*/json/*" -d ${CMAKE_BINARY_DIR}/${target_dir} -c -o ${result}
+    COMMAND ${CMD_GENHTML} --ignore-errors source -o ${result_dir} ${result}
+    COMMAND ${CMAKE_COMMAND} -E echo LLT finish
+    VERBATIM
+    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/tests
+    )
+
 # --------------- testcase add finish -----------------
 

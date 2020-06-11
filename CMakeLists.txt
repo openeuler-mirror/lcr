@@ -23,8 +23,6 @@
 cmake_minimum_required (VERSION 2.8)
 project (lcr)
 
-include(cmake/set_build_flags.cmake)
-
 option(VERSION "set lcr version" ON)
 if (VERSION STREQUAL "ON")
 	set(LCR_VERSION "2.0.2")
@@ -35,10 +33,8 @@ if (DEBUG STREQUAL "ON")
     add_definitions("-g -o2")
 endif()
 
-option(GCOV "set lcr gcov option" OFF)
-if (GCOV STREQUAL "ON")
-    set(LCR_GCOV "ON")
-endif()
+include(cmake/set_build_flags.cmake)
+
 
 if (LIB_INSTALL_DIR)
   set(LIB_INSTALL_DIR_DEFAULT ${LIB_INSTALL_DIR})
@@ -60,9 +56,6 @@ execute_process(
   OUTPUT_STRIP_TRAILING_WHITESPACE
 )
 message("--  commit id: " ${GIT_COMMIT_HASH})
-
-set(CMAKE_SHARED_LINKER_FLAGS "-Wl,-E -Wl,-z,relro -Wl,-z,now -Wl,-z,noexecstack -Wtrampolines -fPIE -pie -shared -pthread")
-set(CMAKE_EXE_LINKER_FLAGS "-Wl,-E -Wl,-z,relro -Wl,-z,now -Wl,-z,noexecstack -Wtrampolines -fPIE -pie")
 
 add_definitions(-DLCRPATH="${CMAKE_INSTALL_PREFIX}/var/lib/lcr")
 add_definitions(-DLOGPATH="${CMAKE_INSTALL_PREFIX}/var/log/lcr")
@@ -88,24 +81,14 @@ else ()
 	message("--  Build static library")
 endif()
 
-# llt and coverage
-SET(CMAKE_VERBOSE_MAKEFILE OFF)
-OPTION(ENABLE_COVERAGE "coverage switch" OFF)
-IF(ENABLE_COVERAGE)
-    MESSAGE(STATUS "Enable coverage compile option")
-    SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g -fprofile-arcs -ftest-coverage")
-    SET(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -g -fprofile-arcs -ftest-coverage")
-    SET(CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG} -g -fprofile-arcs -ftest-coverage -lgcov")
-ENDIF(ENABLE_COVERAGE)
-
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/third_party)
 
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/src)
 
-OPTION(ENABLE_LLT "llt switch" OFF)
-IF(ENABLE_LLT)
+# llt and gcoverage
+if (LCR_GCOV)
     add_subdirectory(tests)
-ENDIF(ENABLE_LLT)
+endif()
 
 # install all files
 install(FILES ${CMAKE_BINARY_DIR}/conf/lcr.pc
