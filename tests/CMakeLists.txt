@@ -87,7 +87,7 @@ add_custom_command(TARGET mock_llt
     COMMAND ${CMAKE_COMMAND} -E remove -f ${result}
     COMMAND ${CMAKE_COMMAND} -E make_directory ${result_dir}
     COMMAND "ctest"
-    COMMAND ${CMD_LCOV} --gcov-tool ${CMD_GCOV} --exclude "*/src/utils.c" --exclude "*/json/*" -d ${CMAKE_BINARY_DIR}/${target_dir} -c -o ${result}
+    COMMAND ${CMD_LCOV} --gcov-tool ${CMD_GCOV} --exclude "/usr/*" --exclude "*/src/utils.c" --exclude "*/json/*" -d ${CMAKE_BINARY_DIR}/${target_dir} -c -o ${result}
     COMMAND ${CMD_GENHTML} --ignore-errors source -o ${result_dir} ${result}
     COMMAND ${CMAKE_COMMAND} -E echo LLT finish
     VERBATIM
