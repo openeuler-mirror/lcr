@@ -107,6 +107,31 @@ TEST(log_testcases, test_isula_libutils_log_enable)
     fd = isula_libutils_get_log_fd();
     ASSERT_EQ(fd, -1);
 
+    tconf.driver = ISULA_LOG_DRIVER_STDOUT;
+    tconf.prefix = prefix;
+    tconf.priority = prio;
+    tconf.file = fname;
+    ret = isula_libutils_log_enable(&tconf);
+    ASSERT_NE(ret, 0);
+    isula_libutils_log_disable();
+
+    tconf.driver = ISULA_LOG_DRIVER_STDOUT;
+    tconf.prefix = prefix;
+    tconf.priority = prio;
+    tconf.file = nullptr;
+    ret = isula_libutils_log_enable(&tconf);
+    ASSERT_EQ(ret, 0);
+    TRACE("trace log");
+    DEBUG("debug log");
+    INFO("info log");
+    NOTICE("notice log");
+    WARN("warn log");
+    ERROR("error log");
+    EVENT("event log");
+    CRIT("crit log");
+    FATAL("fatal log");
+    isula_libutils_log_disable();
+
     tconf.driver = ISULA_LOG_DRIVER_FIFO;
     tconf.prefix = prefix;
     tconf.priority = invalid_prio;

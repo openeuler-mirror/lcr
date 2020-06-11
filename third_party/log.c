@@ -80,7 +80,7 @@ void isula_libutils_default_log_config(const char *name, struct isula_libutils_l
     log->name = name;
     log->file = NULL;
     // use to disable log
-    log->priority = "NOTSET";
+    log->priority = "FATAL";
     if (!log->quiet) {
         log->driver = ISULA_LOG_DRIVER_STDOUT;
     }
@@ -375,7 +375,7 @@ static bool choice_log_driver(const struct isula_libutils_log_config *log)
 
     // if driver is null, mean disable log
     if (log->driver == NULL) {
-        g_lxc_log_category_lxc.priority = LXC_LOG_LEVEL_NOTSET;
+        g_lxc_log_category_lxc.priority = LXC_LOG_LEVEL_FATAL;
         return true;
     }
 	g_lxc_log_category_lxc.appender = &log_appender_logfile;

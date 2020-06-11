@@ -69,11 +69,30 @@ find_library(LIBYAJL_LIBRARY yajl
 	HINTS ${PC_LIBYAJL_LIBDIR} ${PC_LIBYAJL_LIBRARY_DIRS})
 _CHECK(LIBYAJL_LIBRARY "LIBYAJL_LIBRARY-NOTFOUND" "libyajl.so")
 
-if (ENABLE_TESTS STREQUAL "ON")
-	pkg_check_modules(PC_CHECK REQUIRED "check>=0.9.12")
-	if (NOT PC_CHECK_FOUND)
-		message("error: can not find check>=0.9.12")
-		set(CHECKER_RESULT 1)
-	endif()
+if (LCR_GCOV)
+    pkg_check_modules(PC_GTEST "gtest")
+    find_path(GTEST_INCLUDE_DIR gtest/gtest.h
+        HINTS ${PC_GTEST_INCLUDEDIR} ${PC_GTEST_INCLUDE_DIRS})
+    _CHECK(GTEST_INCLUDE_DIR "GTEST_INCLUDE_DIR-NOTFOUND" "gtest.h")
+    find_library(GTEST_LIBRARY gtest
+        HINTS ${PC_GTEST_LIBDIR} ${PC_GTEST_LIBRARY_DIRS})
+    _CHECK(GTEST_LIBRARY "GTEST_LIBRARY-NOTFOUND" "libgtest.so")
+
+    pkg_check_modules(PC_GMOCK "gmock")
+    find_path(GMOCK_INCLUDE_DIR gmock/gmock.h
+        HINTS ${PC_GMOCK_INCLUDEDIR} ${PC_GMOCK_INCLUDE_DIRS})
+    _CHECK(GMOCK_INCLUDE_DIR "GMOCK_INCLUDE_DIR-NOTFOUND" "gmock.h")
+    find_library(GMOCK_LIBRARY z
+        HINTS ${PC_GMOCK_LIBDIR} ${PC_GMOCK_LIBRARY_DIRS})
+    _CHECK(GMOCK_LIBRARY "GMOCK_LIBRARY-NOTFOUND" "libgmock.so")
+
+    find_program(CMD_GCOV gcov)
+    _CHECK(CMD_GCOV "CMD_GCOV-NOTFOUND" "gcov")
+
+    find_program(CMD_LCOV lcov)
+    _CHECK(CMD_LCOV "CMD_LCOV-NOTFOUND" "lcov")
+
+    find_program(CMD_GENHTML genhtml)
+    _CHECK(CMD_GENHTML "CMD_GENHTML-NOTFOUND" "genhtml")
 endif()
 
