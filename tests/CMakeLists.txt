@@ -61,38 +61,48 @@ endmacro()
 
 # --------------- testcase add here -----------------
 #   api testcase
-_DEFINE_NEW_TEST(log_llt log_testcase)
-_DEFINE_NEW_TEST(json_llt json_testcase)
+_DEFINE_NEW_TEST(log_ut log_testcase)
+_DEFINE_NEW_TEST(libocispec_ut json_testcase)
+
 
 # mock test for run lcov to generate html
-add_executable(mock_llt main.cpp)
-target_include_directories(mock_llt PUBLIC
+add_executable(mock_ut main.cpp)
+target_include_directories(mock_ut PUBLIC
     ${GTEST_INCLUDE_DIR}
     PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}
     )
-target_link_libraries(mock_llt
+target_link_libraries(mock_ut
     gtest
     pthread
     )
-add_dependencies(mock_llt log_llt json_llt)
+add_dependencies(mock_ut log_ut libocispec_ut)
 
-set(result isula_libutils.info)
-set(result_dir lcr_gcovs)
-set(target_dir src/CMakeFiles/isula_libutils.dir)
+# run ut and gcov
+if (ENABLE_GCOV)
+    set(result isula_libutils.info)
+    set(result_dir lcr_gcovs)
+    set(target_dir src/CMakeFiles/isula_libutils.dir)
 
-# generate gcov
-
-add_custom_command(TARGET mock_llt
-    POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E remove -f ${result}
-    COMMAND ${CMAKE_COMMAND} -E make_directory ${result_dir}
-    COMMAND "ctest"
-    COMMAND ${CMD_LCOV} --gcov-tool ${CMD_GCOV} --exclude "/usr/*" --exclude "*/src/utils.c" --exclude "*/json/*" -d ${CMAKE_BINARY_DIR}/${target_dir} -c -o ${result}
-    COMMAND ${CMD_GENHTML} --ignore-errors source -o ${result_dir} ${result}
-    COMMAND ${CMAKE_COMMAND} -E echo LLT finish
-    VERBATIM
-    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/tests
-    )
+    add_custom_command(TARGET mock_ut
+        POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E remove -f ${result}
+        COMMAND ${CMAKE_COMMAND} -E make_directory ${result_dir}
+        COMMAND "ctest"
+        COMMAND ${CMD_LCOV} --gcov-tool ${CMD_GCOV} --exclude "/usr/*" --exclude "*/src/utils.c" --exclude "*/json/*" -d ${CMAKE_BINARY_DIR}/${target_dir} -c -o ${result}
+        COMMAND ${CMD_GENHTML} --ignore-errors source -o ${result_dir} ${result}
+        COMMAND ${CMAKE_COMMAND} -E echo run gcov finish
+        VERBATIM
+        WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/tests
+        )
+else()
+    add_custom_command(TARGET mock_ut
+        PRE_BUILD
+        COMMAND "ctest"
+        COMMAND ${CMAKE_COMMAND} -E echo UT finish
+        VERBATIM
+        WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/tests
+        )
+endif()
 
 # --------------- testcase add finish -----------------
 

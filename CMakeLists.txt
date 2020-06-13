@@ -85,10 +85,8 @@ add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/third_party)
 
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/src)
 
-# llt and gcoverage
-if (LCR_GCOV)
-    add_subdirectory(tests)
-endif()
+# ut and gcoverage
+add_subdirectory(tests)
 
 # install all files
 install(FILES ${CMAKE_BINARY_DIR}/conf/lcr.pc
