@@ -103,6 +103,10 @@ if (CMAKE_TOOLCHAIN_FILE)
     target_link_libraries(liblcr ${EXTRAL_LINK_LIBS})
 endif()
 
+if (LCR_GCOV)
+    target_link_libraries(liblcr -lgcov)
+endif()
+
 # install all files
 install(TARGETS liblcr
   LIBRARY DESTINATION ${LIB_INSTALL_DIR_DEFAULT} PERMISSIONS OWNER_READ OWNER_EXECUTE GROUP_READ GROUP_EXECUTE)
