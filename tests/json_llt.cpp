@@ -30,7 +30,7 @@
 #include "read_file.h"
 #include "oci_runtime_hooks.h"
 
-TEST(libocispec_testcase, test_oci_runtime_spec_hooks)
+TEST(json_testcase, test_oci_runtime_spec_hooks)
 {
     const char *fname = "./ocihook.json";
     oci_runtime_spec_hooks *hooks = nullptr;
@@ -79,7 +79,7 @@ TEST(libocispec_testcase, test_oci_runtime_spec_hooks)
     free(jstr);
 }
 
-TEST(libocispec_testcase, test_json_readfile)
+TEST(json_testcase, test_json_readfile)
 {
     const char *fname = "./ocihook.json";
     const char *not_exist = "/tmp/not_exist.json";

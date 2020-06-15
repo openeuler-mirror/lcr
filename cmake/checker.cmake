@@ -69,7 +69,7 @@ find_library(LIBYAJL_LIBRARY yajl
 	HINTS ${PC_LIBYAJL_LIBDIR} ${PC_LIBYAJL_LIBRARY_DIRS})
 _CHECK(LIBYAJL_LIBRARY "LIBYAJL_LIBRARY-NOTFOUND" "libyajl.so")
 
-if (ENABLE_GCOV)
+if (LCR_GCOV)
     pkg_check_modules(PC_GTEST "gtest")
     find_path(GTEST_INCLUDE_DIR gtest/gtest.h
         HINTS ${PC_GTEST_INCLUDEDIR} ${PC_GTEST_INCLUDE_DIRS})
