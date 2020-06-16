@@ -1,7 +1,7 @@
 From 74c5abe35a931aca850d5619faecbd62e75d9fb2 Mon Sep 17 00:00:00 2001
 From: haozi007 <liuhao27@huawei.com>
 Date: Tue, 26 May 2020 20:04:13 +0800
-Subject: [PATCH] fix wrong license
+Subject: [PATCH 01/10] fix wrong license
 
 Signed-off-by: haozi007 <liuhao27@huawei.com>
 ---

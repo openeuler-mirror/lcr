@@ -1,0 +1,26 @@
+From abc0b5907d4b50729aa83a4c41d4a7e02d857aea Mon Sep 17 00:00:00 2001
+From: haozi007 <liuhao27@huawei.com>
+Date: Thu, 11 Jun 2020 15:48:32 +0800
+Subject: [PATCH 07/10] improve html show result
+
+Signed-off-by: haozi007 <liuhao27@huawei.com>
+---
+ tests/CMakeLists.txt | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/tests/CMakeLists.txt b/tests/CMakeLists.txt
+index 15708dd..ca6d164 100644
+--- a/tests/CMakeLists.txt
++++ b/tests/CMakeLists.txt
+@@ -87,7 +87,7 @@ add_custom_command(TARGET mock_llt
+     COMMAND ${CMAKE_COMMAND} -E remove -f ${result}
+     COMMAND ${CMAKE_COMMAND} -E make_directory ${result_dir}
+     COMMAND "ctest"
+-    COMMAND ${CMD_LCOV} --gcov-tool ${CMD_GCOV} --exclude "*/src/utils.c" --exclude "*/json/*" -d ${CMAKE_BINARY_DIR}/${target_dir} -c -o ${result}
++    COMMAND ${CMD_LCOV} --gcov-tool ${CMD_GCOV} --exclude "/usr/*" --exclude "*/src/utils.c" --exclude "*/json/*" -d ${CMAKE_BINARY_DIR}/${target_dir} -c -o ${result}
+     COMMAND ${CMD_GENHTML} --ignore-errors source -o ${result_dir} ${result}
+     COMMAND ${CMAKE_COMMAND} -E echo LLT finish
+     VERBATIM
+-- 
+2.25.1
+

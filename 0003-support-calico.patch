@@ -1,0 +1,30 @@
+From 855d567b2bd92aada6c7d61a75aae2d5441a1efe Mon Sep 17 00:00:00 2001
+From: haozi007 <liuhao27@huawei.com>
+Date: Tue, 2 Jun 2020 10:15:58 +0800
+Subject: [PATCH 03/10] support calico
+
+Signed-off-by: haozi007 <liuhao27@huawei.com>
+---
+ src/json/schema/cni/net_conf.json | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/src/json/schema/cni/net_conf.json b/src/json/schema/cni/net_conf.json
+index 3b40017..89427ae 100644
+--- a/src/json/schema/cni/net_conf.json
++++ b/src/json/schema/cni/net_conf.json
+@@ -100,6 +100,12 @@
+             "type": "string"
+         },
+         "mtu": {
++            "type": "int32"
++        },
++        "datastore_type": {
++            "type": "string"
++        },
++        "nodename": {
+             "type": "string"
+         },
+         "policy": {
+-- 
+2.25.1
+

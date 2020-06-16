@@ -1,5 +1,5 @@
 %global _version 2.0.2
-%global _release 20200526.193309.gitfdf57813
+%global _release 20200616.163046.git9a34ea5f
 %global _inner_name isula_libutils
 
 Name:      lcr
@@ -13,11 +13,20 @@ License:   LGPLv2.1+
 BuildRoot: %{_tmppath}/lcr-%{version}
 
 Patch9000:  0001-fix-wrong-license.patch
+Patch9001:  0002-support-import-rootfs-to-be-image.patch
+Patch9002:  0003-support-calico.patch
+Patch9003:  0004-improve-check-driver-of-log.patch
+Patch9004:  0005-improve-llt-framework.patch
+Patch9005:  0006-fix-log-test-error.patch
+Patch9006:  0007-improve-html-show-result.patch
+Patch9007:  0008-change-tests-name.patch
+Patch9008:  0009-Pull-Request-49-change-name-of-testcases.patch
+Patch9009:  0010-change-tests-name.patch
 
 BuildRequires: cmake
 BuildRequires: lxc
 BuildRequires: lxc-devel
-BuildRequires: zlib-devel yajl-devel gtest-devel
+BuildRequires: zlib-devel yajl-devel gtest-devel gmock-devel
 Requires:      lxc yajl zlib
 ExclusiveArch:  x86_64 aarch64
 
