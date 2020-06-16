@@ -1,0 +1,246 @@
+From d97eb223fea08b12b63aa84f1c67a9a38fd1fee9 Mon Sep 17 00:00:00 2001
+From: haozi007 <liuhao27@huawei.com>
+Date: Thu, 11 Jun 2020 14:41:55 +0800
+Subject: [PATCH 05/10] improve llt framework
+
+1. add hook to run genhtml for llt
+2. improve llt
+
+Signed-off-by: haozi007 <liuhao27@huawei.com>
+---
+ CMakeLists.txt              | 27 +++++----------------------
+ cmake/checker.cmake         | 31 +++++++++++++++++++++++++------
+ cmake/set_build_flags.cmake | 10 ++++++----
+ tests/CMakeLists.txt        | 30 ++++++++++++++++++++++++++++++
+ tests/log_llt.cpp           | 25 +++++++++++++++++++++++++
+ third_party/log.c           |  4 ++--
+ 6 files changed, 93 insertions(+), 34 deletions(-)
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index c4acf43..dcb4232 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -23,8 +23,6 @@
+ cmake_minimum_required (VERSION 2.8)
+ project (lcr)
+ 
+-include(cmake/set_build_flags.cmake)
+-
+ option(VERSION "set lcr version" ON)
+ if (VERSION STREQUAL "ON")
+ 	set(LCR_VERSION "2.0.2")
+@@ -35,10 +33,8 @@ if (DEBUG STREQUAL "ON")
+     add_definitions("-g -o2")
+ endif()
+ 
+-option(GCOV "set lcr gcov option" OFF)
+-if (GCOV STREQUAL "ON")
+-    set(LCR_GCOV "ON")
+-endif()
++include(cmake/set_build_flags.cmake)
++
+ 
+ if (LIB_INSTALL_DIR)
+   set(LIB_INSTALL_DIR_DEFAULT ${LIB_INSTALL_DIR})
+@@ -61,9 +57,6 @@ execute_process(
+ )
+ message("--  commit id: " ${GIT_COMMIT_HASH})
+ 
+-set(CMAKE_SHARED_LINKER_FLAGS "-Wl,-E -Wl,-z,relro -Wl,-z,now -Wl,-z,noexecstack -Wtrampolines -fPIE -pie -shared -pthread")
+-set(CMAKE_EXE_LINKER_FLAGS "-Wl,-E -Wl,-z,relro -Wl,-z,now -Wl,-z,noexecstack -Wtrampolines -fPIE -pie")
+-
+ add_definitions(-DLCRPATH="${CMAKE_INSTALL_PREFIX}/var/lib/lcr")
+ add_definitions(-DLOGPATH="${CMAKE_INSTALL_PREFIX}/var/log/lcr")
+ add_definitions(-DLCR_GIT_COMMIT="${GIT_COMMIT_HASH}")
+@@ -88,24 +81,14 @@ else ()
+ 	message("--  Build static library")
+ endif()
+ 
+-# llt and coverage
+-SET(CMAKE_VERBOSE_MAKEFILE OFF)
+-OPTION(ENABLE_COVERAGE "coverage switch" OFF)
+-IF(ENABLE_COVERAGE)
+-    MESSAGE(STATUS "Enable coverage compile option")
+-    SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g -fprofile-arcs -ftest-coverage")
+-    SET(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -g -fprofile-arcs -ftest-coverage")
+-    SET(CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG} -g -fprofile-arcs -ftest-coverage -lgcov")
+-ENDIF(ENABLE_COVERAGE)
+-
+ add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/third_party)
+ 
+ add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/src)
+ 
+-OPTION(ENABLE_LLT "llt switch" OFF)
+-IF(ENABLE_LLT)
++# llt and gcoverage
++if (LCR_GCOV)
+     add_subdirectory(tests)
+-ENDIF(ENABLE_LLT)
++endif()
+ 
+ # install all files
+ install(FILES ${CMAKE_BINARY_DIR}/conf/lcr.pc
+diff --git a/cmake/checker.cmake b/cmake/checker.cmake
+index c527442..20ad917 100644
+--- a/cmake/checker.cmake
++++ b/cmake/checker.cmake
+@@ -69,11 +69,30 @@ find_library(LIBYAJL_LIBRARY yajl
+ 	HINTS ${PC_LIBYAJL_LIBDIR} ${PC_LIBYAJL_LIBRARY_DIRS})
+ _CHECK(LIBYAJL_LIBRARY "LIBYAJL_LIBRARY-NOTFOUND" "libyajl.so")
+ 
+-if (ENABLE_TESTS STREQUAL "ON")
+-	pkg_check_modules(PC_CHECK REQUIRED "check>=0.9.12")
+-	if (NOT PC_CHECK_FOUND)
+-		message("error: can not find check>=0.9.12")
+-		set(CHECKER_RESULT 1)
+-	endif()
++if (LCR_GCOV)
++    pkg_check_modules(PC_GTEST "gtest")
++    find_path(GTEST_INCLUDE_DIR gtest/gtest.h
++        HINTS ${PC_GTEST_INCLUDEDIR} ${PC_GTEST_INCLUDE_DIRS})
++    _CHECK(GTEST_INCLUDE_DIR "GTEST_INCLUDE_DIR-NOTFOUND" "gtest.h")
++    find_library(GTEST_LIBRARY gtest
++        HINTS ${PC_GTEST_LIBDIR} ${PC_GTEST_LIBRARY_DIRS})
++    _CHECK(GTEST_LIBRARY "GTEST_LIBRARY-NOTFOUND" "libgtest.so")
++
++    pkg_check_modules(PC_GMOCK "gmock")
++    find_path(GMOCK_INCLUDE_DIR gmock/gmock.h
++        HINTS ${PC_GMOCK_INCLUDEDIR} ${PC_GMOCK_INCLUDE_DIRS})
++    _CHECK(GMOCK_INCLUDE_DIR "GMOCK_INCLUDE_DIR-NOTFOUND" "gmock.h")
++    find_library(GMOCK_LIBRARY z
++        HINTS ${PC_GMOCK_LIBDIR} ${PC_GMOCK_LIBRARY_DIRS})
++    _CHECK(GMOCK_LIBRARY "GMOCK_LIBRARY-NOTFOUND" "libgmock.so")
++
++    find_program(CMD_GCOV gcov)
++    _CHECK(CMD_GCOV "CMD_GCOV-NOTFOUND" "gcov")
++
++    find_program(CMD_LCOV lcov)
++    _CHECK(CMD_LCOV "CMD_LCOV-NOTFOUND" "lcov")
++
++    find_program(CMD_GENHTML genhtml)
++    _CHECK(CMD_GENHTML "CMD_GENHTML-NOTFOUND" "genhtml")
+ endif()
+ 
+diff --git a/cmake/set_build_flags.cmake b/cmake/set_build_flags.cmake
+index 46ba3c9..9aab5e1 100644
+--- a/cmake/set_build_flags.cmake
++++ b/cmake/set_build_flags.cmake
+@@ -29,11 +29,13 @@ set(CMAKE_EXE_LINKER_FLAGS "-Wl,-E -Wl,-z,relro -Wl,-z,now -Wl,-z,noexecstack -W
+ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -D__FILENAME__='\"$(subst ${CMAKE_SOURCE_DIR}/,,$(abspath $<))\"'")
+ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D__FILENAME__='\"$(subst ${CMAKE_SOURCE_DIR}/,,$(abspath $<))\"'")
+ 
++option(LCR_GCOV "set lcr gcov option" OFF)
+ if (LCR_GCOV)
+-    set(CMAKE_C_FLAGS_DEBUG "-Wall -fprofile-arcs -ftest-coverage")
+-    set(CMAKE_CXX_FLAGS_DEBUG "-Wall -fprofile-arcs -ftest-coverage")
+-    message("-----CXXFLAGS: " ${CMAKE_CXX_FLAGS_DEBUG})
++    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -fprofile-arcs -ftest-coverage")
++    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -fprofile-arcs -ftest-coverage")
++    SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lgcov")
++    message("-----CXXFLAGS: " ${CMAKE_CXX_FLAGS})
+     message("------compile with gcov-------------")
+-    message("-----CFLAGS: " ${CMAKE_C_FLAGS_DEBUG})
++    message("-----CFLAGS: " ${CMAKE_C_FLAGS})
+     message("------------------------------------")
+ endif()
+diff --git a/tests/CMakeLists.txt b/tests/CMakeLists.txt
+index 2d414ca..15708dd 100644
+--- a/tests/CMakeLists.txt
++++ b/tests/CMakeLists.txt
+@@ -64,5 +64,35 @@ endmacro()
+ _DEFINE_NEW_TEST(log_llt log_testcase)
+ _DEFINE_NEW_TEST(json_llt json_testcase)
+ 
++# mock test for run lcov to generate html
++add_executable(mock_llt main.cpp)
++target_include_directories(mock_llt PUBLIC
++    ${GTEST_INCLUDE_DIR}
++    PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}
++    )
++target_link_libraries(mock_llt
++    gtest
++    pthread
++    )
++add_dependencies(mock_llt log_llt json_llt)
++
++set(result isula_libutils.info)
++set(result_dir lcr_gcovs)
++set(target_dir src/CMakeFiles/isula_libutils.dir)
++
++# generate gcov
++
++add_custom_command(TARGET mock_llt
++    POST_BUILD
++    COMMAND ${CMAKE_COMMAND} -E remove -f ${result}
++    COMMAND ${CMAKE_COMMAND} -E make_directory ${result_dir}
++    COMMAND "ctest"
++    COMMAND ${CMD_LCOV} --gcov-tool ${CMD_GCOV} --exclude "*/src/utils.c" --exclude "*/json/*" -d ${CMAKE_BINARY_DIR}/${target_dir} -c -o ${result}
++    COMMAND ${CMD_GENHTML} --ignore-errors source -o ${result_dir} ${result}
++    COMMAND ${CMAKE_COMMAND} -E echo LLT finish
++    VERBATIM
++    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/tests
++    )
++
+ # --------------- testcase add finish -----------------
+ 
+diff --git a/tests/log_llt.cpp b/tests/log_llt.cpp
+index dbdebad..a047f57 100644
+--- a/tests/log_llt.cpp
++++ b/tests/log_llt.cpp
+@@ -107,6 +107,31 @@ TEST(log_testcases, test_isula_libutils_log_enable)
+     fd = isula_libutils_get_log_fd();
+     ASSERT_EQ(fd, -1);
+ 
++    tconf.driver = ISULA_LOG_DRIVER_STDOUT;
++    tconf.prefix = prefix;
++    tconf.priority = prio;
++    tconf.file = fname;
++    ret = isula_libutils_log_enable(&tconf);
++    ASSERT_NE(ret, 0);
++    isula_libutils_log_disable();
++
++    tconf.driver = ISULA_LOG_DRIVER_STDOUT;
++    tconf.prefix = prefix;
++    tconf.priority = prio;
++    tconf.file = nullptr;
++    ret = isula_libutils_log_enable(&tconf);
++    ASSERT_EQ(ret, 0);
++    TRACE("trace log");
++    DEBUG("debug log");
++    INFO("info log");
++    NOTICE("notice log");
++    WARN("warn log");
++    ERROR("error log");
++    EVENT("event log");
++    CRIT("crit log");
++    FATAL("fatal log");
++    isula_libutils_log_disable();
++
+     tconf.driver = ISULA_LOG_DRIVER_FIFO;
+     tconf.prefix = prefix;
+     tconf.priority = invalid_prio;
+diff --git a/third_party/log.c b/third_party/log.c
+index e8ee9b5..83de005 100644
+--- a/third_party/log.c
++++ b/third_party/log.c
+@@ -80,7 +80,7 @@ void isula_libutils_default_log_config(const char *name, struct isula_libutils_l
+     log->name = name;
+     log->file = NULL;
+     // use to disable log
+-    log->priority = "NOTSET";
++    log->priority = "FATAL";
+     if (!log->quiet) {
+         log->driver = ISULA_LOG_DRIVER_STDOUT;
+     }
+@@ -375,7 +375,7 @@ static bool choice_log_driver(const struct isula_libutils_log_config *log)
+ 
+     // if driver is null, mean disable log
+     if (log->driver == NULL) {
+-        g_lxc_log_category_lxc.priority = LXC_LOG_LEVEL_NOTSET;
++        g_lxc_log_category_lxc.priority = LXC_LOG_LEVEL_FATAL;
+         return true;
+     }
+ 	g_lxc_log_category_lxc.appender = &log_appender_logfile;
+-- 
+2.25.1
+

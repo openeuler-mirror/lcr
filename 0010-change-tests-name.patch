@@ -1,0 +1,227 @@
+From 71eb58f5a5002faf6ad4bc1a77cbf483d06f27c9 Mon Sep 17 00:00:00 2001
+From: haozi007 <liuhao27@huawei.com>
+Date: Tue, 16 Jun 2020 14:40:10 +0800
+Subject: [PATCH 10/10] change tests name
+
+Signed-off-by: haozi007 <liuhao27@huawei.com>
+---
+ CMakeLists.txt                            |  6 +--
+ cmake/checker.cmake                       | 30 ++++++------
+ cmake/set_build_flags.cmake               |  4 +-
+ src/CMakeLists.txt                        |  4 --
+ tests/CMakeLists.txt                      | 60 +++++++++++++----------
+ tests/{json_llt.cpp => libocispec_ut.cpp} |  4 +-
+ tests/{log_llt.cpp => log_ut.cpp}         |  0
+ 7 files changed, 56 insertions(+), 52 deletions(-)
+ rename tests/{json_llt.cpp => libocispec_ut.cpp} (97%)
+ rename tests/{log_llt.cpp => log_ut.cpp} (100%)
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index dcb4232..53e985f 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -85,10 +85,8 @@ add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/third_party)
+ 
+ add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/src)
+ 
+-# llt and gcoverage
+-if (LCR_GCOV)
+-    add_subdirectory(tests)
+-endif()
++# ut and gcoverage
++add_subdirectory(tests)
+ 
+ # install all files
+ install(FILES ${CMAKE_BINARY_DIR}/conf/lcr.pc
+diff --git a/cmake/checker.cmake b/cmake/checker.cmake
+index 20ad917..dde41a6 100644
+--- a/cmake/checker.cmake
++++ b/cmake/checker.cmake
+@@ -69,23 +69,23 @@ find_library(LIBYAJL_LIBRARY yajl
+ 	HINTS ${PC_LIBYAJL_LIBDIR} ${PC_LIBYAJL_LIBRARY_DIRS})
+ _CHECK(LIBYAJL_LIBRARY "LIBYAJL_LIBRARY-NOTFOUND" "libyajl.so")
+ 
+-if (LCR_GCOV)
+-    pkg_check_modules(PC_GTEST "gtest")
+-    find_path(GTEST_INCLUDE_DIR gtest/gtest.h
+-        HINTS ${PC_GTEST_INCLUDEDIR} ${PC_GTEST_INCLUDE_DIRS})
+-    _CHECK(GTEST_INCLUDE_DIR "GTEST_INCLUDE_DIR-NOTFOUND" "gtest.h")
+-    find_library(GTEST_LIBRARY gtest
+-        HINTS ${PC_GTEST_LIBDIR} ${PC_GTEST_LIBRARY_DIRS})
+-    _CHECK(GTEST_LIBRARY "GTEST_LIBRARY-NOTFOUND" "libgtest.so")
++pkg_check_modules(PC_GTEST "gtest")
++find_path(GTEST_INCLUDE_DIR gtest/gtest.h
++    HINTS ${PC_GTEST_INCLUDEDIR} ${PC_GTEST_INCLUDE_DIRS})
++_CHECK(GTEST_INCLUDE_DIR "GTEST_INCLUDE_DIR-NOTFOUND" "gtest.h")
++find_library(GTEST_LIBRARY gtest
++    HINTS ${PC_GTEST_LIBDIR} ${PC_GTEST_LIBRARY_DIRS})
++_CHECK(GTEST_LIBRARY "GTEST_LIBRARY-NOTFOUND" "libgtest.so")
+ 
+-    pkg_check_modules(PC_GMOCK "gmock")
+-    find_path(GMOCK_INCLUDE_DIR gmock/gmock.h
+-        HINTS ${PC_GMOCK_INCLUDEDIR} ${PC_GMOCK_INCLUDE_DIRS})
+-    _CHECK(GMOCK_INCLUDE_DIR "GMOCK_INCLUDE_DIR-NOTFOUND" "gmock.h")
+-    find_library(GMOCK_LIBRARY z
+-        HINTS ${PC_GMOCK_LIBDIR} ${PC_GMOCK_LIBRARY_DIRS})
+-    _CHECK(GMOCK_LIBRARY "GMOCK_LIBRARY-NOTFOUND" "libgmock.so")
++pkg_check_modules(PC_GMOCK "gmock")
++find_path(GMOCK_INCLUDE_DIR gmock/gmock.h
++    HINTS ${PC_GMOCK_INCLUDEDIR} ${PC_GMOCK_INCLUDE_DIRS})
++_CHECK(GMOCK_INCLUDE_DIR "GMOCK_INCLUDE_DIR-NOTFOUND" "gmock.h")
++find_library(GMOCK_LIBRARY z
++    HINTS ${PC_GMOCK_LIBDIR} ${PC_GMOCK_LIBRARY_DIRS})
++_CHECK(GMOCK_LIBRARY "GMOCK_LIBRARY-NOTFOUND" "libgmock.so")
+ 
++if (ENABLE_GCOV)
+     find_program(CMD_GCOV gcov)
+     _CHECK(CMD_GCOV "CMD_GCOV-NOTFOUND" "gcov")
+ 
+diff --git a/cmake/set_build_flags.cmake b/cmake/set_build_flags.cmake
+index 9aab5e1..87cab3e 100644
+--- a/cmake/set_build_flags.cmake
++++ b/cmake/set_build_flags.cmake
+@@ -29,8 +29,8 @@ set(CMAKE_EXE_LINKER_FLAGS "-Wl,-E -Wl,-z,relro -Wl,-z,now -Wl,-z,noexecstack -W
+ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -D__FILENAME__='\"$(subst ${CMAKE_SOURCE_DIR}/,,$(abspath $<))\"'")
+ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D__FILENAME__='\"$(subst ${CMAKE_SOURCE_DIR}/,,$(abspath $<))\"'")
+ 
+-option(LCR_GCOV "set lcr gcov option" OFF)
+-if (LCR_GCOV)
++option(ENABLE_GCOV "set lcr gcov option" OFF)
++if (ENABLE_GCOV)
+     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -fprofile-arcs -ftest-coverage")
+     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -fprofile-arcs -ftest-coverage")
+     SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lgcov")
+diff --git a/src/CMakeLists.txt b/src/CMakeLists.txt
+index 5e09c93..6ed2d95 100644
+--- a/src/CMakeLists.txt
++++ b/src/CMakeLists.txt
+@@ -103,10 +103,6 @@ if (CMAKE_TOOLCHAIN_FILE)
+     target_link_libraries(liblcr ${EXTRAL_LINK_LIBS})
+ endif()
+ 
+-if (LCR_GCOV)
+-    target_link_libraries(liblcr -lgcov)
+-endif()
+-
+ # install all files
+ install(TARGETS liblcr
+   LIBRARY DESTINATION ${LIB_INSTALL_DIR_DEFAULT} PERMISSIONS OWNER_READ OWNER_EXECUTE GROUP_READ GROUP_EXECUTE)
+diff --git a/tests/CMakeLists.txt b/tests/CMakeLists.txt
+index ca6d164..89eb6cf 100644
+--- a/tests/CMakeLists.txt
++++ b/tests/CMakeLists.txt
+@@ -37,8 +37,8 @@ macro(_DEFINE_NEW_TEST)
+ 
+     target_link_libraries(${ARGV0}
+         isula_libutils
+-        gtest
+-        -lyajl
++        ${GTEST_LIBRARY}
++        ${LIBYAJL_LIBRARY}
+         pthread
+         )
+ 
+@@ -61,38 +61,48 @@ endmacro()
+ 
+ # --------------- testcase add here -----------------
+ #   api testcase
+-_DEFINE_NEW_TEST(log_llt log_testcase)
+-_DEFINE_NEW_TEST(json_llt json_testcase)
++_DEFINE_NEW_TEST(log_ut log_testcase)
++_DEFINE_NEW_TEST(libocispec_ut libocispec_testcase)
++
+ 
+ # mock test for run lcov to generate html
+-add_executable(mock_llt main.cpp)
+-target_include_directories(mock_llt PUBLIC
++add_executable(mock_ut main.cpp)
++target_include_directories(mock_ut PUBLIC
+     ${GTEST_INCLUDE_DIR}
+     PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}
+     )
+-target_link_libraries(mock_llt
+-    gtest
++target_link_libraries(mock_ut
++    ${GTEST_LIBRARY}
+     pthread
+     )
+-add_dependencies(mock_llt log_llt json_llt)
+-
+-set(result isula_libutils.info)
+-set(result_dir lcr_gcovs)
+-set(target_dir src/CMakeFiles/isula_libutils.dir)
++add_dependencies(mock_ut log_ut libocispec_ut)
+ 
+-# generate gcov
++# run ut and gcov
++if (ENABLE_GCOV)
++    set(result isula_libutils.info)
++    set(result_dir lcr_gcovs)
++    set(target_dir src/CMakeFiles/isula_libutils.dir)
+ 
+-add_custom_command(TARGET mock_llt
+-    POST_BUILD
+-    COMMAND ${CMAKE_COMMAND} -E remove -f ${result}
+-    COMMAND ${CMAKE_COMMAND} -E make_directory ${result_dir}
+-    COMMAND "ctest"
+-    COMMAND ${CMD_LCOV} --gcov-tool ${CMD_GCOV} --exclude "/usr/*" --exclude "*/src/utils.c" --exclude "*/json/*" -d ${CMAKE_BINARY_DIR}/${target_dir} -c -o ${result}
+-    COMMAND ${CMD_GENHTML} --ignore-errors source -o ${result_dir} ${result}
+-    COMMAND ${CMAKE_COMMAND} -E echo LLT finish
+-    VERBATIM
+-    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/tests
+-    )
++    add_custom_command(TARGET mock_ut
++        POST_BUILD
++        COMMAND ${CMAKE_COMMAND} -E remove -f ${result}
++        COMMAND ${CMAKE_COMMAND} -E make_directory ${result_dir}
++        COMMAND ctest -VV
++        COMMAND ${CMD_LCOV} --gcov-tool ${CMD_GCOV} --exclude "/usr/*" --exclude "*/src/utils.c" --exclude "*/json/*" -d ${CMAKE_BINARY_DIR}/${target_dir} -c -o ${result}
++        COMMAND ${CMD_GENHTML} --ignore-errors source -o ${result_dir} ${result}
++        COMMAND ${CMAKE_COMMAND} -E echo run gcov finish
++        VERBATIM
++        WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/tests
++        )
++else()
++    add_custom_command(TARGET mock_ut
++        PRE_BUILD
++        COMMAND ${CMAKE_CTEST_COMMAND} -VV
++        COMMAND ${CMAKE_COMMAND} -E echo UT finish
++        VERBATIM
++        WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/tests
++        )
++endif()
+ 
+ # --------------- testcase add finish -----------------
+ 
+diff --git a/tests/json_llt.cpp b/tests/libocispec_ut.cpp
+similarity index 97%
+rename from tests/json_llt.cpp
+rename to tests/libocispec_ut.cpp
+index 9622ed4..58a1f52 100644
+--- a/tests/json_llt.cpp
++++ b/tests/libocispec_ut.cpp
+@@ -30,7 +30,7 @@
+ #include "read_file.h"
+ #include "oci_runtime_hooks.h"
+ 
+-TEST(json_testcase, test_oci_runtime_spec_hooks)
++TEST(libocispec_testcase, test_oci_runtime_spec_hooks)
+ {
+     const char *fname = "./ocihook.json";
+     oci_runtime_spec_hooks *hooks = nullptr;
+@@ -79,7 +79,7 @@ TEST(json_testcase, test_oci_runtime_spec_hooks)
+     free(jstr);
+ }
+ 
+-TEST(json_testcase, test_json_readfile)
++TEST(libocispec_testcase, test_json_readfile)
+ {
+     const char *fname = "./ocihook.json";
+     const char *not_exist = "/tmp/not_exist.json";
+diff --git a/tests/log_llt.cpp b/tests/log_ut.cpp
+similarity index 100%
+rename from tests/log_llt.cpp
+rename to tests/log_ut.cpp
+-- 
+2.25.1
+
