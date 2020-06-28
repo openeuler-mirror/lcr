@@ -1,7 +1,7 @@
 From 02054466c71822e197499b0271cfed57c96598b2 Mon Sep 17 00:00:00 2001
 From: haozi007 <liuhao27@huawei.com>
 Date: Thu, 11 Jun 2020 15:14:48 +0800
-Subject: [PATCH 06/10] fix log test error
+Subject: [PATCH 06/11] fix log test error
 
 Signed-off-by: haozi007 <liuhao27@huawei.com>
 ---

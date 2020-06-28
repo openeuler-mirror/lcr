@@ -1,7 +1,7 @@
 From cb27a1612fdba43b94e9af1232da4378205c4c8a Mon Sep 17 00:00:00 2001
 From: haozi007 <liuhao27@huawei.com>
 Date: Sat, 13 Jun 2020 10:32:28 +0800
-Subject: [PATCH 08/10] change tests name
+Subject: [PATCH 08/11] change tests name
 
 1. change name of tests
 2. default to run tests after build

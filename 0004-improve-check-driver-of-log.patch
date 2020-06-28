@@ -1,7 +1,7 @@
 From 72c179403743bd9bd82f0e4d80c558d883b973ac Mon Sep 17 00:00:00 2001
 From: haozi007 <liuhao27@huawei.com>
 Date: Tue, 9 Jun 2020 14:44:51 +0800
-Subject: [PATCH 04/10] improve check driver of log
+Subject: [PATCH 04/11] improve check driver of log
 
 1. add llt for log
 2. improve init driver of log

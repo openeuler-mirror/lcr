@@ -1,7 +1,7 @@
 From 71eb58f5a5002faf6ad4bc1a77cbf483d06f27c9 Mon Sep 17 00:00:00 2001
 From: haozi007 <liuhao27@huawei.com>
 Date: Tue, 16 Jun 2020 14:40:10 +0800
-Subject: [PATCH 10/10] change tests name
+Subject: [PATCH 10/11] change tests name
 
 Signed-off-by: haozi007 <liuhao27@huawei.com>
 ---
