@@ -60,6 +60,13 @@ macro(_DEFINE_NEW_TEST)
 endmacro()
 
 # --------------- testcase add here -----------------
+
+# fuzz test
+option(ENABLE_FUZZ "set lcr fuzz option" OFF)
+if (ENABLE_FUZZ)
+    add_subdirectory(fuzz)
+endif()
+
 #   api testcase
 _DEFINE_NEW_TEST(log_ut log_testcase)
 _DEFINE_NEW_TEST(libocispec_ut libocispec_testcase)
