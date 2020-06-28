@@ -1,5 +1,5 @@
 %global _version 2.0.2
-%global _release 20200616.163046.git9a34ea5f
+%global _release 20200628.162917.gitafc142aa
 %global _inner_name isula_libutils
 
 Name:      lcr
@@ -22,6 +22,7 @@ Patch9006:  0007-improve-html-show-result.patch
 Patch9007:  0008-change-tests-name.patch
 Patch9008:  0009-Pull-Request-49-change-name-of-testcases.patch
 Patch9009:  0010-change-tests-name.patch
+Patch9010:  0011-support-fuzz-test.patch
 
 BuildRequires: cmake
 BuildRequires: lxc

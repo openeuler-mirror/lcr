@@ -1,0 +1,241 @@
+From 10ee1a5e5eca638f0cc5190ae49c34e9841d8c8b Mon Sep 17 00:00:00 2001
+From: haozi007 <liuhao27@huawei.com>
+Date: Sun, 28 Jun 2020 16:16:04 +0800
+Subject: [PATCH 11/11] support fuzz test
+
+Signed-off-by: haozi007 <liuhao27@huawei.com>
+---
+ tests/CMakeLists.txt          |  7 ++++
+ tests/fuzz/CMakeLists.txt     | 40 ++++++++++++++++++
+ tests/fuzz/dict/log_fuzz.dict | 14 +++++++
+ tests/fuzz/fuzz.sh            | 48 ++++++++++++++++++++++
+ tests/fuzz/log_fuzz.cc        | 76 +++++++++++++++++++++++++++++++++++
+ 5 files changed, 185 insertions(+)
+ create mode 100644 tests/fuzz/CMakeLists.txt
+ create mode 100644 tests/fuzz/dict/log_fuzz.dict
+ create mode 100755 tests/fuzz/fuzz.sh
+ create mode 100644 tests/fuzz/log_fuzz.cc
+
+diff --git a/tests/CMakeLists.txt b/tests/CMakeLists.txt
+index 89eb6cf..e2ad103 100644
+--- a/tests/CMakeLists.txt
++++ b/tests/CMakeLists.txt
+@@ -60,6 +60,13 @@ macro(_DEFINE_NEW_TEST)
+ endmacro()
+ 
+ # --------------- testcase add here -----------------
++
++# fuzz test
++option(ENABLE_FUZZ "set lcr fuzz option" OFF)
++if (ENABLE_FUZZ)
++    add_subdirectory(fuzz)
++endif()
++
+ #   api testcase
+ _DEFINE_NEW_TEST(log_ut log_testcase)
+ _DEFINE_NEW_TEST(libocispec_ut libocispec_testcase)
+diff --git a/tests/fuzz/CMakeLists.txt b/tests/fuzz/CMakeLists.txt
+new file mode 100644
+index 0000000..660b8be
+--- /dev/null
++++ b/tests/fuzz/CMakeLists.txt
+@@ -0,0 +1,40 @@
++# lcr: fuzz tests
++#
++# Copyright (c) Huawei Technologies Co., Ltd. 2020. All rights reserved.
++#
++# Authors:
++# Haozi007 <liuhao27@huawei.com>
++#
++# This library is free software; you can redistribute it and/or
++# modify it under the terms of the GNU Lesser General Public
++# License as published by the Free Software Foundation; either
++# version 2.1 of the License, or (at your option) any later version.
++#
++# This library is distributed in the hope that it will be useful,
++# but WITHOUT ANY WARRANTY; without even the implied warranty of
++# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++# Lesser General Public License for more details.
++#
++# You should have received a copy of the GNU Lesser General Public
++# License along with this library; if not, write to the Free Software
++# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
++#
++
++set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fsanitize-coverage=trace-pc")
++set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize-coverage=trace-pc")
++set(EXE log_fuzz)
++
++configure_file("dict/log_fuzz.dict" ${CMAKE_BINARY_DIR}/tests/fuzz/dict/log_fuzz.dict COPYONLY)
++configure_file("fuzz.sh" ${CMAKE_BINARY_DIR}/tests/fuzz/fuzz.sh COPYONLY)
++
++add_executable(${EXE} log_fuzz.cc)
++
++target_include_directories(${EXE} PUBLIC
++    ${GTEST_INCLUDE_DIR}
++    PUBLIC ${CMAKE_SOURCE_DIR}/third_party
++    PUBLIC ${CMAKE_SOURCE_DIR}/third_party/libocispec
++    )
++
++set_target_properties(${EXE} PROPERTIES LINKER_LANGUAGE CXX)
++set_target_properties(${EXE} PROPERTIES LINK_FLAGS "-fsanitize-coverage=trace-pc")
++target_link_libraries(${EXE} ${CMAKE_THREAD_LIBS_INIT} isula_libutils Fuzzer pthread)
+diff --git a/tests/fuzz/dict/log_fuzz.dict b/tests/fuzz/dict/log_fuzz.dict
+new file mode 100644
+index 0000000..d6a438d
+--- /dev/null
++++ b/tests/fuzz/dict/log_fuzz.dict
+@@ -0,0 +1,14 @@
++"x,,debug,prefix,stdout"
++",/tmp/fake.fifo,info,prefix,stdout"
++"x,,ERROR,prefix,stdout"
++"x,/tmp/fake.fifo,,prefix,stdout"
++"x,/tmp/fake.fifo,info,,stdout"
++"x,/tmp/fake.fifo,crit,prefix,"
++"x,/tmp/fake.fifo,fatal,prefix,fifo"
++",/tmp/fake.fifo,info,prefix,fifo"
++"x,,ERROR,prefix,fifo"
++"x,/tmp/fake.fifo,,prefix,fifo"
++"x,/tmp/fake.fifo,debug,,fifo"
++"x,,invalid,prefix,stdout"
++"x,/tmp/fake.fifo,invalid,prefix,fifo"
++"invalid"
+diff --git a/tests/fuzz/fuzz.sh b/tests/fuzz/fuzz.sh
+new file mode 100755
+index 0000000..6f80cab
+--- /dev/null
++++ b/tests/fuzz/fuzz.sh
+@@ -0,0 +1,48 @@
++# lcr: fuzz tests
++#
++# Copyright (c) Huawei Technologies Co., Ltd. 2020. All rights reserved.
++#
++# Authors:
++# Haozi007 <liuhao27@huawei.com>
++#
++# This library is free software; you can redistribute it and/or
++# modify it under the terms of the GNU Lesser General Public
++# License as published by the Free Software Foundation; either
++# version 2.1 of the License, or (at your option) any later version.
++#
++# This library is distributed in the hope that it will be useful,
++# but WITHOUT ANY WARRANTY; without even the implied warranty of
++# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++# Lesser General Public License for more details.
++#
++# You should have received a copy of the GNU Lesser General Public
++# License along with this library; if not, write to the Free Software
++# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
++#
++
++#!/bin/bash
++
++LIB_FUZZING_ENGINE="/lib64/libFuzzer.a"
++FUZZ_OPTION="corpus -dict=./dict/log_fuzz.dict -runs=100000 -max_total_time=3600"
++
++if [ ! -f "$LIB_FUZZING_ENGINE" ];then
++    echo "$LIB_FUZZING_ENGINE not exist, pls check"
++    exit 1
++fi
++
++# compile fuzz testcase
++make -j
++
++# run fuzz testcases
++./log_fuzz ${FUZZ_OPTION} -artifact_prefix=log_fuzz-
++
++echo "########### Fuzz Result ##############"
++crash=`find -name "*-crash-*"`
++if [ x"${crash}" != x"" ];then
++    echo "find bugs while fuzzing, pls check <*-crash-*> file"
++    find -name "*-crash-*"
++    exit 1
++else
++    echo "all fuzz success."
++fi
++
+diff --git a/tests/fuzz/log_fuzz.cc b/tests/fuzz/log_fuzz.cc
+new file mode 100644
+index 0000000..9dc02bb
+--- /dev/null
++++ b/tests/fuzz/log_fuzz.cc
+@@ -0,0 +1,76 @@
++/******************************************************************************
++ * log_fuzz: testcase for log
++ *
++ * Copyright (c) Huawei Technologies Co., Ltd. 2020. All rights reserved.
++ *
++ * Authors:
++ * Haozi007 <liuhao27@huawei.com>
++ *
++ * This library is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU Lesser General Public
++ * License as published by the Free Software Foundation; either
++ * version 2.1 of the License, or (at your option) any later version.
++ *
++ * This library is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * Lesser General Public License for more details.
++ *
++ * You should have received a copy of the GNU Lesser General Public
++ * License along with this library; if not, write to the Free Software
++ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
++ ********************************************************************************/
++
++#include <iostream>
++#include <sstream>
++#include <string>
++#include <vector>
++#include "log.h"
++
++
++extern "C" void testLog(struct isula_libutils_log_config *conf)
++{
++    (void)isula_libutils_log_enable(conf);
++    INFO("info log");
++    isula_libutils_set_log_prefix(conf->prefix);
++    INFO("test prefix info");
++    isula_libutils_log_disable();
++}
++
++
++extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
++{
++    const char *default_name = "iSula";
++    struct isula_libutils_log_config tconf = {0};
++    std::string testData(reinterpret_cast<const char *>(data), size);
++    std::vector<std::string> ret_vec;
++    std::string tmpstr;
++    std::istringstream istr(testData);
++    while(std::getline(istr, tmpstr, ',')) {
++        ret_vec.push_back(tmpstr);
++    }
++
++    if (ret_vec.size() == 5) {
++        if (ret_vec[0] != "") {
++            tconf.name = ret_vec[0].c_str();
++        }
++        if (ret_vec[1] != "") {
++            tconf.file = ret_vec[1].c_str();
++        }
++        if (ret_vec[2] != "") {
++            tconf.priority = ret_vec[2].c_str();
++        }
++        if (ret_vec[3] != "") {
++            tconf.prefix = ret_vec[3].c_str();
++        }
++        if (ret_vec[4] != "") {
++            tconf.driver = ret_vec[4].c_str();
++        }
++    } else {
++        isula_libutils_default_log_config(default_name, &tconf);
++    }
++
++    testLog(&tconf);
++    return 0;
++}
++
+-- 
+2.25.1
+

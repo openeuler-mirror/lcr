@@ -1,7 +1,7 @@
 From 15b7cc66a03f26c35dfc551a960edc24e5c52440 Mon Sep 17 00:00:00 2001
 From: WangFengTu <wangfengtu@huawei.com>
 Date: Wed, 27 May 2020 11:25:56 +0800
-Subject: [PATCH 02/10] support import rootfs to be image
+Subject: [PATCH 02/11] support import rootfs to be image
 
 Signed-off-by: WangFengTu <wangfengtu@huawei.com>
 ---

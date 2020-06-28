@@ -1,7 +1,7 @@
 From d97eb223fea08b12b63aa84f1c67a9a38fd1fee9 Mon Sep 17 00:00:00 2001
 From: haozi007 <liuhao27@huawei.com>
 Date: Thu, 11 Jun 2020 14:41:55 +0800
-Subject: [PATCH 05/10] improve llt framework
+Subject: [PATCH 05/11] improve llt framework
 
 1. add hook to run genhtml for llt
 2. improve llt
