@@ -142,6 +142,15 @@ TEST(log_testcases, test_isula_libutils_log_enable)
     ASSERT_GE(fd, 0);
     DEBUG("debug log");
     check_log(fd, false, false, "debug log");
+    TRACE("trace log");
+    DEBUG("debug log");
+    INFO("info log");
+    NOTICE("notice log");
+    WARN("warn log");
+    ERROR("error log");
+    EVENT("event log");
+    CRIT("crit log");
+    FATAL("fatal log");
     isula_libutils_log_disable();
 
     tconf.driver = ISULA_LOG_DRIVER_FIFO;
