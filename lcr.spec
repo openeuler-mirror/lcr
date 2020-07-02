@@ -5,8 +5,8 @@
 Name:      lcr
 Version:   %{_version}
 Release:   %{_release}
-URL:       lcr
-Source:    lcr-2.0.2.tar.gz
+URL:       https://gitee.com/openeuler/lcr
+Source:    lcr-%{version}.tar.gz
 Summary:   Lightweight Container Runtime
 Group:     Applications/System
 License:   LGPLv2.1+
