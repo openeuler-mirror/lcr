@@ -1,5 +1,5 @@
 %global _version 2.0.2
-%global _release 20200609.145938.gita2be0373
+%global _release 20200707.190329.git615e13a5
 %global _inner_name isula_libutils
 
 Name:      lcr
@@ -55,7 +55,7 @@ the %{name}-libs package contains libraries for running iSula applications.
 %build
 mkdir -p build
 cd build
-%cmake -DDEBUG=OFF -DLIB_INSTALL_DIR=%{_libdir} ../
+%cmake -DDEBUG=OFF -DENABLE_UT=ON -DLIB_INSTALL_DIR=%{_libdir} ../
 %make_build
 
 %install

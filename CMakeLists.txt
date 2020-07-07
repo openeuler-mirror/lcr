@@ -33,6 +33,8 @@ if (DEBUG STREQUAL "ON")
     add_definitions("-g -o2")
 endif()
 
+option(ENABLE_UT "enable ut" OFF)
+
 include(cmake/set_build_flags.cmake)
 
 
@@ -86,7 +88,9 @@ add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/third_party)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/src)
 
 # ut and gcoverage
-add_subdirectory(tests)
+if (ENABLE_UT)
+    add_subdirectory(tests)
+endif()
 
 # install all files
 install(FILES ${CMAKE_BINARY_DIR}/conf/lcr.pc
