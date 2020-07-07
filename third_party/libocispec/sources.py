@@ -224,16 +224,61 @@ def parse_obj_arr_obj(obj, c_file, prefix, obj_typename):
         condition = " &&\n                ".join( \
             ['strcmp(tree->u.object.keys[i], "%s")' % i.origname for i in obj.children])
         c_file.write("""
-    if (tree->type == yajl_t_object && (ctx->options & OPT_PARSE_STRICT)) {
+    if (tree->type == yajl_t_object)
+    {
         size_t i;
-        for (i = 0; i < tree->u.object.len; i++)
-            if (%s) {
-                if (ctx->stderr > 0)
-                    (void)fprintf(ctx->stderr, "WARNING: unknown key found: %%s\\n",
-                            tree->u.object.keys[i]);
+        size_t j = 0;
+        size_t cnt = tree->u.object.len;
+        yajl_val resi = NULL;
+
+        if (ctx->options & OPT_PARSE_FULLKEY)
+        {
+            resi = calloc (1, sizeof(*tree));
+            if (resi == NULL)
+            {
+                free_%s(ret);
+                return NULL;
+            }
+            resi->type = yajl_t_object;
+            resi->u.object.keys = calloc (cnt, sizeof (const char *));
+            if (resi->u.object.keys == NULL)
+            {
+               free_%s(ret);
+               yajl_tree_free(resi);
+               return NULL;
+            }
+            resi->u.object.values = calloc (cnt, sizeof (yajl_val));
+            if (resi->u.object.values == NULL)
+            {
+               free_%s(ret);
+               yajl_tree_free(resi);
+               return NULL;
             }
         }
-""" % condition)
+        for (i = 0; i < tree->u.object.len; i++)
+        {
+           if (%s)
+           {
+              if (ctx->options & OPT_PARSE_FULLKEY)
+              {
+                 resi->u.object.keys[j] = tree->u.object.keys[i];
+                 tree->u.object.keys[i] = NULL;
+                 resi->u.object.values[j] = tree->u.object.values[i];
+                 tree->u.object.values[i] = NULL;
+                 resi->u.object.len++;
+              }
+              j++;
+           }
+        }
+        if (ctx->options & OPT_PARSE_STRICT)
+        {
+            if (j > 0 && ctx->stderr > 0)
+                fprintf (ctx->stderr, "WARNING: unknown key found\\n");
+        }
+        if (ctx->options & OPT_PARSE_FULLKEY)
+            ret->_residual = resi;
+        }
+""" % (obj_typename, obj_typename, obj_typename, condition))
 
 
 def parse_json_to_c(obj, c_file, prefix):
@@ -518,6 +563,14 @@ def get_c_json(obj, c_file, prefix):
         c_file.write("        GEN_SET_ERROR_AND_RETURN(stat, err);\n")
         for i in nodes or []:
             get_obj_arr_obj(i, c_file, prefix)
+        if obj.typ == 'object':
+            if obj.children is not None:
+                c_file.write("    if (ptr != NULL && ptr->_residual != NULL)\n")
+                c_file.write("    {\n")
+                c_file.write("        stat = gen_yajl_object_residual (ptr->_residual, g, err);\n")
+                c_file.write("        if (yajl_gen_status_ok != stat)\n")
+                c_file.write("            GEN_SET_ERROR_AND_RETURN (stat, err);\n")
+                c_file.write("    }\n")
         c_file.write("    stat = yajl_gen_map_close((yajl_gen)g);\n")
         c_file.write("    if (yajl_gen_status_ok != stat)\n")
         c_file.write("        GEN_SET_ERROR_AND_RETURN(stat, err);\n")
@@ -752,6 +805,10 @@ def make_c_free(obj, c_file, prefix):
                 c_file.write("        free_%s(ptr->%s);\n" % (typename, i.fixname))
                 c_file.write("        ptr->%s = NULL;\n" % (i.fixname))
                 c_file.write("    }\n")
+    if obj.typ == 'object':
+        if obj.children is not None:
+            c_file.write("    yajl_tree_free (ptr->_residual);\n")
+            c_file.write("    ptr->_residual = NULL;\n")
     c_file.write("    free(ptr);\n")
     c_file.write("}\n\n")
 

@@ -159,6 +159,8 @@ def append_type_c_header(obj, header, prefix):
                 append_header_child_arr(i, header, prefix)
             else:
                 append_header_child_others(i, header, prefix)
+        if obj.children is not None:
+            header.write("    yajl_val _residual;\n")
 
     typename = helpers.get_prefixe_name(obj.name, prefix)
     header.write("}\n%s;\n\n" % typename)
