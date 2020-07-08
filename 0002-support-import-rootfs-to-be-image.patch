@@ -1,0 +1,55 @@
+From 15b7cc66a03f26c35dfc551a960edc24e5c52440 Mon Sep 17 00:00:00 2001
+From: WangFengTu <wangfengtu@huawei.com>
+Date: Wed, 27 May 2020 11:25:56 +0800
+Subject: [PATCH 02/11] support import rootfs to be image
+
+Signed-off-by: WangFengTu <wangfengtu@huawei.com>
+---
+ src/json/schema/image/import-request.json  | 12 ++++++++++++
+ src/json/schema/image/import-response.json | 15 +++++++++++++++
+ 2 files changed, 27 insertions(+)
+ create mode 100644 src/json/schema/image/import-request.json
+ create mode 100644 src/json/schema/image/import-response.json
+
+diff --git a/src/json/schema/image/import-request.json b/src/json/schema/image/import-request.json
+new file mode 100644
+index 0000000..e2fe7bc
+--- /dev/null
++++ b/src/json/schema/image/import-request.json
+@@ -0,0 +1,12 @@
++{
++	"$schema": "http://json-schema.org/draft-04/schema#",
++	"type": "object",
++	"properties": {
++		"file": {
++			"type": "string"
++		},
++		"tag": {
++			"type": "string"
++		}
++	}
++}
+diff --git a/src/json/schema/image/import-response.json b/src/json/schema/image/import-response.json
+new file mode 100644
+index 0000000..048f43d
+--- /dev/null
++++ b/src/json/schema/image/import-response.json
+@@ -0,0 +1,15 @@
++{
++	"$schema": "http://json-schema.org/draft-04/schema#",
++	"type": "object",
++	"properties": {
++		"id": {
++			"type": "string"
++		},
++		"cc": {
++			"type": "uint32"
++		},
++		"errmsg": {
++			"type": "string"
++		}
++	}
++}
+-- 
+2.25.1
+

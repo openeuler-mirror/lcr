@@ -1,0 +1,373 @@
+From 72c179403743bd9bd82f0e4d80c558d883b973ac Mon Sep 17 00:00:00 2001
+From: haozi007 <liuhao27@huawei.com>
+Date: Tue, 9 Jun 2020 14:44:51 +0800
+Subject: [PATCH 04/11] improve check driver of log
+
+1. add llt for log
+2. improve init driver of log
+
+Signed-off-by: haozi007 <liuhao27@huawei.com>
+---
+ lcr.spec           |  2 +-
+ tests/json_llt.cpp | 17 ++++++++--
+ tests/log_llt.cpp  | 53 +++++++++++++++++++++++++++++--
+ third_party/log.c  | 78 +++++++++++++++++++++++++---------------------
+ third_party/log.h  |  1 +
+ tools/static_check | 10 +++---
+ 6 files changed, 113 insertions(+), 48 deletions(-)
+
+diff --git a/lcr.spec b/lcr.spec
+index 5644fdf..0963e53 100644
+--- a/lcr.spec
++++ b/lcr.spec
+@@ -1,5 +1,5 @@
+ %global _version 2.0.2
+-%global _release 20200526.162423.gitf1095eab
++%global _release 20200609.145938.gita2be0373
+ %global _inner_name isula_libutils
+ 
+ Name:      lcr
+diff --git a/tests/json_llt.cpp b/tests/json_llt.cpp
+index 4a66305..9622ed4 100644
+--- a/tests/json_llt.cpp
++++ b/tests/json_llt.cpp
+@@ -33,11 +33,11 @@
+ TEST(json_testcase, test_oci_runtime_spec_hooks)
+ {
+     const char *fname = "./ocihook.json";
+-    oci_runtime_spec_hooks *hooks = NULL;
++    oci_runtime_spec_hooks *hooks = nullptr;
+     parser_error jerr = nullptr;
+     char *jstr = nullptr;
+ 
+-    hooks = oci_runtime_spec_hooks_parse_file(fname, NULL, &jerr);
++    hooks = oci_runtime_spec_hooks_parse_file(fname, nullptr, &jerr);
+     ASSERT_EQ(jerr, nullptr) << "parse hook failed: " << jerr;
+     ASSERT_NE(hooks, nullptr);
+ 
+@@ -82,11 +82,22 @@ TEST(json_testcase, test_oci_runtime_spec_hooks)
+ TEST(json_testcase, test_json_readfile)
+ {
+     const char *fname = "./ocihook.json";
+-    char *jstr = NULL;
++    const char *not_exist = "/tmp/not_exist.json";
++    char *jstr = nullptr;
+     size_t len = 0;
+ 
+     jstr = read_file(fname, &len);
+     ASSERT_NE(jstr, nullptr);
+     ASSERT_EQ(len, 527);
++    free(jstr);
++    len = 0;
++
++    jstr = read_file(not_exist, &len);
++    ASSERT_EQ(jstr, nullptr);
++    ASSERT_EQ(len, 0);
++    len = 0;
++
++    jstr = read_file(nullptr, nullptr);
++    ASSERT_EQ(jstr, nullptr);
+ }
+ 
+diff --git a/tests/log_llt.cpp b/tests/log_llt.cpp
+index 7d4a3d4..dbdebad 100644
+--- a/tests/log_llt.cpp
++++ b/tests/log_llt.cpp
+@@ -42,7 +42,7 @@ TEST(log_testcases, test_isula_libutils_default_log_config)
+     ASSERT_EQ(tconf.file, nullptr);
+     ASSERT_EQ(tconf.driver, nullptr);
+     EXPECT_STREQ(name, tconf.name);
+-    EXPECT_STREQ("FATAL", tconf.priority);
++    EXPECT_STREQ("NOTSET", tconf.priority);
+ 
+     // not quiet configs check
+     tconf.quiet = false;
+@@ -79,28 +79,65 @@ TEST(log_testcases, test_isula_libutils_log_enable)
+     struct isula_libutils_log_config tconf = {0};
+     const char *prefix = "fake";
+     const char *prio = "INFO";
++    const char *invalid_prio = "INVALID";
+     const char *fname = "/tmp/fake.fifo";
+     int fd = -1;
++    int ret = 0;
++
++    ret = isula_libutils_log_enable(nullptr);
++    ASSERT_NE(ret, 0);
++    fd = isula_libutils_get_log_fd();
++    ASSERT_EQ(fd, -1);
+ 
+     tconf.driver = ISULA_LOG_DRIVER_FIFO;
+     tconf.prefix = prefix;
+     tconf.priority = prio;
++    tconf.file = nullptr;
++    ret = isula_libutils_log_enable(&tconf);
++    ASSERT_NE(ret, 0);
++    fd = isula_libutils_get_log_fd();
++    ASSERT_EQ(fd, -1);
++
++    tconf.driver = nullptr;
++    tconf.prefix = prefix;
++    tconf.priority = prio;
+     tconf.file = fname;
+-    isula_libutils_log_enable(&tconf);
++    ret = isula_libutils_log_enable(&tconf);
++    ASSERT_EQ(ret, 0);
++    fd = isula_libutils_get_log_fd();
++    ASSERT_EQ(fd, -1);
+ 
++    tconf.driver = ISULA_LOG_DRIVER_FIFO;
++    tconf.prefix = prefix;
++    tconf.priority = invalid_prio;
++    tconf.file = fname;
++    ret = isula_libutils_log_enable(&tconf);
++    ASSERT_EQ(ret, 0);
+     fd = isula_libutils_get_log_fd();
+     ASSERT_GE(fd, 0);
++    DEBUG("debug log");
++    check_log(fd, false, false, "debug log");
++    isula_libutils_log_disable();
+ 
++    tconf.driver = ISULA_LOG_DRIVER_FIFO;
++    tconf.prefix = prefix;
++    tconf.priority = prio;
++    tconf.file = fname;
++    ret = isula_libutils_log_enable(&tconf);
++    ASSERT_EQ(ret, 0);
++    fd = isula_libutils_get_log_fd();
++    ASSERT_GE(fd, 0);
+     INFO("info log");
+     check_log(fd, true, true, "info log");
+-
+     DEBUG("debug log");
+     check_log(fd, false, false, "debug log");
++    isula_libutils_log_disable();
+ }
+ 
+ TEST(log_testcases, test_isula_libutils_log_prefix)
+ {
+     struct isula_libutils_log_config tconf = {0};
++    const char *default_prefix = "iSula";
+     const char *prefix = "prefix";
+     const char *prio = "INFO";
+     const char *fname = "/tmp/fake.fifo";
+@@ -121,5 +158,15 @@ TEST(log_testcases, test_isula_libutils_log_prefix)
+     isula_libutils_free_log_prefix();
+     INFO("fake log");
+     check_log(fd, true, false, prefix);
++    INFO("fake log");
++    check_log(fd, true, true, default_prefix);
++
++    isula_libutils_set_log_prefix(nullptr);
++    INFO("fake log");
++    check_log(fd, true, true, default_prefix);
++
++    isula_libutils_set_log_prefix("");
++    INFO("fake log");
++    check_log(fd, true, true, default_prefix);
+ }
+ 
+diff --git a/third_party/log.c b/third_party/log.c
+index d0fa541..e8ee9b5 100644
+--- a/third_party/log.c
++++ b/third_party/log.c
+@@ -79,7 +79,8 @@ void isula_libutils_default_log_config(const char *name, struct isula_libutils_l
+ {
+     log->name = name;
+     log->file = NULL;
+-    log->priority = "FATAL";
++    // use to disable log
++    log->priority = "NOTSET";
+     if (!log->quiet) {
+         log->driver = ISULA_LOG_DRIVER_STDOUT;
+     }
+@@ -87,7 +88,7 @@ void isula_libutils_default_log_config(const char *name, struct isula_libutils_l
+ 
+ void isula_libutils_set_log_prefix(const char *prefix)
+ {
+-    if (prefix == NULL) {
++    if (prefix == NULL || strlen(prefix) == 0) {
+         return;
+     }
+ 
+@@ -336,12 +337,45 @@ static int open_fifo(const char *fifo_path)
+     return fifo_fd;
+ }
+ 
+-static bool check_log_driver(const struct isula_libutils_log_config *log)
++static void clean_pre_init()
++{
++    g_lxc_log_category_lxc.appender = &log_appender_stderr;
++    g_lxc_log_category_lxc.priority = LXC_LOG_LEVEL_ERROR;
++}
++
++static bool init_log_file(const char *fname)
++{
++    if (fname == NULL) {
++        return false;
++    }
++    if (strcmp(fname, "none") == 0) {
++        return true;
++    }
++    if (lcr_util_build_dir(fname) != 0) {
++        CMD_SYSERROR("build log path \"%s\" failed", fname);
++        goto clean_out;
++    }
++    g_lxc_log_fd = open_fifo(fname);
++    if (g_lxc_log_fd == -1) {
++        CMD_SYSERROR("Open log fifo \"%s\" failed", fname);
++        goto clean_out;
++    }
++
++    free(log_fname);
++    log_fname = lcr_util_strdup_s(fname);
++    return true;
++clean_out:
++    clean_pre_init();
++    return false;
++}
++
++static bool choice_log_driver(const struct isula_libutils_log_config *log)
+ {
+     bool is_fifo = false;
+ 
+     // if driver is null, mean disable log
+     if (log->driver == NULL) {
++        g_lxc_log_category_lxc.priority = LXC_LOG_LEVEL_NOTSET;
+         return true;
+     }
+ 	g_lxc_log_category_lxc.appender = &log_appender_logfile;
+@@ -350,10 +384,11 @@ static bool check_log_driver(const struct isula_libutils_log_config *log)
+ 
+     // if set file, only use log_append_logfile
+     // we only support fifo driver with file
+-    if (log->file != NULL) {
+-        return is_fifo;
+-    }
+     if (is_fifo) {
++        return init_log_file(log->file);
++    }
++    if (log->file != NULL) {
++        clean_pre_init();
+         return false;
+     }
+ 
+@@ -363,16 +398,8 @@ static bool check_log_driver(const struct isula_libutils_log_config *log)
+     return true;
+ }
+ 
+-static void clean_pre_init()
+-{
+-    g_lxc_log_category_lxc.appender = &log_appender_stderr;
+-
+-	g_lxc_log_category_lxc.priority = LXC_LOG_LEVEL_ERROR;
+-}
+-
+ int isula_libutils_log_enable(const struct isula_libutils_log_config *log)
+ {
+-	int ret = 0;
+ 	int lxc_priority = LXC_LOG_LEVEL_ERROR;
+ 
+ 	if (log == NULL)
+@@ -383,7 +410,7 @@ int isula_libutils_log_enable(const struct isula_libutils_log_config *log)
+ 		return 0;
+ 	}
+ 
+-    if (!check_log_driver(log)) {
++    if (!choice_log_driver(log)) {
+         COMMAND_ERROR("Invalid log config of driver");
+         return -1;
+     }
+@@ -395,29 +422,8 @@ int isula_libutils_log_enable(const struct isula_libutils_log_config *log)
+ 
+     isula_libutils_set_log_prefix(log->prefix != NULL ? log->prefix : log->name);
+ 
+-	if (log->file) {
+-		if (strcmp(log->file, "none") == 0) {
+-            ret = 0;
+-            goto clean_out;
+-        }
+-        if (lcr_util_build_dir(log->file) != 0) {
+-            CMD_SYSERROR("build log path \"%s\" failed", log->file);
+-            ret = -1;
+-            goto clean_out;
+-        }
+-        g_lxc_log_fd = open_fifo(log->file);
+-        if (g_lxc_log_fd == -1) {
+-            CMD_SYSERROR("Open log fifo \"%s\" failed", log->file);
+-            ret = -1;
+-            goto clean_out;
+-        }
+-        log_fname = lcr_util_strdup_s(log->file);
+-	}
+ 
+ 	return 0;
+-clean_out:
+-    clean_pre_init();
+-    return ret;
+ }
+ 
+ static inline void lxc_log_close(void)
+diff --git a/third_party/log.h b/third_party/log.h
+index 7f14ce0..2db0d98 100644
+--- a/third_party/log.h
++++ b/third_party/log.h
+@@ -448,6 +448,7 @@ void isula_libutils_default_log_config(const char *name, struct isula_libutils_l
+ int isula_libutils_log_enable(const struct isula_libutils_log_config *log);
+ void isula_libutils_set_log_prefix(const char *prefix);
+ void isula_libutils_free_log_prefix(void);
++void isula_libutils_log_disable();
+ 
+ int isula_libutils_get_log_fd(void);
+ 
+diff --git a/tools/static_check b/tools/static_check
+index 3a21d65..fd5c8ed 100755
+--- a/tools/static_check
++++ b/tools/static_check
+@@ -91,7 +91,7 @@ function pclint_check() {
+     local start_time=$(date +%s)
+     local files
+     if [[ ${1} == "all" ]]; then
+-        files=$(find ./src ./test -regextype posix-extended -regex ".*\.(c|cc)")
++        files=$(find ./src ./tests -regextype posix-extended -regex ".*\.(c|cc)")
+     else
+         files=$(git diff --name-only HEAD | grep -E "*.c$")
+     fi
+@@ -157,7 +157,7 @@ function codestyle_check() {
+     local start_time=$(date +%s)
+     local files
+     if [[ ${1} == "all" ]]; then
+-        files=$(find ./src ./test -regextype posix-extended -regex ".*\.(h|c|cc)")
++        files=$(find ./src ./tests -regextype posix-extended -regex ".*\.(h|c|cc)")
+     else
+         files=$(git diff --name-only HEAD | grep -E "*.h$|*.c$|*.cc$")
+     fi
+@@ -313,7 +313,7 @@ function astyle_format() {
+     /_/  |_|/____/ /_/     /_//_____//_____/      /_/     \____//_/ |_|/_/  /_//_/  |_|/_/ \033[0m]
+ ================================================================================================="
+     local start_time=$(date +%s)
+-    local files=$(find ./src ./test -regextype posix-extended -regex ".*\.(h|c|cc)")
++    local files=$(find ./src ./tests -regextype posix-extended -regex ".*\.(h|c|cc)")
+     files=(${files// / })
+     local total=${#files[@]}
+     local failure_num=0
+@@ -368,7 +368,7 @@ echo -e "\
+     local start_time=$(date +%s)
+     local files
+     if [[ ${1} == "all" ]]; then
+-        files=$(find ./src ./test -regextype posix-extended -regex ".*\.(h|c|cc)")
++        files=$(find ./src ./tests -regextype posix-extended -regex ".*\.(h|c|cc)")
+     else
+         files=$(git diff --name-only HEAD | grep -E "*.h$|*.c$|*.cc$")
+     fi
+@@ -428,7 +428,7 @@ function cmetrics_check() {
+     local start_time=$(date +%s)
+     local files
+     if [[ ${1} == "all" ]]; then
+-        files=$(find ./src ./test -regextype posix-extended -regex ".*\.(h|c|cc)")
++        files=$(find ./src ./tests -regextype posix-extended -regex ".*\.(h|c|cc)")
+     else
+         files=$(git diff --name-only HEAD | grep -E "*.h$|*.c$|*.cc$")
+     fi
+-- 
+2.25.1
+
