@@ -1,0 +1,41 @@
+---
+version_control: gitee
+src_repo: openEuler/lcr
+tag_prefix: "^v"
+seperator: "."
+last_query:
+  time_stamp: 2020-07-01 16:03:11.677912422 +08:00
+  raw_data: 
+    {
+        "assets": [
+            {
+                "browser_download_url": "https://gitee.com/openeuler/lcr/repository/archive/v2.0.2"
+            }
+        ],
+        "author": {
+            "avatar_url": "https://gitee.com/assets/no_portrait.png",
+            "events_url": "https://gitee.com/api/v5/users/duguhaotian/events{/privacy}",
+            "followers_url": "https://gitee.com/api/v5/users/duguhaotian/followers",
+            "following_url": "https://gitee.com/api/v5/users/duguhaotian/following_url{/other_user}",
+            "gists_url": "https://gitee.com/api/v5/users/duguhaotian/gists{/gist_id}",
+            "html_url": "https://gitee.com/duguhaotian",
+            "id": 5595769,
+            "login": "duguhaotian",
+            "name": "haozi007",
+            "organizations_url": "https://gitee.com/api/v5/users/duguhaotian/orgs",
+            "received_events_url": "https://gitee.com/api/v5/users/duguhaotian/received_events",
+            "repos_url": "https://gitee.com/api/v5/users/duguhaotian/repos",
+            "site_admin": false,
+            "starred_url": "https://gitee.com/api/v5/users/duguhaotian/starred{/owner}{/repo}",
+            "subscriptions_url": "https://gitee.com/api/v5/users/duguhaotian/subscriptions",
+            "type": "User",
+            "url": "https://gitee.com/api/v5/users/duguhaotian"
+        },
+        "body": "- merge iSula-libutils into lcr",
+        "created_at": "2020-05-26T17:23:17+08:00",
+        "id": 70689,
+        "name": "v2.0.2",
+        "prerelease": false,
+        "tag_name": "v2.0.2",
+        "target_commitish": "9c98c586048841369739c66ee1fdf72548fc1ed6"
+    }
