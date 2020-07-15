@@ -2460,6 +2460,25 @@ out_free:
     return ret;
 }
 
+static int trans_oci_file_selinux(const oci_runtime_config_linux *l, struct lcr_list *conf)
+{
+    struct lcr_list *node = NULL;
+    int ret = -1;
+
+    if (l->mount_label != NULL) {
+        node = create_lcr_list_node("lxc.selinux.mount_context", l->mount_label);
+        if (node == NULL) {
+            goto out;
+        }
+        lcr_list_add_tail(conf, node);
+    }
+
+    ret = 0;
+
+out:
+    return ret;
+}
+
 /* trans oci linux */
 struct lcr_list *trans_oci_linux(const oci_runtime_config_linux *l, char **seccomp_conf)
 {
@@ -2521,12 +2540,19 @@ struct lcr_list *trans_oci_linux(const oci_runtime_config_linux *l, char **secco
     // seccomp
     if (l->seccomp != NULL && seccomp_conf != NULL) {
         ret = trans_oci_seccomp(l->seccomp, seccomp_conf);
-        if (ret) {
+        if (ret != 0) {
             goto out_free;
         }
     }
 
+    // selinux mount label
+    ret = trans_oci_file_selinux(l, conf);
+    if (ret != 0) {
+        goto out_free;
+    }
+
     return conf;
+
 out_free:
     lcr_free_config(conf);
     free(conf);
