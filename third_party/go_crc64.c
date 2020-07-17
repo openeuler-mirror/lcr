@@ -124,14 +124,14 @@ bool isula_crc_update(const isula_crc_table_t *tab, uint64_t *crc, unsigned char
     return true;
 }
 
-void isula_crc_sum(uint64_t crc, uint8_t data[8])
+void isula_crc_sum(uint64_t crc, unsigned char data[8])
 {
-    data[0] = (uint8_t)(crc >> 56);
-    data[1] = (uint8_t)(crc >> 48);
-    data[2] = (uint8_t)(crc >> 40);
-    data[3] = (uint8_t)(crc >> 32);
-    data[4] = (uint8_t)(crc >> 24);
-    data[5] = (uint8_t)(crc >> 16);
-    data[6] = (uint8_t)(crc >> 8);
-    data[7] = (uint8_t)(crc);
+    data[0] = (unsigned char)(crc >> 56);
+    data[1] = (unsigned char)(crc >> 48);
+    data[2] = (unsigned char)(crc >> 40);
+    data[3] = (unsigned char)(crc >> 32);
+    data[4] = (unsigned char)(crc >> 24);
+    data[5] = (unsigned char)(crc >> 16);
+    data[6] = (unsigned char)(crc >> 8);
+    data[7] = (unsigned char)(crc);
 }

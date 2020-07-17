@@ -45,7 +45,7 @@ const isula_crc_table_t* new_isula_crc_table(uint64_t poly);
 
 bool isula_crc_update(const isula_crc_table_t *tab, uint64_t *crc, unsigned char *data, size_t data_len);
 
-void isula_crc_sum(uint64_t crc, uint8_t data[8]);
+void isula_crc_sum(uint64_t crc, unsigned char data[8]);
 
 #ifdef __cplusplus
 }
