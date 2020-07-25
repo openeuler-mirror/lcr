@@ -43,6 +43,15 @@
     },
     "kmem_limit": {
       "type": "uint64"
+    },
+    "status": {
+      "type": "string"
+    },
+    "cache": {
+      "type": "uint64"
+    },
+    "cache_total": {
+      "type": "uint64"
     }
   }
 }

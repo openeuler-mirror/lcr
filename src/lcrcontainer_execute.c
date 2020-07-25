@@ -546,6 +546,9 @@ void do_lcr_state(struct lxc_container *c, struct lcr_container_state *lcs)
     lcs->mem_limit = stat_get_ull(c, "memory.limit_in_bytes");
     lcs->kmem_used = stat_get_ull(c, "memory.kmem.usage_in_bytes");
     lcs->kmem_limit = stat_get_ull(c, "memory.kmem.limit_in_bytes");
+
+    lcs->cache = stat_match_get_ull(c, "memory.stat", "cache", 1);
+    lcs->cache_total = stat_match_get_ull(c, "memory.stat", "total_cache", 1);
 }
 
 #define ExitSignalOffset 128

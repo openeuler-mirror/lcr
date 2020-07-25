@@ -96,6 +96,9 @@ struct lcr_container_state {
     /* Kernel Memory usage */
     uint64_t kmem_used;
     uint64_t kmem_limit;
+    /* Cache usage */
+    uint64_t cache;
+    uint64_t cache_total;
 };
 
 typedef enum {
