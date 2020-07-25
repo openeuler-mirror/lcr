@@ -17,13 +17,16 @@
                 "type": "string"
             }
         },
+        "top_layer": {
+            "type": "string"
+        },
         "size": {
             "type": "uint64"
         },
         "created": {
             "type": "string"
         },
-        "Loaded": {
+        "loaded": {
             "type": "string"
         },
         "uid": {

@@ -70,6 +70,7 @@ endif()
 #   api testcase
 _DEFINE_NEW_TEST(log_ut log_testcase)
 _DEFINE_NEW_TEST(libocispec_ut libocispec_testcase)
+_DEFINE_NEW_TEST(go_crc64_ut go_crc64_testcase)
 
 
 # mock test for run lcov to generate html
