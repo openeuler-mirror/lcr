@@ -62,9 +62,6 @@
         "native.umask": {
             "type": "string"
         },
-        "image-opt-timeout": {
-            "type": "string"
-        },
         "pod-sandbox-image": {
             "type": "string"
         },
@@ -148,7 +145,7 @@
         "runtimes": {
             "$ref": "defs.json#/definitions/mapStringObjectRuntimes"
         },
-        "selinux-enabled" : {
+        "selinux-enabled": {
             "type": "boolean"
         }
     }
