@@ -20,18 +20,6 @@
     "metadata": {
       "type": "string"
     },
-    "big-data-names": {
-		"type": "array",
-		"items": {
-			"type": "string"
-		}
-    },
-    "big-data-sizes": {
-        "$ref": "../defs.json#/definitions/mapStringInt64"
-    },
-    "big-data-digests": {
-        "$ref": "../defs.json#/definitions/mapStringString"
-    },
     "created": {
         "type": "string"
     },
