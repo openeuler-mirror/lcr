@@ -5,10 +5,10 @@
         "next_device_id": {
 			"type": "integer"
 		},
-		"base_device_filesystem": {
+		"BaseDeviceFilesystem": {
 			"type": "string"
         },
-        "base_device_uuid": {
+        "BaseDeviceUUID": {
 			"type": "string"
         }
 	}
