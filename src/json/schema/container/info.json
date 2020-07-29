@@ -44,6 +44,9 @@
     "kmem_limit": {
       "type": "uint64"
     },
+    "name": {
+      "type": "string"
+    },
     "status": {
       "type": "string"
     },
