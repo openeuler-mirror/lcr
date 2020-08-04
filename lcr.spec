@@ -1,5 +1,5 @@
 %global _version 2.0.2
-%global _release 20200707.190329.git615e13a5
+%global _release 20200803.120020.git8462c29a
 %global _inner_name isula_libutils
 
 Name:      lcr
@@ -47,7 +47,6 @@ Requires:       %{name} = %{version}-%{release}
 %description devel
 the %{name}-libs package contains libraries for running iSula applications.
 
-%global debug_package %{nil}
 
 %prep
 %setup -c -n lcr-%{version}
@@ -55,7 +54,7 @@ the %{name}-libs package contains libraries for running iSula applications.
 %build
 mkdir -p build
 cd build
-%cmake -DDEBUG=OFF -DENABLE_UT=ON -DLIB_INSTALL_DIR=%{_libdir} ../
+%cmake -DDEBUG=ON -DENABLE_UT=ON -DLIB_INSTALL_DIR=%{_libdir} ../
 %make_build
 
 %install
@@ -65,6 +64,7 @@ mkdir -p %{buildroot}/{%{_libdir},%{_libdir}/pkgconfig,%{_includedir}/lcr,%{_bin
 install -m 0644 ./src/liblcr.so            %{buildroot}/%{_libdir}/liblcr.so
 install -m 0644 ./conf/lcr.pc          %{buildroot}/%{_libdir}/pkgconfig/lcr.pc
 install -m 0644 ../src/lcrcontainer.h  %{buildroot}/%{_includedir}/lcr/lcrcontainer.h
+chmod +x %{buildroot}/%{_libdir}/liblcr.so
 
 install -m 0644 ./src/libisula_libutils.so        %{buildroot}/%{_libdir}/libisula_libutils.so
 install -d $RPM_BUILD_ROOT/%{_includedir}/%{_inner_name}
@@ -72,6 +72,7 @@ install -m 0644 ../build/json/*.h  %{buildroot}/%{_includedir}/%{_inner_name}/
 install -m 0644 ../src/json/*.h  %{buildroot}/%{_includedir}/%{_inner_name}/
 install -m 0644 ../third_party/log.h  %{buildroot}/%{_includedir}/%{_inner_name}/log.h
 install -m 0644 ../third_party/go_crc64.h  %{buildroot}/%{_includedir}/%{_inner_name}/go_crc64.h
+chmod +x %{buildroot}/%{_libdir}/libisula_libutils.so
 
 find %{buildroot} -type f -name '*.la' -exec rm -f {} ';'
 find %{buildroot} -name '*.a' -exec rm -f {} ';'
@@ -98,5 +99,11 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Mon Aug 03 2020 openEuler Buildteam <buildteam@openeuler.org> - 2.0.2-20200803.120020.git8462c29a
+- Type:enhancement
+- ID:NA
+- SUG:NA
+- DESC: add debug packages
+
 * Fri Apr 14 2017 Hui Wang <hw.huiwang@huawei.com> - 0.0.1
 - Initial RPM release
