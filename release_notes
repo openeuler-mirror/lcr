@@ -1,0 +1,27 @@
+2020-08-10 lifeng release 2.0.3
+    - !67 add debug package Merge pull request !67 from YoungJQ/master
+    - !66 info.json add name field Merge pull request !66 from Zhangxiaoyu/master
+    - !64 lcr：remove big-data related fields of rootfs.json Merge pull request !64 from Jackey_1024/master
+    - !65 devmapper: surpport update Merge pull request !65 from gaohuatao/update
+    - !63 stats info add cache/total cache field Merge pull request !63 from Zhangxiaoyu/master
+    - !62 image: remove image operator time config Merge pull request !62 from lifeng_isula/master
+    - !61 Image: merge implement_image branch to master Merge pull request !61 from lifeng_isula/image
+    - !55 backport libocispec Merge pull request !55 from haozi007/change
+    - !56 improve ut manager Merge pull request !56 from haozi007/work
+    - !54 improve gcov of log Merge pull request !54 from haozi007/change
+    - !53 support fuzz Merge pull request !53 from haozi007/change
+    - !51 change name of testcases Merge pull request !51 from haozi007/change
+    - !50 回退 'Pull Request !49 : change name of testcases' Merge pull request !50 from lifeng_isula/revert-merge-49-master
+    - !49 change name of testcases Merge pull request !49 from haozi007/change
+    - !48 improve html show Merge pull request !48 from haozi007/change
+    - !47 log llt invalid target Merge pull request !47 from haozi007/change
+    - !46 improve llt Merge pull request !46 from haozi007/change
+    - !45 improve log driver check Merge pull request !45 from haozi007/change
+    - !44 support calico Merge pull request !44 from haozi007/change
+    - !42 support import rootfs to be image Merge pull request !42 from wangfengtu/support_import
+    - !41 fix license Merge pull request !41 from haozi007/change
+
+    dev stats:
+      - 37 files changed, 1129 insertions(+), 139 deletions(-)
+      - contributors: haozi007, lifeng68, Zhangxiaoyu, WangFengTu, YoungJQ, gaohuatao, jikui, lifeng_isula, wujing
+
