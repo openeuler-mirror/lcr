@@ -1,5 +1,5 @@
-%global _version 2.0.2
-%global _release 20200803.120020.git8462c29a
+%global _version 2.0.3
+%global _release 20200810.102757.git9fc48b6c
 %global _inner_name isula_libutils
 
 Name:      lcr
