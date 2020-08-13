@@ -46,7 +46,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
     std::vector<std::string> ret_vec;
     std::string tmpstr;
     std::istringstream istr(testData);
-    while(std::getline(istr, tmpstr, ',')) {
+    while (std::getline(istr, tmpstr, ',')) {
         ret_vec.push_back(tmpstr);
     }
 

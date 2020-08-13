@@ -430,7 +430,7 @@ bool lcr_start(const struct lcr_start_request *request)
     }
 
     pid = fork();
-    if (pid == (pid_t) - 1) {
+    if (pid == (pid_t) -1) {
         ERROR("Failed to fork()\n");
         close(pipefd[0]);
         close(pipefd[1]);
@@ -438,6 +438,7 @@ bool lcr_start(const struct lcr_start_request *request)
     }
 
     if (pid == (pid_t)0) {
+        (void)unsetenv("NOTIFY_SOCKET");
         // child process, dup2 pipefd[1] to stderr
         close(pipefd[0]);
         dup2(pipefd[1], 2);
