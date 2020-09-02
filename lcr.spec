@@ -1,12 +1,12 @@
 %global _version 2.0.2
-%global _release 20200628.162917.gitafc142aa
+%global _release 20200902.112545.git24f07933
 %global _inner_name isula_libutils
 
 Name:      lcr
 Version:   %{_version}
 Release:   %{_release}
 URL:       https://gitee.com/openeuler/lcr
-Source:    lcr-%{version}.tar.gz
+Source:    https://gitee.com/openeuler/lcr/repository/archive/v%{version}.tar.gz
 Summary:   Lightweight Container Runtime
 Group:     Applications/System
 License:   LGPLv2.1+
@@ -109,5 +109,11 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Wed Sep 02 2020 YoungJQ <yangjiaqi11@huawei.com> - 2.0.2-20200902.112545.git24f07933
+- Type:enhancement
+- ID:NA
+- SUG:NA
+- DESC: modify source0 address
+
 * Fri Apr 14 2017 Hui Wang <hw.huiwang@huawei.com> - 0.0.1
 - Initial RPM release
