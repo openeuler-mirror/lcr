@@ -55,6 +55,9 @@
                         ".{1,}": {
                             "type": "object",
                             "properties": {
+                                "Type": {
+                                    "type": "string"
+                                },
                                 "Destination": {
                                     "type": "string"
                                 },

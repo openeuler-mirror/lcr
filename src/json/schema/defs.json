@@ -192,6 +192,9 @@
                 "options": {
                     "$ref": "#/definitions/ArrayOfStrings"
                 },
+                "named": {
+                    "type": "boolean"
+                },
                 "type": {
                     "type": "string"
                 }
