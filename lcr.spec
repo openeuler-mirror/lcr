@@ -1,5 +1,5 @@
 %global _version 2.0.3
-%global _release 20200903.182540.git62664adf
+%global _release 20200904.101728.git8b4641a4
 %global _inner_name isula_libutils
 
 Name:      lcr
@@ -15,7 +15,7 @@ BuildRoot: %{_tmppath}/lcr-%{version}
 BuildRequires: cmake
 BuildRequires: lxc
 BuildRequires: lxc-devel
-BuildRequires: zlib-devel yajl-devel gtest-devel gmock-devel
+BuildRequires: zlib-devel yajl-devel gtest-devel
 Requires:      lxc yajl zlib
 ExclusiveArch:  x86_64 aarch64
 
@@ -47,7 +47,6 @@ Requires:       %{name} = %{version}-%{release}
 %description devel
 the %{name}-libs package contains libraries for running iSula applications.
 
-%global debug_package %{nil}
 
 %prep
 %autosetup -n lcr -Sgit -p1
@@ -55,7 +54,7 @@ the %{name}-libs package contains libraries for running iSula applications.
 %build
 mkdir -p build
 cd build
-%cmake -DDEBUG=OFF -DLIB_INSTALL_DIR=%{_libdir} ../
+%cmake -DDEBUG=ON -DLIB_INSTALL_DIR=%{_libdir} ../
 %make_build
 
 %install
@@ -65,12 +64,15 @@ mkdir -p %{buildroot}/{%{_libdir},%{_libdir}/pkgconfig,%{_includedir}/lcr,%{_bin
 install -m 0644 ./src/liblcr.so            %{buildroot}/%{_libdir}/liblcr.so
 install -m 0644 ./conf/lcr.pc          %{buildroot}/%{_libdir}/pkgconfig/lcr.pc
 install -m 0644 ../src/lcrcontainer.h  %{buildroot}/%{_includedir}/lcr/lcrcontainer.h
+chmod +x %{buildroot}/%{_libdir}/liblcr.so
 
 install -m 0644 ./src/libisula_libutils.so        %{buildroot}/%{_libdir}/libisula_libutils.so
 install -d $RPM_BUILD_ROOT/%{_includedir}/%{_inner_name}
 install -m 0644 ../build/json/*.h  %{buildroot}/%{_includedir}/%{_inner_name}/
 install -m 0644 ../src/json/*.h  %{buildroot}/%{_includedir}/%{_inner_name}/
 install -m 0644 ../third_party/log.h  %{buildroot}/%{_includedir}/%{_inner_name}/log.h
+install -m 0644 ../third_party/go_crc64.h  %{buildroot}/%{_includedir}/%{_inner_name}/go_crc64.h
+chmod +x %{buildroot}/%{_libdir}/libisula_libutils.so
 
 find %{buildroot} -type f -name '*.la' -exec rm -f {} ';'
 find %{buildroot} -name '*.a' -exec rm -f {} ';'
@@ -97,6 +99,12 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Fri Sep 04 2020 zhangxiaoyu <zhangxiaoyu58@huawei.com> - 2.0.3-20200904.101728.git8b4641a4
+- Type:enhancement
+- ID:NA
+- SUG:NA
+- DESC: modify spec file
+
 * Thu Sep 03 2020 zhangxiaoyu <zhangxiaoyu58@huawei.com> - 2.0.3-20200903.182540.git62664adf
 - Type:enhancement
 - ID:NA
