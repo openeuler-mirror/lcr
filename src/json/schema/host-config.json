@@ -53,8 +53,8 @@
         "Sysctls": {
             "$ref": "defs.json#/definitions/mapStringString"
         },
-        "Runtime":{
-            "type":"string"
+        "Runtime": {
+            "type": "string"
         },
         "RestartPolicy": {
             "type": "object",
@@ -119,46 +119,19 @@
             "type": "uint16"
         },
         "BlkioWeightDevice": {
-            "type": "array",
-            "items": {
-                "type": "object",
-                "properties": {
-                    "Path": {
-                        "type": "string"
-                    },
-                    "Weight": {
-                        "type": "uint16"
-                    }
-                }
-            }
+            "$ref": "defs.json#/definitions/ArrayOfBlkioWeightDevice"
         },
         "BlkioDeviceReadBps": {
-            "type": "array",
-            "items": {
-                "type": "object",
-                "properties": {
-                    "Path": {
-                        "type": "string"
-                    },
-                    "Rate": {
-                        "type": "uint64"
-                    }
-                }
-            }
+            "$ref": "defs.json#/definitions/ArrayOfBlkioDevice"
         },
         "BlkioDeviceWriteBps": {
-            "type": "array",
-            "items": {
-                "type": "object",
-                "properties": {
-                    "Path": {
-                        "type": "string"
-                    },
-                    "Rate": {
-                        "type": "uint64"
-                    }
-                }
-            }
+            "$ref": "defs.json#/definitions/ArrayOfBlkioDevice"
+        },
+        "BlkioDeviceReadIops": {
+            "$ref": "defs.json#/definitions/ArrayOfBlkioDevice"
+        },
+        "BlkioDeviceWriteIops": {
+            "$ref": "defs.json#/definitions/ArrayOfBlkioDevice"
         },
         "CPUPeriod": {
             "type": "int64"

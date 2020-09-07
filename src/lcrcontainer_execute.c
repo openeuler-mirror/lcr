@@ -665,7 +665,7 @@ bool do_attach(const char *name, const char *path, const struct lcr_exec_request
     }
 
     pid = fork();
-    if (pid == (pid_t) - 1) {
+    if (pid == (pid_t) -1) {
         ERROR("Failed to fork()\n");
         close(pipefd[0]);
         close(pipefd[1]);
@@ -673,6 +673,7 @@ bool do_attach(const char *name, const char *path, const struct lcr_exec_request
     }
 
     if (pid == (pid_t)0) {
+        (void)unsetenv("NOTIFY_SOCKET");
         if (lcr_util_null_stdfds() < 0) {
             COMMAND_ERROR("Failed to close fds");
             exit(EXIT_FAILURE);
