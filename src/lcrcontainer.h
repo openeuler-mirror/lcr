@@ -38,7 +38,6 @@
 extern "C" {
 #endif
 
-
 /* define console log config */
 
 struct lcr_console_config {
@@ -48,8 +47,8 @@ struct lcr_console_config {
 };
 
 /*
- * Store lcr container info
- */
+* Store lcr container info
+*/
 struct lcr_container_info {
     /* Name of container. */
     char *name;
@@ -72,8 +71,8 @@ struct blkio_stats {
 };
 
 /*
- * Store lcr container state
- */
+* Store lcr container state
+*/
 struct lcr_container_state {
     /* Name of container */
     char *name;
@@ -125,66 +124,68 @@ struct lcr_cgroup_resources {
     uint64_t memory_swap;
     uint64_t memory_reservation;
     uint64_t kernel_memory_limit;
+    int64_t cpurt_period;
+    int64_t cpurt_runtime;
 };
 
 /*
- * Get one container info for a given lcrpath.
- * return struct of container info, or NULL on error.
- */
+* Get one container info for a given lcrpath.
+* return struct of container info, or NULL on error.
+*/
 struct lcr_container_info *lcr_container_info_get(const char *name, const char *lcrpath);
 
 /*
- * Free lcr_container_info returned lcr_container_info_get
- */
+* Free lcr_container_info returned lcr_container_info_get
+*/
 void lcr_container_info_free(struct lcr_container_info *info);
 
 /*
- * Get a complete list of all containers for a given lcrpath.
- * return Number of containers, or -1 on error.
- */
+* Get a complete list of all containers for a given lcrpath.
+* return Number of containers, or -1 on error.
+*/
 int lcr_list_all_containers(const char *lcrpath, struct lcr_container_info **info_arr);
 
 /*
- * Free lcr_container_info array returned by lcr_list_{active,all}_containers
- */
+* Free lcr_container_info array returned by lcr_list_{active,all}_containers
+*/
 void lcr_containers_info_free(struct lcr_container_info **info_arr, size_t size);
 
 /*
- * Create a container
- * param name    : container name
- * param lcrpath : container path
- * param oci_json_data : json string of oci config data
- */
+* Create a container
+* param name    : container name
+* param lcrpath : container path
+* param oci_json_data : json string of oci config data
+*/
 bool lcr_create_from_ocidata(const char *name, const char *lcrpath, const void *oci_json_data);
 
 /*
- * Create a container
- * param name    : container name
- * param lcrpath : container path
- * param oci_config	: pointer of struct oci config
- */
+* Create a container
+* param name    : container name
+* param lcrpath : container path
+* param oci_config	: pointer of struct oci config
+*/
 bool lcr_create(const char *name, const char *lcrpath, void *oci_config);
 
 /*
- * Start a container
- * param name		: container name, required.
- * param lcrpath	: container path, set to NULL if you want use default lcrpath.
- * param logpath	: log file path.
- * param loglevel	: log level.
- * param pidfile	: container pidfile path, set to NULL if you don't need.
- * param daemonize	: daemonize the container.
- * console_fifos[]	: path of the console fifos,[0]:input, [1]:output.used internal by iSulad
- * console_logpath	:path of console log file,
- *			 set to NULL if want to use the default configure(base on the config file)
-			 set to PATH(for example "/home/XX/XX.log"), LXC will save the console to this file
- * share_ns		: array of container's name or pid which want to share namespace with them
- * start_timeout	: seconds for waiting on a container to start before it is killed
- * container_pidfile	: container's pidfile
- * param argv		: array of arguments to pass to init.
- * uid : user to run container
- * gid : user in which group
- * additional_gids : Add additional groups to join
- */
+* Start a container
+* param name		: container name, required.
+* param lcrpath	: container path, set to NULL if you want use default lcrpath.
+* param logpath	: log file path.
+* param loglevel	: log level.
+* param pidfile	: container pidfile path, set to NULL if you don't need.
+* param daemonize	: daemonize the container.
+* console_fifos[]	: path of the console fifos,[0]:input, [1]:output.used internal by iSulad
+* console_logpath	:path of console log file,
+*			 set to NULL if want to use the default configure(base on the config file)
+		 set to PATH(for example "/home/XX/XX.log"), LXC will save the console to this file
+* share_ns		: array of container's name or pid which want to share namespace with them
+* start_timeout	: seconds for waiting on a container to start before it is killed
+* container_pidfile	: container's pidfile
+* param argv		: array of arguments to pass to init.
+* uid : user to run container
+* gid : user in which group
+* additional_gids : Add additional groups to join
+*/
 struct lcr_start_request {
     const char *name;
     const char *lcrpath;
@@ -203,73 +204,73 @@ struct lcr_start_request {
 bool lcr_start(const struct lcr_start_request *request);
 
 /*
- * Stop a container
- * param name		: container name, required.
- * param lcrpath	: container path, set to NULL if you want use default lcrpath.
- * param signal		: signal to send to the container.
- */
+* Stop a container
+* param name		: container name, required.
+* param lcrpath	: container path, set to NULL if you want use default lcrpath.
+* param signal		: signal to send to the container.
+*/
 bool lcr_kill(const char *name, const char *lcrpath, uint32_t signal);
 
 /*
- * Delete a container
- * param name		: container name, required.
- * param lcrpath	: container path, set to NULL if you want use default lcrpath.
- * param force		: force to delete container
- */
+* Delete a container
+* param name		: container name, required.
+* param lcrpath	: container path, set to NULL if you want use default lcrpath.
+* param force		: force to delete container
+*/
 bool lcr_delete(const char *name, const char *lcrpath);
 
 bool lcr_clean(const char *name, const char *lcrpath, const char *logpath, const char *loglevel, pid_t pid);
 
 /*
- * Get state of the container
- * param name		: container name, required.
- * param lcrpath	: container path, set to NULL if you want use default lcrpath.
- * param lcs		: returned contaiener state
- */
+* Get state of the container
+* param name		: container name, required.
+* param lcrpath	: container path, set to NULL if you want use default lcrpath.
+* param lcs		: returned contaiener state
+*/
 bool lcr_state(const char *name, const char *lcrpath, struct lcr_container_state *lcs);
 
 /*
- * Pause a container
- * param name		: container name, required.
- * param lcrpath	: container path, set to NULL if you want use default lcrpath.
- */
+* Pause a container
+* param name		: container name, required.
+* param lcrpath	: container path, set to NULL if you want use default lcrpath.
+*/
 bool lcr_pause(const char *name, const char *lcrpath);
 
 /*
- * Resume a container
- * param name		: container name, required.
- * param lcrpath	: container path, set to NULL if you want use default lcrpath.
- */
+* Resume a container
+* param name		: container name, required.
+* param lcrpath	: container path, set to NULL if you want use default lcrpath.
+*/
 bool lcr_resume(const char *name, const char *lcrpath);
 
 /*
- * Free lcr_container_state returned by lcr_state
- */
+* Free lcr_container_state returned by lcr_state
+*/
 void lcr_container_state_free(struct lcr_container_state *lcs);
 
 /*
- * console function
- * param name    	: name of container
- * param lcrpath	: container path, set to NULL if you want use default lcrpath.
- * param in_fifo	: fifo names of input FIFO
- * param out_fifo	: fifo names of output FIFO
- * Returns false if the console FIFOs add failed, true if success
- */
+* console function
+* param name    	: name of container
+* param lcrpath	: container path, set to NULL if you want use default lcrpath.
+* param in_fifo	: fifo names of input FIFO
+* param out_fifo	: fifo names of output FIFO
+* Returns false if the console FIFOs add failed, true if success
+*/
 bool lcr_console(const char *name, const char *lcrpath, const char *in_fifo, const char *out_fifo,
                  const char *err_fifo);
 
 /*
- * get container console configs
- * param name		: name of container
- * param lcrpath	: container path, set to NULL if you want use default lcrpath.
- * param config		: use to store container console configs, cannot be NULL
- */
+* get container console configs
+* param name		: name of container
+* param lcrpath	: container path, set to NULL if you want use default lcrpath.
+* param config		: use to store container console configs, cannot be NULL
+*/
 bool lcr_get_console_config(const char *name, const char *lcrpath, struct lcr_console_config *config);
 
 void lcr_free_console_config(struct lcr_console_config *config);
 
 int lcr_log_init(const char *name, const char *file, const char *priority,
-                 const char *prefix,  int quiet, const char *lcrpath);
+                 const char *prefix, int quiet, const char *lcrpath);
 
 struct lcr_exec_request {
     const char *name;
@@ -295,8 +296,8 @@ struct lcr_exec_request {
     bool open_stdin;
 };
 /*
- * Execute process inside a container
- */
+* Execute process inside a container
+*/
 bool lcr_exec(const struct lcr_exec_request *request, int *exit_code);
 
 bool lcr_update(const char *name, const char *lcrpath, const struct lcr_cgroup_resources *cr);
