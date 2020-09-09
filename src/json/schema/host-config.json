@@ -133,6 +133,9 @@
         "BlkioDeviceWriteIops": {
             "$ref": "defs.json#/definitions/ArrayOfBlkioDevice"
         },
+        "NanoCpus": {
+            "type": "int64"
+        },
         "CPUPeriod": {
             "type": "int64"
         },
