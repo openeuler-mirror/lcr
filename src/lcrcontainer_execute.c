@@ -46,6 +46,8 @@
 #define CGROUP_CPU_SHARES "cpu.shares"
 #define CGROUP_CPU_PERIOD "cpu.cfs_period_us"
 #define CGROUP_CPU_QUOTA "cpu.cfs_quota_us"
+#define CGROUP_CPU_RT_PERIOD "cpu.rt_period_us"
+#define CGROUP_CPU_RT_RUNTIME "cpu.rt_runtime_us"
 #define CGROUP_CPUSET_CPUS "cpuset.cpus"
 #define CGROUP_CPUSET_MEMS "cpuset.mems"
 #define CGROUP_MEMORY_LIMIT "memory.limit_in_bytes"
@@ -53,7 +55,8 @@
 #define CGROUP_MEMORY_RESERVATION "memory.soft_limit_in_bytes"
 
 #define REPORT_SET_CGROUP_ERROR(item, value)                                                          \
-    do {                                                                                              \
+    do                                                                                                \
+    {                                                                                                 \
         SYSERROR("Error updating cgroup %s to %s", (item), (value));                                  \
         lcr_set_error_message(LCR_ERR_RUNTIME, "Error updating cgroup %s to %s: %s", (item), (value), \
                               strerror(errno));                                                       \
@@ -79,7 +82,7 @@ static inline void add_array_kv(char **array, size_t total, size_t *pos, const c
 
 static uint64_t stat_get_ull(struct lxc_container *c, const char *item)
 {
-    char buf[80] = { 0 };
+    char buf[80] = {0};
     int len = 0;
     uint64_t val = 0;
 
@@ -126,7 +129,7 @@ err_out:
 static int update_resources_cpu_shares(struct lxc_container *c, const struct lcr_cgroup_resources *cr)
 {
     int ret = 0;
-    char numstr[128] = { 0 }; /* max buffer */
+    char numstr[128] = {0}; /* max buffer */
 
     if (cr->cpu_shares != 0) {
         int num = snprintf(numstr, sizeof(numstr), "%llu", (unsigned long long)(cr->cpu_shares));
@@ -149,7 +152,7 @@ out:
 static int update_resources_cpu_period(struct lxc_container *c, const struct lcr_cgroup_resources *cr)
 {
     int ret = 0;
-    char numstr[128] = { 0 }; /* max buffer */
+    char numstr[128] = {0}; /* max buffer */
 
     if (cr->cpu_period != 0) {
         int num = snprintf(numstr, sizeof(numstr), "%llu", (unsigned long long)(cr->cpu_period));
@@ -169,10 +172,56 @@ out:
     return ret;
 }
 
+static int update_resources_cpu_rt_period(struct lxc_container *c, const struct lcr_cgroup_resources *cr)
+{
+    int ret = 0;
+    char numstr[LCR_NUMSTRLEN64] = {0}; /* max buffer */
+
+    if (cr->cpurt_period != 0) {
+        int num = snprintf(numstr, sizeof(numstr), "%lld", (long long)(cr->cpurt_period));
+        if (num < 0 || (size_t)num >= sizeof(numstr)) {
+            ret = -1;
+            goto out;
+        }
+
+        if (!c->set_cgroup_item(c, CGROUP_CPU_RT_PERIOD, numstr)) {
+            REPORT_SET_CGROUP_ERROR(CGROUP_CPU_RT_PERIOD, numstr);
+            ret = -1;
+            goto out;
+        }
+    }
+
+out:
+    return ret;
+}
+
+static int update_resources_cpu_rt_runtime(struct lxc_container *c, const struct lcr_cgroup_resources *cr)
+{
+    int ret = 0;
+    char numstr[LCR_NUMSTRLEN64] = {0}; /* max buffer */
+
+    if (cr->cpurt_runtime != 0) {
+        int num = snprintf(numstr, sizeof(numstr), "%lld", (long long)(cr->cpurt_runtime));
+        if (num < 0 || (size_t)num >= sizeof(numstr)) {
+            ret = -1;
+            goto out;
+        }
+
+        if (!c->set_cgroup_item(c, CGROUP_CPU_RT_RUNTIME, numstr)) {
+            REPORT_SET_CGROUP_ERROR(CGROUP_CPU_RT_RUNTIME, numstr);
+            ret = -1;
+            goto out;
+        }
+    }
+
+out:
+    return ret;
+}
+
 static int update_resources_cpu_quota(struct lxc_container *c, const struct lcr_cgroup_resources *cr)
 {
     int ret = 0;
-    char numstr[128] = { 0 }; /* max buffer */
+    char numstr[128] = {0}; /* max buffer */
 
     if (cr->cpu_quota != 0) {
         int num = snprintf(numstr, sizeof(numstr), "%llu", (unsigned long long)(cr->cpu_quota));
@@ -216,6 +265,13 @@ static bool update_resources_cpu(struct lxc_container *c, const struct lcr_cgrou
         goto err_out;
     }
 
+    if (update_resources_cpu_rt_period(c, cr) != 0) {
+        goto err_out;
+    }
+    if (update_resources_cpu_rt_runtime(c, cr) != 0) {
+        goto err_out;
+    }
+
     ret = true;
 err_out:
     return ret;
@@ -224,7 +280,7 @@ err_out:
 static int update_resources_memory_limit(struct lxc_container *c, const struct lcr_cgroup_resources *cr)
 {
     int ret = 0;
-    char numstr[128] = { 0 }; /* max buffer */
+    char numstr[128] = {0}; /* max buffer */
 
     if (cr->memory_limit != 0) {
         int num = snprintf(numstr, sizeof(numstr), "%llu", (unsigned long long)(cr->memory_limit));
@@ -247,7 +303,7 @@ out:
 static int update_resources_memory_swap(struct lxc_container *c, const struct lcr_cgroup_resources *cr)
 {
     int ret = 0;
-    char numstr[128] = { 0 }; /* max buffer */
+    char numstr[128] = {0}; /* max buffer */
 
     if (cr->memory_swap != 0) {
         int num = snprintf(numstr, sizeof(numstr), "%llu", (unsigned long long)(cr->memory_swap));
@@ -270,7 +326,7 @@ out:
 static int update_resources_memory_reservation(struct lxc_container *c, const struct lcr_cgroup_resources *cr)
 {
     int ret = 0;
-    char numstr[128] = { 0 }; /* max buffer */
+    char numstr[128] = {0}; /* max buffer */
 
     if (cr->memory_reservation != 0) {
         int num = snprintf(numstr, sizeof(numstr), "%llu", (unsigned long long)(cr->memory_reservation));
@@ -337,7 +393,7 @@ err_out:
 static int update_resources_blkio_weight(struct lxc_container *c, const struct lcr_cgroup_resources *cr)
 {
     int ret = 0;
-    char numstr[128] = { 0 }; /* max buffer */
+    char numstr[128] = {0}; /* max buffer */
 
     if (cr->blkio_weight != 0) {
         int num = snprintf(numstr, sizeof(numstr), "%llu", (unsigned long long)(cr->blkio_weight));
@@ -422,7 +478,7 @@ static inline bool is_blk_stat_total(const char *value)
 
 static void stat_get_blk_stats(struct lxc_container *c, const char *item, struct blkio_stats *stats)
 {
-    char buf[BUFSIZE] = { 0 };
+    char buf[BUFSIZE] = {0};
     int i = 0;
     size_t len = 0;
     char **lines = NULL;
@@ -464,7 +520,7 @@ err_out:
 
 static uint64_t stat_match_get_ull(struct lxc_container *c, const char *item, const char *match, int column)
 {
-    char buf[BUFSIZE] = { 0 };
+    char buf[BUFSIZE] = {0};
     int i = 0;
     int j = 0;
     int len = 0;
@@ -595,7 +651,7 @@ static void execute_lxc_attach(const char *name, const char *path, const struct 
     }
 
     if (request->timeout != 0) {
-        char timeout_str[LCR_NUMSTRLEN64] = { 0 };
+        char timeout_str[LCR_NUMSTRLEN64] = {0};
         add_array_elem(params, args_len, &i, "--timeout");
         int num = snprintf(timeout_str, LCR_NUMSTRLEN64, "%lld", (long long)request->timeout);
         if (num < 0 || num >= LCR_NUMSTRLEN64) {
@@ -655,8 +711,8 @@ bool do_attach(const char *name, const char *path, const struct lcr_exec_request
     bool ret = false;
     pid_t pid = 0;
     ssize_t size_read = 0;
-    char buffer[BUFSIZ] = { 0 };
-    int pipefd[2] = { -1, -1 };
+    char buffer[BUFSIZ] = {0};
+    int pipefd[2] = {-1, -1};
     int status = 0;
 
     if (pipe(pipefd) != 0) {
@@ -717,7 +773,7 @@ out:
 void execute_lxc_start(const char *name, const char *path, const struct lcr_start_request *request)
 {
     // should check the size of params when add new params.
-    char *params[PARAM_NUM] = { NULL };
+    char *params[PARAM_NUM] = {NULL};
     size_t i = 0;
 
     if (lcr_util_check_inherited(true, -1) != 0) {
@@ -746,7 +802,7 @@ void execute_lxc_start(const char *name, const char *path, const struct lcr_star
     add_array_kv(params, PARAM_NUM, &i, "--exit-fifo", request->exit_fifo);
 
     if (request->start_timeout != 0) {
-        char start_timeout_str[LCR_NUMSTRLEN64] = { 0 };
+        char start_timeout_str[LCR_NUMSTRLEN64] = {0};
         add_array_elem(params, PARAM_NUM, &i, "--start-timeout");
         int num = snprintf(start_timeout_str, LCR_NUMSTRLEN64, "%u", request->start_timeout);
         if (num < 0 || num >= LCR_NUMSTRLEN64) {
