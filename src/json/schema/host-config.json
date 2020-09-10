@@ -171,6 +171,12 @@
                 }
             }
         },
+        "DeviceCgroupRules": {
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
+        },
         "SecurityOpt": {
             "type": "array",
             "items": {
