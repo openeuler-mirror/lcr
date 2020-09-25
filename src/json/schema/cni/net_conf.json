@@ -11,8 +11,17 @@
         "type": {
             "type": "string"
         },
+        "bridge": {
+            "type": "string"
+        },
+        "isGateway": {
+            "type": "boolean"
+        },
         "ipMasq": {
             "type": "boolean"
+        },
+        "hairpinMode": {
+            "type":"boolean"
         },
         "ipam": {
             "type": "object",
