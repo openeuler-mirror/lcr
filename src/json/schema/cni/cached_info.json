@@ -1,0 +1,33 @@
+{
+	"$schema": "http://json-schema.org/draft-04/schema#",
+	"type": "object",
+	"properties": {
+        "kind": {
+            "type": "string"
+        },
+        "containerId": {
+            "type": "string"
+        },
+        "config": {
+            "type": "string"
+        },
+        "ifName": {
+            "type": "string"
+        },
+        "networkName": {
+            "type": "string"
+        },
+        "portMappings": {
+            "type": "array",
+            "items": {
+                "$ref": "inner_port_mapping.json"
+            }
+        },
+        "bandwidth": {
+            "$ref": "bandwidth_entry.json"
+        },
+        "result": {
+            "$ref": "result_curr.json"
+        }
+    }
+}
