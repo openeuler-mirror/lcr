@@ -1,3 +1,14 @@
+2020-10-14 lifeng release 2.0.4
+    - !73 lcr: add libisula_libutils.so isula group From: @gaohuatao Reviewed-by: @jingxiaolu,@lifeng2221dd1 Signed-off-by: @lifeng2221dd1
+    - !72 device_cgroup_rule: add support device cgroup rule Merge pull request !72 from lifeng_isula/blk
+    - !71 nano cpus: add support nano cpus Merge pull request !71 from lifeng_isula/blk
+    - !70 update: add support update cpu rt Merge pull request !70 from lifeng_isula/blk
+    - !69 blk: add blkiops define Merge pull request !69 from lifeng_isula/blk
+
+    dev stats:
+      - 7 files changed, 409 insertions(+), 340 deletions(-)
+      - contributors: lifeng68, gaohuatao
+
 2020-08-10 lifeng release 2.0.3
     - !67 add debug package Merge pull request !67 from YoungJQ/master
     - !66 info.json add name field Merge pull request !66 from Zhangxiaoyu/master
