@@ -1,5 +1,5 @@
-%global _version 2.0.3
-%global _release 20200904.101728.git8b4641a4
+%global _version 2.0.4
+%global _release 20201014.151549.gita811a32f
 %global _inner_name isula_libutils
 
 Name:      lcr
@@ -99,6 +99,12 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Wed Oct 14 2020 lifeng <lifeng68@huawei.com> - 2.0.4-20201014.151549.gita811a32f
+- Type:upgrade to v2.0.4
+- ID:NA
+- SUG:NA
+- DESC: upgrade to v2.0.4
+
 * Fri Sep 04 2020 zhangxiaoyu <zhangxiaoyu58@huawei.com> - 2.0.3-20200904.101728.git8b4641a4
 - Type:enhancement
 - ID:NA
