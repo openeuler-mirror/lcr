@@ -83,7 +83,7 @@ target_link_libraries(mock_ut
     ${GTEST_LIBRARY}
     pthread
     )
-add_dependencies(mock_ut log_ut libocispec_ut)
+add_dependencies(mock_ut log_ut libocispec_ut go_crc64_ut)
 
 # run ut and gcov
 if (ENABLE_GCOV)
