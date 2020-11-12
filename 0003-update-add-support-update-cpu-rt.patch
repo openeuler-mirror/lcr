@@ -1,0 +1,493 @@
+From a06d44ffb5c6acc492b73bfbb307a6af390ba23f Mon Sep 17 00:00:00 2001
+From: lifeng68 <lifeng68@huawei.com>
+Date: Tue, 8 Sep 2020 18:46:41 +0800
+Subject: [PATCH 03/10] update: add support update cpu rt
+
+Signed-off-by: lifeng68 <lifeng68@huawei.com>
+---
+ src/lcrcontainer.h         | 169 +++++++++++++++++++------------------
+ src/lcrcontainer_execute.c |  88 +++++++++++++++----
+ 2 files changed, 157 insertions(+), 100 deletions(-)
+
+diff --git a/src/lcrcontainer.h b/src/lcrcontainer.h
+index 9b41fd9..68014ba 100644
+--- a/src/lcrcontainer.h
++++ b/src/lcrcontainer.h
+@@ -38,7 +38,6 @@
+ extern "C" {
+ #endif
+ 
+-
+ /* define console log config */
+ 
+ struct lcr_console_config {
+@@ -48,8 +47,8 @@ struct lcr_console_config {
+ };
+ 
+ /*
+- * Store lcr container info
+- */
++* Store lcr container info
++*/
+ struct lcr_container_info {
+     /* Name of container. */
+     char *name;
+@@ -72,8 +71,8 @@ struct blkio_stats {
+ };
+ 
+ /*
+- * Store lcr container state
+- */
++* Store lcr container state
++*/
+ struct lcr_container_state {
+     /* Name of container */
+     char *name;
+@@ -125,66 +124,68 @@ struct lcr_cgroup_resources {
+     uint64_t memory_swap;
+     uint64_t memory_reservation;
+     uint64_t kernel_memory_limit;
++    int64_t cpurt_period;
++    int64_t cpurt_runtime;
+ };
+ 
+ /*
+- * Get one container info for a given lcrpath.
+- * return struct of container info, or NULL on error.
+- */
++* Get one container info for a given lcrpath.
++* return struct of container info, or NULL on error.
++*/
+ struct lcr_container_info *lcr_container_info_get(const char *name, const char *lcrpath);
+ 
+ /*
+- * Free lcr_container_info returned lcr_container_info_get
+- */
++* Free lcr_container_info returned lcr_container_info_get
++*/
+ void lcr_container_info_free(struct lcr_container_info *info);
+ 
+ /*
+- * Get a complete list of all containers for a given lcrpath.
+- * return Number of containers, or -1 on error.
+- */
++* Get a complete list of all containers for a given lcrpath.
++* return Number of containers, or -1 on error.
++*/
+ int lcr_list_all_containers(const char *lcrpath, struct lcr_container_info **info_arr);
+ 
+ /*
+- * Free lcr_container_info array returned by lcr_list_{active,all}_containers
+- */
++* Free lcr_container_info array returned by lcr_list_{active,all}_containers
++*/
+ void lcr_containers_info_free(struct lcr_container_info **info_arr, size_t size);
+ 
+ /*
+- * Create a container
+- * param name    : container name
+- * param lcrpath : container path
+- * param oci_json_data : json string of oci config data
+- */
++* Create a container
++* param name    : container name
++* param lcrpath : container path
++* param oci_json_data : json string of oci config data
++*/
+ bool lcr_create_from_ocidata(const char *name, const char *lcrpath, const void *oci_json_data);
+ 
+ /*
+- * Create a container
+- * param name    : container name
+- * param lcrpath : container path
+- * param oci_config	: pointer of struct oci config
+- */
++* Create a container
++* param name    : container name
++* param lcrpath : container path
++* param oci_config	: pointer of struct oci config
++*/
+ bool lcr_create(const char *name, const char *lcrpath, void *oci_config);
+ 
+ /*
+- * Start a container
+- * param name		: container name, required.
+- * param lcrpath	: container path, set to NULL if you want use default lcrpath.
+- * param logpath	: log file path.
+- * param loglevel	: log level.
+- * param pidfile	: container pidfile path, set to NULL if you don't need.
+- * param daemonize	: daemonize the container.
+- * console_fifos[]	: path of the console fifos,[0]:input, [1]:output.used internal by iSulad
+- * console_logpath	:path of console log file,
+- *			 set to NULL if want to use the default configure(base on the config file)
+-			 set to PATH(for example "/home/XX/XX.log"), LXC will save the console to this file
+- * share_ns		: array of container's name or pid which want to share namespace with them
+- * start_timeout	: seconds for waiting on a container to start before it is killed
+- * container_pidfile	: container's pidfile
+- * param argv		: array of arguments to pass to init.
+- * uid : user to run container
+- * gid : user in which group
+- * additional_gids : Add additional groups to join
+- */
++* Start a container
++* param name		: container name, required.
++* param lcrpath	: container path, set to NULL if you want use default lcrpath.
++* param logpath	: log file path.
++* param loglevel	: log level.
++* param pidfile	: container pidfile path, set to NULL if you don't need.
++* param daemonize	: daemonize the container.
++* console_fifos[]	: path of the console fifos,[0]:input, [1]:output.used internal by iSulad
++* console_logpath	:path of console log file,
++*			 set to NULL if want to use the default configure(base on the config file)
++		 set to PATH(for example "/home/XX/XX.log"), LXC will save the console to this file
++* share_ns		: array of container's name or pid which want to share namespace with them
++* start_timeout	: seconds for waiting on a container to start before it is killed
++* container_pidfile	: container's pidfile
++* param argv		: array of arguments to pass to init.
++* uid : user to run container
++* gid : user in which group
++* additional_gids : Add additional groups to join
++*/
+ struct lcr_start_request {
+     const char *name;
+     const char *lcrpath;
+@@ -203,73 +204,73 @@ struct lcr_start_request {
+ bool lcr_start(const struct lcr_start_request *request);
+ 
+ /*
+- * Stop a container
+- * param name		: container name, required.
+- * param lcrpath	: container path, set to NULL if you want use default lcrpath.
+- * param signal		: signal to send to the container.
+- */
++* Stop a container
++* param name		: container name, required.
++* param lcrpath	: container path, set to NULL if you want use default lcrpath.
++* param signal		: signal to send to the container.
++*/
+ bool lcr_kill(const char *name, const char *lcrpath, uint32_t signal);
+ 
+ /*
+- * Delete a container
+- * param name		: container name, required.
+- * param lcrpath	: container path, set to NULL if you want use default lcrpath.
+- * param force		: force to delete container
+- */
++* Delete a container
++* param name		: container name, required.
++* param lcrpath	: container path, set to NULL if you want use default lcrpath.
++* param force		: force to delete container
++*/
+ bool lcr_delete(const char *name, const char *lcrpath);
+ 
+ bool lcr_clean(const char *name, const char *lcrpath, const char *logpath, const char *loglevel, pid_t pid);
+ 
+ /*
+- * Get state of the container
+- * param name		: container name, required.
+- * param lcrpath	: container path, set to NULL if you want use default lcrpath.
+- * param lcs		: returned contaiener state
+- */
++* Get state of the container
++* param name		: container name, required.
++* param lcrpath	: container path, set to NULL if you want use default lcrpath.
++* param lcs		: returned contaiener state
++*/
+ bool lcr_state(const char *name, const char *lcrpath, struct lcr_container_state *lcs);
+ 
+ /*
+- * Pause a container
+- * param name		: container name, required.
+- * param lcrpath	: container path, set to NULL if you want use default lcrpath.
+- */
++* Pause a container
++* param name		: container name, required.
++* param lcrpath	: container path, set to NULL if you want use default lcrpath.
++*/
+ bool lcr_pause(const char *name, const char *lcrpath);
+ 
+ /*
+- * Resume a container
+- * param name		: container name, required.
+- * param lcrpath	: container path, set to NULL if you want use default lcrpath.
+- */
++* Resume a container
++* param name		: container name, required.
++* param lcrpath	: container path, set to NULL if you want use default lcrpath.
++*/
+ bool lcr_resume(const char *name, const char *lcrpath);
+ 
+ /*
+- * Free lcr_container_state returned by lcr_state
+- */
++* Free lcr_container_state returned by lcr_state
++*/
+ void lcr_container_state_free(struct lcr_container_state *lcs);
+ 
+ /*
+- * console function
+- * param name    	: name of container
+- * param lcrpath	: container path, set to NULL if you want use default lcrpath.
+- * param in_fifo	: fifo names of input FIFO
+- * param out_fifo	: fifo names of output FIFO
+- * Returns false if the console FIFOs add failed, true if success
+- */
++* console function
++* param name    	: name of container
++* param lcrpath	: container path, set to NULL if you want use default lcrpath.
++* param in_fifo	: fifo names of input FIFO
++* param out_fifo	: fifo names of output FIFO
++* Returns false if the console FIFOs add failed, true if success
++*/
+ bool lcr_console(const char *name, const char *lcrpath, const char *in_fifo, const char *out_fifo,
+                  const char *err_fifo);
+ 
+ /*
+- * get container console configs
+- * param name		: name of container
+- * param lcrpath	: container path, set to NULL if you want use default lcrpath.
+- * param config		: use to store container console configs, cannot be NULL
+- */
++* get container console configs
++* param name		: name of container
++* param lcrpath	: container path, set to NULL if you want use default lcrpath.
++* param config		: use to store container console configs, cannot be NULL
++*/
+ bool lcr_get_console_config(const char *name, const char *lcrpath, struct lcr_console_config *config);
+ 
+ void lcr_free_console_config(struct lcr_console_config *config);
+ 
+ int lcr_log_init(const char *name, const char *file, const char *priority,
+-                 const char *prefix,  int quiet, const char *lcrpath);
++                 const char *prefix, int quiet, const char *lcrpath);
+ 
+ struct lcr_exec_request {
+     const char *name;
+@@ -295,8 +296,8 @@ struct lcr_exec_request {
+     bool open_stdin;
+ };
+ /*
+- * Execute process inside a container
+- */
++* Execute process inside a container
++*/
+ bool lcr_exec(const struct lcr_exec_request *request, int *exit_code);
+ 
+ bool lcr_update(const char *name, const char *lcrpath, const struct lcr_cgroup_resources *cr);
+diff --git a/src/lcrcontainer_execute.c b/src/lcrcontainer_execute.c
+index 3a9e2de..a2a4bed 100644
+--- a/src/lcrcontainer_execute.c
++++ b/src/lcrcontainer_execute.c
+@@ -46,6 +46,8 @@
+ #define CGROUP_CPU_SHARES "cpu.shares"
+ #define CGROUP_CPU_PERIOD "cpu.cfs_period_us"
+ #define CGROUP_CPU_QUOTA "cpu.cfs_quota_us"
++#define CGROUP_CPU_RT_PERIOD "cpu.rt_period_us"
++#define CGROUP_CPU_RT_RUNTIME "cpu.rt_runtime_us"
+ #define CGROUP_CPUSET_CPUS "cpuset.cpus"
+ #define CGROUP_CPUSET_MEMS "cpuset.mems"
+ #define CGROUP_MEMORY_LIMIT "memory.limit_in_bytes"
+@@ -53,7 +55,8 @@
+ #define CGROUP_MEMORY_RESERVATION "memory.soft_limit_in_bytes"
+ 
+ #define REPORT_SET_CGROUP_ERROR(item, value)                                                          \
+-    do {                                                                                              \
++    do                                                                                                \
++    {                                                                                                 \
+         SYSERROR("Error updating cgroup %s to %s", (item), (value));                                  \
+         lcr_set_error_message(LCR_ERR_RUNTIME, "Error updating cgroup %s to %s: %s", (item), (value), \
+                               strerror(errno));                                                       \
+@@ -79,7 +82,7 @@ static inline void add_array_kv(char **array, size_t total, size_t *pos, const c
+ 
+ static uint64_t stat_get_ull(struct lxc_container *c, const char *item)
+ {
+-    char buf[80] = { 0 };
++    char buf[80] = {0};
+     int len = 0;
+     uint64_t val = 0;
+ 
+@@ -126,7 +129,7 @@ err_out:
+ static int update_resources_cpu_shares(struct lxc_container *c, const struct lcr_cgroup_resources *cr)
+ {
+     int ret = 0;
+-    char numstr[128] = { 0 }; /* max buffer */
++    char numstr[128] = {0}; /* max buffer */
+ 
+     if (cr->cpu_shares != 0) {
+         int num = snprintf(numstr, sizeof(numstr), "%llu", (unsigned long long)(cr->cpu_shares));
+@@ -149,7 +152,7 @@ out:
+ static int update_resources_cpu_period(struct lxc_container *c, const struct lcr_cgroup_resources *cr)
+ {
+     int ret = 0;
+-    char numstr[128] = { 0 }; /* max buffer */
++    char numstr[128] = {0}; /* max buffer */
+ 
+     if (cr->cpu_period != 0) {
+         int num = snprintf(numstr, sizeof(numstr), "%llu", (unsigned long long)(cr->cpu_period));
+@@ -169,10 +172,56 @@ out:
+     return ret;
+ }
+ 
++static int update_resources_cpu_rt_period(struct lxc_container *c, const struct lcr_cgroup_resources *cr)
++{
++    int ret = 0;
++    char numstr[LCR_NUMSTRLEN64] = {0}; /* max buffer */
++
++    if (cr->cpurt_period != 0) {
++        int num = snprintf(numstr, sizeof(numstr), "%lld", (long long)(cr->cpurt_period));
++        if (num < 0 || (size_t)num >= sizeof(numstr)) {
++            ret = -1;
++            goto out;
++        }
++
++        if (!c->set_cgroup_item(c, CGROUP_CPU_RT_PERIOD, numstr)) {
++            REPORT_SET_CGROUP_ERROR(CGROUP_CPU_RT_PERIOD, numstr);
++            ret = -1;
++            goto out;
++        }
++    }
++
++out:
++    return ret;
++}
++
++static int update_resources_cpu_rt_runtime(struct lxc_container *c, const struct lcr_cgroup_resources *cr)
++{
++    int ret = 0;
++    char numstr[LCR_NUMSTRLEN64] = {0}; /* max buffer */
++
++    if (cr->cpurt_runtime != 0) {
++        int num = snprintf(numstr, sizeof(numstr), "%lld", (long long)(cr->cpurt_runtime));
++        if (num < 0 || (size_t)num >= sizeof(numstr)) {
++            ret = -1;
++            goto out;
++        }
++
++        if (!c->set_cgroup_item(c, CGROUP_CPU_RT_RUNTIME, numstr)) {
++            REPORT_SET_CGROUP_ERROR(CGROUP_CPU_RT_RUNTIME, numstr);
++            ret = -1;
++            goto out;
++        }
++    }
++
++out:
++    return ret;
++}
++
+ static int update_resources_cpu_quota(struct lxc_container *c, const struct lcr_cgroup_resources *cr)
+ {
+     int ret = 0;
+-    char numstr[128] = { 0 }; /* max buffer */
++    char numstr[128] = {0}; /* max buffer */
+ 
+     if (cr->cpu_quota != 0) {
+         int num = snprintf(numstr, sizeof(numstr), "%llu", (unsigned long long)(cr->cpu_quota));
+@@ -216,6 +265,13 @@ static bool update_resources_cpu(struct lxc_container *c, const struct lcr_cgrou
+         goto err_out;
+     }
+ 
++    if (update_resources_cpu_rt_period(c, cr) != 0) {
++        goto err_out;
++    }
++    if (update_resources_cpu_rt_runtime(c, cr) != 0) {
++        goto err_out;
++    }
++
+     ret = true;
+ err_out:
+     return ret;
+@@ -224,7 +280,7 @@ err_out:
+ static int update_resources_memory_limit(struct lxc_container *c, const struct lcr_cgroup_resources *cr)
+ {
+     int ret = 0;
+-    char numstr[128] = { 0 }; /* max buffer */
++    char numstr[128] = {0}; /* max buffer */
+ 
+     if (cr->memory_limit != 0) {
+         int num = snprintf(numstr, sizeof(numstr), "%llu", (unsigned long long)(cr->memory_limit));
+@@ -247,7 +303,7 @@ out:
+ static int update_resources_memory_swap(struct lxc_container *c, const struct lcr_cgroup_resources *cr)
+ {
+     int ret = 0;
+-    char numstr[128] = { 0 }; /* max buffer */
++    char numstr[128] = {0}; /* max buffer */
+ 
+     if (cr->memory_swap != 0) {
+         int num = snprintf(numstr, sizeof(numstr), "%llu", (unsigned long long)(cr->memory_swap));
+@@ -270,7 +326,7 @@ out:
+ static int update_resources_memory_reservation(struct lxc_container *c, const struct lcr_cgroup_resources *cr)
+ {
+     int ret = 0;
+-    char numstr[128] = { 0 }; /* max buffer */
++    char numstr[128] = {0}; /* max buffer */
+ 
+     if (cr->memory_reservation != 0) {
+         int num = snprintf(numstr, sizeof(numstr), "%llu", (unsigned long long)(cr->memory_reservation));
+@@ -337,7 +393,7 @@ err_out:
+ static int update_resources_blkio_weight(struct lxc_container *c, const struct lcr_cgroup_resources *cr)
+ {
+     int ret = 0;
+-    char numstr[128] = { 0 }; /* max buffer */
++    char numstr[128] = {0}; /* max buffer */
+ 
+     if (cr->blkio_weight != 0) {
+         int num = snprintf(numstr, sizeof(numstr), "%llu", (unsigned long long)(cr->blkio_weight));
+@@ -422,7 +478,7 @@ static inline bool is_blk_stat_total(const char *value)
+ 
+ static void stat_get_blk_stats(struct lxc_container *c, const char *item, struct blkio_stats *stats)
+ {
+-    char buf[BUFSIZE] = { 0 };
++    char buf[BUFSIZE] = {0};
+     int i = 0;
+     size_t len = 0;
+     char **lines = NULL;
+@@ -464,7 +520,7 @@ err_out:
+ 
+ static uint64_t stat_match_get_ull(struct lxc_container *c, const char *item, const char *match, int column)
+ {
+-    char buf[BUFSIZE] = { 0 };
++    char buf[BUFSIZE] = {0};
+     int i = 0;
+     int j = 0;
+     int len = 0;
+@@ -595,7 +651,7 @@ static void execute_lxc_attach(const char *name, const char *path, const struct
+     }
+ 
+     if (request->timeout != 0) {
+-        char timeout_str[LCR_NUMSTRLEN64] = { 0 };
++        char timeout_str[LCR_NUMSTRLEN64] = {0};
+         add_array_elem(params, args_len, &i, "--timeout");
+         int num = snprintf(timeout_str, LCR_NUMSTRLEN64, "%lld", (long long)request->timeout);
+         if (num < 0 || num >= LCR_NUMSTRLEN64) {
+@@ -655,8 +711,8 @@ bool do_attach(const char *name, const char *path, const struct lcr_exec_request
+     bool ret = false;
+     pid_t pid = 0;
+     ssize_t size_read = 0;
+-    char buffer[BUFSIZ] = { 0 };
+-    int pipefd[2] = { -1, -1 };
++    char buffer[BUFSIZ] = {0};
++    int pipefd[2] = {-1, -1};
+     int status = 0;
+ 
+     if (pipe(pipefd) != 0) {
+@@ -717,7 +773,7 @@ out:
+ void execute_lxc_start(const char *name, const char *path, const struct lcr_start_request *request)
+ {
+     // should check the size of params when add new params.
+-    char *params[PARAM_NUM] = { NULL };
++    char *params[PARAM_NUM] = {NULL};
+     size_t i = 0;
+ 
+     if (lcr_util_check_inherited(true, -1) != 0) {
+@@ -746,7 +802,7 @@ void execute_lxc_start(const char *name, const char *path, const struct lcr_star
+     add_array_kv(params, PARAM_NUM, &i, "--exit-fifo", request->exit_fifo);
+ 
+     if (request->start_timeout != 0) {
+-        char start_timeout_str[LCR_NUMSTRLEN64] = { 0 };
++        char start_timeout_str[LCR_NUMSTRLEN64] = {0};
+         add_array_elem(params, PARAM_NUM, &i, "--start-timeout");
+         int num = snprintf(start_timeout_str, LCR_NUMSTRLEN64, "%u", request->start_timeout);
+         if (num < 0 || num >= LCR_NUMSTRLEN64) {
+-- 
+2.20.1
+
