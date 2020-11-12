@@ -1,0 +1,70 @@
+From 3f79044279c2379eb73939522b9933f64fd65e89 Mon Sep 17 00:00:00 2001
+From: lifeng68 <lifeng68@huawei.com>
+Date: Thu, 13 Aug 2020 14:16:03 +0800
+Subject: [PATCH 01/10] lcr: remove NOTIFY_SOCKET env when do fork
+
+Signed-off-by: lifeng68 <lifeng68@huawei.com>
+---
+ src/lcrcontainer.c         | 3 ++-
+ src/lcrcontainer_execute.c | 3 ++-
+ tests/fuzz/log_fuzz.cc     | 2 +-
+ 3 files changed, 5 insertions(+), 3 deletions(-)
+
+diff --git a/src/lcrcontainer.c b/src/lcrcontainer.c
+index 547830a..ed9a4f7 100644
+--- a/src/lcrcontainer.c
++++ b/src/lcrcontainer.c
+@@ -430,7 +430,7 @@ bool lcr_start(const struct lcr_start_request *request)
+     }
+ 
+     pid = fork();
+-    if (pid == (pid_t) - 1) {
++    if (pid == (pid_t) -1) {
+         ERROR("Failed to fork()\n");
+         close(pipefd[0]);
+         close(pipefd[1]);
+@@ -438,6 +438,7 @@ bool lcr_start(const struct lcr_start_request *request)
+     }
+ 
+     if (pid == (pid_t)0) {
++        (void)unsetenv("NOTIFY_SOCKET");
+         // child process, dup2 pipefd[1] to stderr
+         close(pipefd[0]);
+         dup2(pipefd[1], 2);
+diff --git a/src/lcrcontainer_execute.c b/src/lcrcontainer_execute.c
+index 1486d2a..3a9e2de 100644
+--- a/src/lcrcontainer_execute.c
++++ b/src/lcrcontainer_execute.c
+@@ -665,7 +665,7 @@ bool do_attach(const char *name, const char *path, const struct lcr_exec_request
+     }
+ 
+     pid = fork();
+-    if (pid == (pid_t) - 1) {
++    if (pid == (pid_t) -1) {
+         ERROR("Failed to fork()\n");
+         close(pipefd[0]);
+         close(pipefd[1]);
+@@ -673,6 +673,7 @@ bool do_attach(const char *name, const char *path, const struct lcr_exec_request
+     }
+ 
+     if (pid == (pid_t)0) {
++        (void)unsetenv("NOTIFY_SOCKET");
+         if (lcr_util_null_stdfds() < 0) {
+             COMMAND_ERROR("Failed to close fds");
+             exit(EXIT_FAILURE);
+diff --git a/tests/fuzz/log_fuzz.cc b/tests/fuzz/log_fuzz.cc
+index 9dc02bb..a8f80d4 100644
+--- a/tests/fuzz/log_fuzz.cc
++++ b/tests/fuzz/log_fuzz.cc
+@@ -46,7 +46,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
+     std::vector<std::string> ret_vec;
+     std::string tmpstr;
+     std::istringstream istr(testData);
+-    while(std::getline(istr, tmpstr, ',')) {
++    while (std::getline(istr, tmpstr, ',')) {
+         ret_vec.push_back(tmpstr);
+     }
+ 
+-- 
+2.20.1
+

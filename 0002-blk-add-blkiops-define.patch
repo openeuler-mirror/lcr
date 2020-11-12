@@ -1,0 +1,597 @@
+From 0f31b6d8ff4019e1158fb1a0c63456db67be63e5 Mon Sep 17 00:00:00 2001
+From: lifeng68 <lifeng68@huawei.com>
+Date: Fri, 4 Sep 2020 15:55:21 +0800
+Subject: [PATCH 02/10] blk: add blkiops define
+
+Signed-off-by: lifeng68 <lifeng68@huawei.com>
+---
+ src/json/schema/defs.json        | 424 ++++++++++++++++---------------
+ src/json/schema/host-config.json |  49 +---
+ 2 files changed, 237 insertions(+), 236 deletions(-)
+
+diff --git a/src/json/schema/defs.json b/src/json/schema/defs.json
+index a69b15e..9512caa 100644
+--- a/src/json/schema/defs.json
++++ b/src/json/schema/defs.json
+@@ -42,8 +42,7 @@
+             "maximum": 18446744073709552000
+         },
+         "int32Pointer": {
+-            "oneOf": [
+-                {
++            "oneOf": [{
+                     "$ref": "#/definitions/int32"
+                 },
+                 {
+@@ -52,8 +51,7 @@
+             ]
+         },
+         "uint16Pointer": {
+-            "oneOf": [
+-                {
++            "oneOf": [{
+                     "$ref": "#/definitions/uint16"
+                 },
+                 {
+@@ -62,8 +60,7 @@
+             ]
+         },
+         "uint64Pointer": {
+-            "oneOf": [
+-                {
++            "oneOf": [{
+                     "$ref": "#/definitions/uint64"
+                 },
+                 {
+@@ -72,8 +69,7 @@
+             ]
+         },
+         "stringPointer": {
+-            "oneOf": [
+-                {
++            "oneOf": [{
+                     "type": "string"
+                 },
+                 {
+@@ -104,6 +100,40 @@
+         "Env": {
+             "$ref": "#/definitions/ArrayOfStrings"
+         },
++        "BlkioDevice": {
++            "type": "object",
++            "properties": {
++                "Path": {
++                    "$ref": "#/definitions/FilePath"
++                },
++                "Rate": {
++                    "$ref": "#/definitions/uint64"
++                }
++            }
++        },
++        "ArrayOfBlkioDevice": {
++            "type": "array",
++            "items": {
++                "$ref": "#/definitions/BlkioDevice"
++            }
++        },
++        "BlkioWeightDevice": {
++            "type": "object",
++            "properties": {
++                "Path": {
++                    "$ref": "#/definitions/FilePath"
++                },
++                "Weight": {
++                    "$ref": "#/definitions/uint16"
++                }
++            }
++        },
++        "ArrayOfBlkioWeightDevice": {
++            "type": "array",
++            "items": {
++                "$ref": "#/definitions/BlkioWeightDevice"
++            }
++        },
+         "Hook": {
+             "type": "object",
+             "properties": {
+@@ -250,9 +280,9 @@
+                             "type": "string"
+                         },
+                         "runtime-args": {
+-                            "type":"array",
++                            "type": "array",
+                             "items": {
+-                                "type":"string"
++                                "type": "string"
+                             }
+                         }
+                     }
+@@ -273,8 +303,8 @@
+             }
+         },
+         "digest": {
+-          "type": "string",
+-          "pattern": "^[a-z0-9]+(?:[+._-][a-z0-9]+)*:[a-zA-Z0-9=_-]+$"
++            "type": "string",
++            "pattern": "^[a-z0-9]+(?:[+._-][a-z0-9]+)*:[a-zA-Z0-9=_-]+$"
+         },
+         "ociVersion": {
+             "description": "The version of Open Container Runtime Specification that the document complies with",
+@@ -340,7 +370,7 @@
+                 }
+             }
+         },
+-	    "filters": {
++        "filters": {
+             "type": "object",
+             "patternProperties": {
+                 ".{1,}": {
+@@ -366,7 +396,7 @@
+             "type": "object",
+             "properties": {
+                 "name": {
+-                    "type":"string"
++                    "type": "string"
+                 },
+                 "offset": {
+                     "$ref": "#/definitions/uint8"
+@@ -607,8 +637,7 @@
+         },
+         "blockIODeviceWeight": {
+             "type": "object",
+-            "allOf": [
+-                {
++            "allOf": [{
+                     "$ref": "#/definitions/blockIODevice"
+                 },
+                 {
+@@ -625,8 +654,7 @@
+             ]
+         },
+         "blockIODeviceThrottle": {
+-            "allOf": [
+-                {
++            "allOf": [{
+                     "$ref": "#/definitions/blockIODevice"
+                 },
+                 {
+@@ -865,184 +893,184 @@
+                 }
+             }
+         },
+-		"resources": {
+-			"id": "https://opencontainers.org/schema/bundle/linux/resources",
+-			"type": "object",
+-			"properties": {
+-				"devices": {
+-					"id": "https://opencontainers.org/schema/bundle/linux/resources/devices",
+-					"type": "array",
+-					"items": {
+-						"$ref": "#/definitions/DeviceCgroup"
+-					}
+-				},
+-				"pids": {
+-					"id": "https://opencontainers.org/schema/bundle/linux/resources/pids",
+-					"type": "object",
+-					"properties": {
+-						"limit": {
+-							"id": "https://opencontainers.org/schema/bundle/linux/resources/pids/limit",
+-							"$ref": "#/definitions/int64"
+-						}
+-					},
+-					"required": [
+-						"limit"
+-					]
+-				},
+-				"blockIO": {
+-					"id": "https://opencontainers.org/schema/bundle/linux/resources/blockIO",
+-					"type": "object",
+-					"properties": {
+-						"weight": {
+-							"id": "https://opencontainers.org/schema/bundle/linux/resources/blockIO/weight",
+-							"$ref": "#/definitions/weight"
+-						},
+-						"leafWeight": {
+-							"id": "https://opencontainers.org/schema/bundle/linux/resources/blockIO/leafWeight",
+-							"$ref": "#/definitions/weight"
+-						},
+-						"throttleReadBpsDevice": {
+-							"id": "https://opencontainers.org/schema/bundle/linux/resources/blockIO/throttleReadBpsDevice",
+-							"type": "array",
+-							"items": {
+-								"$ref": "#/definitions/blockIODeviceThrottle"
+-							}
+-						},
+-						"throttleWriteBpsDevice": {
+-							"id": "https://opencontainers.org/schema/bundle/linux/resources/blockIO/throttleWriteBpsDevice",
+-							"type": "array",
+-							"items": {
+-								"$ref": "#/definitions/blockIODeviceThrottle"
+-							}
+-						},
+-						"throttleReadIOPSDevice": {
+-							"id": "https://opencontainers.org/schema/bundle/linux/resources/blockIO/throttleReadIOPSDevice",
+-							"type": "array",
+-							"items": {
+-								"$ref": "#/definitions/blockIODeviceThrottle"
+-							}
+-						},
+-						"throttleWriteIOPSDevice": {
+-							"id": "https://opencontainers.org/schema/bundle/linux/resources/blockIO/throttleWriteIOPSDevice",
+-							"type": "array",
+-							"items": {
+-								"$ref": "#/definitions/blockIODeviceThrottle"
+-							}
+-						},
+-						"weightDevice": {
+-							"id": "https://opencontainers.org/schema/bundle/linux/resources/blockIO/weightDevice",
+-							"type": "array",
+-							"items": {
+-								"$ref": "#/definitions/blockIODeviceWeight"
+-							}
+-						}
+-					}
+-				},
+-				"cpu": {
+-					"id": "https://opencontainers.org/schema/bundle/linux/resources/cpu",
+-					"type": "object",
+-					"properties": {
+-						"cpus": {
+-							"id": "https://opencontainers.org/schema/bundle/linux/resources/cpu/cpus",
+-							"type": "string"
+-						},
+-						"mems": {
+-							"id": "https://opencontainers.org/schema/bundle/linux/resources/cpu/mems",
+-							"type": "string"
+-						},
+-						"period": {
+-							"id": "https://opencontainers.org/schema/bundle/linux/resources/cpu/period",
+-							"$ref": "#/definitions/uint64"
+-						},
+-						"quota": {
+-							"id": "https://opencontainers.org/schema/bundle/linux/resources/cpu/quota",
+-							"$ref": "#/definitions/int64"
+-						},
+-						"realtimePeriod": {
+-							"id": "https://opencontainers.org/schema/bundle/linux/resources/cpu/realtimePeriod",
+-							"$ref": "#/definitions/uint64"
+-						},
+-						"realtimeRuntime": {
+-							"id": "https://opencontainers.org/schema/bundle/linux/resources/cpu/realtimeRuntime",
+-							"$ref": "#/definitions/int64"
+-						},
+-						"shares": {
+-							"id": "https://opencontainers.org/schema/bundle/linux/resources/cpu/shares",
+-							"$ref": "#/definitions/uint64"
+-						}
+-					}
+-				},
+-				"hugepageLimits": {
+-					"id": "https://opencontainers.org/schema/bundle/linux/resources/hugepageLimits",
+-					"type": "array",
+-					"items": {
+-						"type": "object",
+-						"properties": {
+-							"pageSize": {
+-								"type": "string"
+-							},
+-							"limit": {
+-								"$ref": "#/definitions/uint64"
+-							}
+-						},
+-						"required": [
+-							"pageSize",
+-							"limit"
+-						]
+-					}
+-				},
+-				"memory": {
+-					"id": "https://opencontainers.org/schema/bundle/linux/resources/memory",
+-					"type": "object",
+-					"properties": {
+-						"kernel": {
+-							"id": "https://opencontainers.org/schema/bundle/linux/resources/memory/kernel",
+-							"$ref": "#/definitions/int64"
+-						},
+-						"kernelTCP": {
+-							"id": "https://opencontainers.org/schema/bundle/linux/resources/memory/kernelTCP",
+-							"$ref": "#/definitions/int64"
+-						},
+-						"limit": {
+-							"id": "https://opencontainers.org/schema/bundle/linux/resources/memory/limit",
+-							"$ref": "#/definitions/int64"
+-						},
+-						"reservation": {
+-							"id": "https://opencontainers.org/schema/bundle/linux/resources/memory/reservation",
+-							"$ref": "#/definitions/int64"
+-						},
+-						"swap": {
+-							"id": "https://opencontainers.org/schema/bundle/linux/resources/memory/swap",
+-							"$ref": "#/definitions/int64"
+-						},
+-						"swappiness": {
+-							"id": "https://opencontainers.org/schema/bundle/linux/resources/memory/swappiness",
+-							"$ref": "#/definitions/uint64"
+-						},
+-						"disableOOMKiller": {
+-							"id": "https://opencontainers.org/schema/bundle/linux/resources/memory/disableOOMKiller",
+-							"type": "boolean"
+-						}
+-					}
+-				},
+-				"network": {
+-					"id": "https://opencontainers.org/schema/bundle/linux/resources/network",
+-					"type": "object",
+-					"properties": {
+-						"classID": {
+-							"id": "https://opencontainers.org/schema/bundle/linux/resources/network/classId",
+-							"$ref": "#/definitions/uint32"
+-						},
+-						"priorities": {
+-							"id": "https://opencontainers.org/schema/bundle/linux/resources/network/priorities",
+-							"type": "array",
+-							"items": {
+-								"$ref": "#/definitions/NetworkInterfacePriority"
+-							}
+-						}
+-					}
+-				}
+-			}
+-		}
++        "resources": {
++            "id": "https://opencontainers.org/schema/bundle/linux/resources",
++            "type": "object",
++            "properties": {
++                "devices": {
++                    "id": "https://opencontainers.org/schema/bundle/linux/resources/devices",
++                    "type": "array",
++                    "items": {
++                        "$ref": "#/definitions/DeviceCgroup"
++                    }
++                },
++                "pids": {
++                    "id": "https://opencontainers.org/schema/bundle/linux/resources/pids",
++                    "type": "object",
++                    "properties": {
++                        "limit": {
++                            "id": "https://opencontainers.org/schema/bundle/linux/resources/pids/limit",
++                            "$ref": "#/definitions/int64"
++                        }
++                    },
++                    "required": [
++                        "limit"
++                    ]
++                },
++                "blockIO": {
++                    "id": "https://opencontainers.org/schema/bundle/linux/resources/blockIO",
++                    "type": "object",
++                    "properties": {
++                        "weight": {
++                            "id": "https://opencontainers.org/schema/bundle/linux/resources/blockIO/weight",
++                            "$ref": "#/definitions/weight"
++                        },
++                        "leafWeight": {
++                            "id": "https://opencontainers.org/schema/bundle/linux/resources/blockIO/leafWeight",
++                            "$ref": "#/definitions/weight"
++                        },
++                        "throttleReadBpsDevice": {
++                            "id": "https://opencontainers.org/schema/bundle/linux/resources/blockIO/throttleReadBpsDevice",
++                            "type": "array",
++                            "items": {
++                                "$ref": "#/definitions/blockIODeviceThrottle"
++                            }
++                        },
++                        "throttleWriteBpsDevice": {
++                            "id": "https://opencontainers.org/schema/bundle/linux/resources/blockIO/throttleWriteBpsDevice",
++                            "type": "array",
++                            "items": {
++                                "$ref": "#/definitions/blockIODeviceThrottle"
++                            }
++                        },
++                        "throttleReadIOPSDevice": {
++                            "id": "https://opencontainers.org/schema/bundle/linux/resources/blockIO/throttleReadIOPSDevice",
++                            "type": "array",
++                            "items": {
++                                "$ref": "#/definitions/blockIODeviceThrottle"
++                            }
++                        },
++                        "throttleWriteIOPSDevice": {
++                            "id": "https://opencontainers.org/schema/bundle/linux/resources/blockIO/throttleWriteIOPSDevice",
++                            "type": "array",
++                            "items": {
++                                "$ref": "#/definitions/blockIODeviceThrottle"
++                            }
++                        },
++                        "weightDevice": {
++                            "id": "https://opencontainers.org/schema/bundle/linux/resources/blockIO/weightDevice",
++                            "type": "array",
++                            "items": {
++                                "$ref": "#/definitions/blockIODeviceWeight"
++                            }
++                        }
++                    }
++                },
++                "cpu": {
++                    "id": "https://opencontainers.org/schema/bundle/linux/resources/cpu",
++                    "type": "object",
++                    "properties": {
++                        "cpus": {
++                            "id": "https://opencontainers.org/schema/bundle/linux/resources/cpu/cpus",
++                            "type": "string"
++                        },
++                        "mems": {
++                            "id": "https://opencontainers.org/schema/bundle/linux/resources/cpu/mems",
++                            "type": "string"
++                        },
++                        "period": {
++                            "id": "https://opencontainers.org/schema/bundle/linux/resources/cpu/period",
++                            "$ref": "#/definitions/uint64"
++                        },
++                        "quota": {
++                            "id": "https://opencontainers.org/schema/bundle/linux/resources/cpu/quota",
++                            "$ref": "#/definitions/int64"
++                        },
++                        "realtimePeriod": {
++                            "id": "https://opencontainers.org/schema/bundle/linux/resources/cpu/realtimePeriod",
++                            "$ref": "#/definitions/uint64"
++                        },
++                        "realtimeRuntime": {
++                            "id": "https://opencontainers.org/schema/bundle/linux/resources/cpu/realtimeRuntime",
++                            "$ref": "#/definitions/int64"
++                        },
++                        "shares": {
++                            "id": "https://opencontainers.org/schema/bundle/linux/resources/cpu/shares",
++                            "$ref": "#/definitions/uint64"
++                        }
++                    }
++                },
++                "hugepageLimits": {
++                    "id": "https://opencontainers.org/schema/bundle/linux/resources/hugepageLimits",
++                    "type": "array",
++                    "items": {
++                        "type": "object",
++                        "properties": {
++                            "pageSize": {
++                                "type": "string"
++                            },
++                            "limit": {
++                                "$ref": "#/definitions/uint64"
++                            }
++                        },
++                        "required": [
++                            "pageSize",
++                            "limit"
++                        ]
++                    }
++                },
++                "memory": {
++                    "id": "https://opencontainers.org/schema/bundle/linux/resources/memory",
++                    "type": "object",
++                    "properties": {
++                        "kernel": {
++                            "id": "https://opencontainers.org/schema/bundle/linux/resources/memory/kernel",
++                            "$ref": "#/definitions/int64"
++                        },
++                        "kernelTCP": {
++                            "id": "https://opencontainers.org/schema/bundle/linux/resources/memory/kernelTCP",
++                            "$ref": "#/definitions/int64"
++                        },
++                        "limit": {
++                            "id": "https://opencontainers.org/schema/bundle/linux/resources/memory/limit",
++                            "$ref": "#/definitions/int64"
++                        },
++                        "reservation": {
++                            "id": "https://opencontainers.org/schema/bundle/linux/resources/memory/reservation",
++                            "$ref": "#/definitions/int64"
++                        },
++                        "swap": {
++                            "id": "https://opencontainers.org/schema/bundle/linux/resources/memory/swap",
++                            "$ref": "#/definitions/int64"
++                        },
++                        "swappiness": {
++                            "id": "https://opencontainers.org/schema/bundle/linux/resources/memory/swappiness",
++                            "$ref": "#/definitions/uint64"
++                        },
++                        "disableOOMKiller": {
++                            "id": "https://opencontainers.org/schema/bundle/linux/resources/memory/disableOOMKiller",
++                            "type": "boolean"
++                        }
++                    }
++                },
++                "network": {
++                    "id": "https://opencontainers.org/schema/bundle/linux/resources/network",
++                    "type": "object",
++                    "properties": {
++                        "classID": {
++                            "id": "https://opencontainers.org/schema/bundle/linux/resources/network/classId",
++                            "$ref": "#/definitions/uint32"
++                        },
++                        "priorities": {
++                            "id": "https://opencontainers.org/schema/bundle/linux/resources/network/priorities",
++                            "type": "array",
++                            "items": {
++                                "$ref": "#/definitions/NetworkInterfacePriority"
++                            }
++                        }
++                    }
++                }
++            }
++        }
+     }
+-}
++}
+\ No newline at end of file
+diff --git a/src/json/schema/host-config.json b/src/json/schema/host-config.json
+index 725c1e7..b3fca51 100644
+--- a/src/json/schema/host-config.json
++++ b/src/json/schema/host-config.json
+@@ -53,8 +53,8 @@
+         "Sysctls": {
+             "$ref": "defs.json#/definitions/mapStringString"
+         },
+-        "Runtime":{
+-            "type":"string"
++        "Runtime": {
++            "type": "string"
+         },
+         "RestartPolicy": {
+             "type": "object",
+@@ -119,46 +119,19 @@
+             "type": "uint16"
+         },
+         "BlkioWeightDevice": {
+-            "type": "array",
+-            "items": {
+-                "type": "object",
+-                "properties": {
+-                    "Path": {
+-                        "type": "string"
+-                    },
+-                    "Weight": {
+-                        "type": "uint16"
+-                    }
+-                }
+-            }
++            "$ref": "defs.json#/definitions/ArrayOfBlkioWeightDevice"
+         },
+         "BlkioDeviceReadBps": {
+-            "type": "array",
+-            "items": {
+-                "type": "object",
+-                "properties": {
+-                    "Path": {
+-                        "type": "string"
+-                    },
+-                    "Rate": {
+-                        "type": "uint64"
+-                    }
+-                }
+-            }
++            "$ref": "defs.json#/definitions/ArrayOfBlkioDevice"
+         },
+         "BlkioDeviceWriteBps": {
+-            "type": "array",
+-            "items": {
+-                "type": "object",
+-                "properties": {
+-                    "Path": {
+-                        "type": "string"
+-                    },
+-                    "Rate": {
+-                        "type": "uint64"
+-                    }
+-                }
+-            }
++            "$ref": "defs.json#/definitions/ArrayOfBlkioDevice"
++        },
++        "BlkioDeviceReadIops": {
++            "$ref": "defs.json#/definitions/ArrayOfBlkioDevice"
++        },
++        "BlkioDeviceWriteIops": {
++            "$ref": "defs.json#/definitions/ArrayOfBlkioDevice"
+         },
+         "CPUPeriod": {
+             "type": "int64"
+-- 
+2.20.1
+

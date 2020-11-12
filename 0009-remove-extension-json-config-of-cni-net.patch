@@ -1,0 +1,95 @@
+From 5ef0ddb02783bbe5abeb0998fe8b65b9138268df Mon Sep 17 00:00:00 2001
+From: haozi007 <liuhao27@huawei.com>
+Date: Tue, 27 Oct 2020 11:15:31 +0800
+Subject: [PATCH 09/10] remove extension json config of cni net
+
+Signed-off-by: haozi007 <liuhao27@huawei.com>
+---
+ src/json/schema/cni/net_conf.json | 64 -------------------------------
+ 1 file changed, 64 deletions(-)
+
+diff --git a/src/json/schema/cni/net_conf.json b/src/json/schema/cni/net_conf.json
+index 89427ae..7a03a3f 100644
+--- a/src/json/schema/cni/net_conf.json
++++ b/src/json/schema/cni/net_conf.json
+@@ -43,27 +43,6 @@
+         "dns": {
+             "$ref": "network/dns.json"
+         },
+-        "multi_entry": {
+-            "type": "int32"
+-        },
+-        "backup_mode": {
+-            "type": "boolean"
+-        },
+-        "vlanID": {
+-            "type": "int32"
+-        },
+-        "vlan_inside": {
+-            "type": "boolean"
+-        },
+-        "vxlanID": {
+-            "type": "int32"
+-        },
+-        "vxlanID_inside": {
+-            "type": "boolean"
+-        },
+-        "actions": {
+-            "type": "string"
+-        },
+         "args": {
+             "$ref": "net_args.json"
+         },
+@@ -84,49 +63,6 @@
+                 }
+             }
+         },
+-        "log_level": {
+-            "type": "string"
+-        },
+-        "etcd_endpoints": {
+-            "type": "string"
+-        },
+-        "etcd_key_file": {
+-            "type": "string"
+-        },
+-        "etcd_cert_file": {
+-            "type": "string"
+-        },
+-        "etcd_ca_cert_file": {
+-            "type": "string"
+-        },
+-        "mtu": {
+-            "type": "int32"
+-        },
+-        "datastore_type": {
+-            "type": "string"
+-        },
+-        "nodename": {
+-            "type": "string"
+-        },
+-        "policy": {
+-            "type": "object",
+-            "properties": {
+-                "type": {
+-                    "type": "string"
+-                }
+-            }
+-        },
+-        "kubernetes": {
+-            "type": "object",
+-            "properties": {
+-                "kubeconfig": {
+-                    "type": "string"
+-                }
+-            }
+-        },
+-        "snat": {
+-            "type": "boolean"
+-        },
+         "capabilities": {
+             "$ref": "../defs.json#/definitions/mapStringBool"
+         }
+-- 
+2.20.1
+
