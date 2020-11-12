@@ -1,5 +1,5 @@
 %global _version 2.0.4
-%global _release 20201014.151549.gita811a32f
+%global _release 20201112.184125.gite8506076
 %global _inner_name isula_libutils
 
 Name:      lcr
@@ -11,6 +11,10 @@ Summary:   Lightweight Container Runtime
 Group:     Applications/System
 License:   LGPLv2.1+
 BuildRoot: %{_tmppath}/lcr-%{version}
+
+Patch9001: 0001-support-local-volume.patch
+Patch9002: 0002-remove-extension-json-config-of-cni-net.patch
+Patch9003: 0003-fix-ctest-error-when-use-make.patch
 
 BuildRequires: cmake
 BuildRequires: lxc
@@ -99,6 +103,12 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Thu Nov 12 2020 gaohuatao <gaohuatao@huawei.com> - 2.0.4-20201112.184125.gite8506076
+- Type:update from master
+- ID:NA
+- SUG:NA
+- DESC: update from master
+
 * Wed Oct 14 2020 lifeng <lifeng68@huawei.com> - 2.0.4-20201014.151549.gita811a32f
 - Type:upgrade to v2.0.4
 - ID:NA
