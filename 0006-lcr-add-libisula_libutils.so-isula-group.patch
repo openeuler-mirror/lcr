@@ -1,0 +1,23 @@
+From eca2b3990157355058ed2480af73db861149abd0 Mon Sep 17 00:00:00 2001
+From: gaohuatao <gaohuatao@huawei.com>
+Date: Fri, 18 Sep 2020 11:25:26 +0800
+Subject: [PATCH 06/10] lcr: add libisula_libutils.so isula group
+
+Signed-off-by: gaohuatao <gaohuatao@huawei.com>
+---
+ src/CMakeLists.txt | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/CMakeLists.txt b/src/CMakeLists.txt
+index 6ed2d95..c018ef4 100644
+--- a/src/CMakeLists.txt
++++ b/src/CMakeLists.txt
+@@ -107,4 +107,4 @@ endif()
+ install(TARGETS liblcr
+   LIBRARY DESTINATION ${LIB_INSTALL_DIR_DEFAULT} PERMISSIONS OWNER_READ OWNER_EXECUTE GROUP_READ GROUP_EXECUTE)
+ install(TARGETS isula_libutils
+-  LIBRARY DESTINATION ${LIB_INSTALL_DIR_DEFAULT} PERMISSIONS OWNER_READ OWNER_EXECUTE GROUP_READ GROUP_EXECUTE)
++  LIBRARY DESTINATION ${LIB_INSTALL_DIR_DEFAULT} PERMISSIONS OWNER_READ OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)
+-- 
+2.20.1
+
