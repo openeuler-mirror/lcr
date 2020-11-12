@@ -1,5 +1,5 @@
 %global _version 2.0.3
-%global _release 20200904.101728.git8b4641a4
+%global _release 20201112.163615.git01787bcd
 %global _inner_name isula_libutils
 
 Name:      lcr
@@ -11,6 +11,18 @@ Summary:   Lightweight Container Runtime
 Group:     Applications/System
 License:   LGPLv2.1+
 BuildRoot: %{_tmppath}/lcr-%{version}
+
+Patch9001: 0001-lcr-remove-NOTIFY_SOCKET-env-when-do-fork.patch
+Patch9002: 0002-blk-add-blkiops-define.patch
+Patch9003: 0003-update-add-support-update-cpu-rt.patch
+Patch9004: 0004-nano-cpus-add-support-nano-cpus.patch
+Patch9005: 0005-device_cgroup_rule-add-support-device-cgroup-rule.patch
+Patch9006: 0006-lcr-add-libisula_libutils.so-isula-group.patch
+Patch9007: 0007-lcr-release-v2.0.4.patch
+Patch9008: 0008-support-local-volume.patch
+Patch9009: 0009-remove-extension-json-config-of-cni-net.patch
+Patch9010: 0010-fix-ctest-error-when-use-make.patch
+
 
 BuildRequires: cmake
 BuildRequires: lxc
@@ -96,8 +108,13 @@ rm -rf %{buildroot}
 %{_includedir}/lcr/lcrcontainer.h
 %{_includedir}/%{_inner_name}/*.h
 
-
 %changelog
+* Thu Nov 12 2020 gaohuatao <gaohuatao@huawei.com> - 2.0.3-20201112.163615.git01787bcd
+- Type:enhancement
+- ID:NA
+- SUG:NA
+- DESC: update from master
+
 * Fri Sep 04 2020 zhangxiaoyu <zhangxiaoyu58@huawei.com> - 2.0.3-20200904.101728.git8b4641a4
 - Type:enhancement
 - ID:NA
