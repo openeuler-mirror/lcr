@@ -796,8 +796,9 @@ static int trans_oci_root_rootfs_options(const oci_runtime_spec_root *root, stru
                 goto out;
             }
             value = tmpvalue;
-            nret = snprintf(value + strlen(value), newsize - strlen(value), ",%s", linux->rootfs_propagation);
-            if (nret < 0 || (size_t)nret >= (newsize - strlen(value))) {
+            size_t tmp = newsize - strlen(value);
+            nret = snprintf(value + strlen(value), tmp, ",%s", linux->rootfs_propagation);
+            if (nret < 0 || (size_t)nret >= tmp) {
                 ERROR("Failed to print string");
                 goto out;
             }
