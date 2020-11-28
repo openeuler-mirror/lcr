@@ -1,5 +1,5 @@
-%global _version 2.0.3
-%global _release 20201112.163615.git01787bcd
+%global _version 2.0.4
+%global _release 20201112.184125.gite8506076
 %global _inner_name isula_libutils
 
 Name:      lcr
@@ -12,17 +12,9 @@ Group:     Applications/System
 License:   LGPLv2.1+
 BuildRoot: %{_tmppath}/lcr-%{version}
 
-Patch9001: 0001-lcr-remove-NOTIFY_SOCKET-env-when-do-fork.patch
-Patch9002: 0002-blk-add-blkiops-define.patch
-Patch9003: 0003-update-add-support-update-cpu-rt.patch
-Patch9004: 0004-nano-cpus-add-support-nano-cpus.patch
-Patch9005: 0005-device_cgroup_rule-add-support-device-cgroup-rule.patch
-Patch9006: 0006-lcr-add-libisula_libutils.so-isula-group.patch
-Patch9007: 0007-lcr-release-v2.0.4.patch
-Patch9008: 0008-support-local-volume.patch
-Patch9009: 0009-remove-extension-json-config-of-cni-net.patch
-Patch9010: 0010-fix-ctest-error-when-use-make.patch
-
+Patch9001: 0001-support-local-volume.patch
+Patch9002: 0002-remove-extension-json-config-of-cni-net.patch
+Patch9003: 0003-fix-ctest-error-when-use-make.patch
 
 BuildRequires: cmake
 BuildRequires: lxc
@@ -58,6 +50,7 @@ Requires:       %{name} = %{version}-%{release}
 
 %description devel
 the %{name}-libs package contains libraries for running iSula applications.
+
 
 %prep
 %autosetup -n lcr -Sgit -p1
@@ -108,18 +101,37 @@ rm -rf %{buildroot}
 %{_includedir}/lcr/lcrcontainer.h
 %{_includedir}/%{_inner_name}/*.h
 
+
 %changelog
-* Thu Nov 12 2020 gaohuatao <gaohuatao@huawei.com> - 2.0.3-20201112.163615.git01787bcd
-- Type:enhancement
+* Thu Nov 12 2020 gaohuatao <gaohuatao@huawei.com> - 2.0.4-20201112.184125.gite8506076
+- Type:update from master
 - ID:NA
 - SUG:NA
 - DESC: update from master
+
+* Wed Oct 14 2020 lifeng <lifeng68@huawei.com> - 2.0.4-20201014.151549.gita811a32f
+- Type:upgrade to v2.0.4
+- ID:NA
+- SUG:NA
+- DESC: upgrade to v2.0.4
 
 * Fri Sep 04 2020 zhangxiaoyu <zhangxiaoyu58@huawei.com> - 2.0.3-20200904.101728.git8b4641a4
 - Type:enhancement
 - ID:NA
 - SUG:NA
+- DESC: modify spec file
+
+* Thu Sep 03 2020 zhangxiaoyu <zhangxiaoyu58@huawei.com> - 2.0.3-20200903.182540.git62664adf
+- Type:enhancement
+- ID:NA
+- SUG:NA
 - DESC: upgrade from v2.0.2 to v2.0.3
+
+* Wed Sep 02 2020 YoungJQ <yangjiaqi11@huawei.com> - 2.0.2-20200902.112545.git24f07933
+- Type:enhancement
+- ID:NA
+- SUG:NA
+- DESC: modify source0 address
 
 * Fri Apr 14 2017 Hui Wang <hw.huiwang@huawei.com> - 0.0.1
 - Initial RPM release
