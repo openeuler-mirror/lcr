@@ -291,6 +291,8 @@ yajl_gen_status gen_json_map_string_string (void *ctx,
 int append_json_map_string_string (json_map_string_string * map,
 				   const char *key, const char *val);
 
+int dup_json_map_string_string(const json_map_string_string *src, json_map_string_string *dest);
+
 char *json_marshal_string (const char *str, size_t length,
 			   const struct parser_context *ctx,
 			   parser_error * err);
