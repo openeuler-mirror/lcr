@@ -1,7 +1,7 @@
 From 88f2a60d014299241b6e53f60340b2debc1adc10 Mon Sep 17 00:00:00 2001
 From: haozi007 <liuhao27@huawei.com>
 Date: Tue, 3 Nov 2020 17:23:57 +0800
-Subject: [PATCH 10/10] fix ctest error when use make
+Subject: [PATCH 3/3] fix ctest error when use make
 
 Signed-off-by: haozi007 <liuhao27@huawei.com>
 ---
