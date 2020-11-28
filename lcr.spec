@@ -1,5 +1,5 @@
-%global _version 2.0.3
-%global _release 20200904.101728.git8b4641a4
+%global _version 2.0.4
+%global _release 20201112.184125.gite8506076
 %global _inner_name isula_libutils
 
 Name:      lcr
@@ -11,6 +11,10 @@ Summary:   Lightweight Container Runtime
 Group:     Applications/System
 License:   LGPLv2.1+
 BuildRoot: %{_tmppath}/lcr-%{version}
+
+Patch9001: 0001-support-local-volume.patch
+Patch9002: 0002-remove-extension-json-config-of-cni-net.patch
+Patch9003: 0003-fix-ctest-error-when-use-make.patch
 
 BuildRequires: cmake
 BuildRequires: lxc
@@ -99,17 +103,35 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Thu Nov 12 2020 gaohuatao <gaohuatao@huawei.com> - 2.0.4-20201112.184125.gite8506076
+- Type:update from master
+- ID:NA
+- SUG:NA
+- DESC: update from master
+
+* Wed Oct 14 2020 lifeng <lifeng68@huawei.com> - 2.0.4-20201014.151549.gita811a32f
+- Type:upgrade to v2.0.4
+- ID:NA
+- SUG:NA
+- DESC: upgrade to v2.0.4
+
 * Fri Sep 04 2020 zhangxiaoyu <zhangxiaoyu58@huawei.com> - 2.0.3-20200904.101728.git8b4641a4
 - Type:enhancement
 - ID:NA
 - SUG:NA
 - DESC: modify spec file
 
-* Thu Sep 03 2020 zhangxiaoyu <zhangxiaoyu58@huawei.com> - 2.0.3-20200903.183604.git62664adf
+* Thu Sep 03 2020 zhangxiaoyu <zhangxiaoyu58@huawei.com> - 2.0.3-20200903.182540.git62664adf
 - Type:enhancement
 - ID:NA
 - SUG:NA
 - DESC: upgrade from v2.0.2 to v2.0.3
+
+* Wed Sep 02 2020 YoungJQ <yangjiaqi11@huawei.com> - 2.0.2-20200902.112545.git24f07933
+- Type:enhancement
+- ID:NA
+- SUG:NA
+- DESC: modify source0 address
 
 * Fri Apr 14 2017 Hui Wang <hw.huiwang@huawei.com> - 0.0.1
 - Initial RPM release
