@@ -1,15 +1,8 @@
-# -*- coding: utf-8 -*-
-'''
-Description: header class and functions
-Interface: None
-History: 2019-06-17
-'''
-
+#!/usr/bin/python -Es
+#
 # libocispec - a C library for parsing OCI spec files.
 #
 # Copyright (C) 2017, 2019 Giuseppe Scrivano <giuseppe@scrivano.org>
-# Copyright (C) Huawei Technologies., Ltd. 2018-2019. All rights reserved.
-#
 # libocispec is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; either version 3 of the License, or
@@ -134,7 +127,6 @@ def schema_from_file(filepath, srcpath):
     Interface: None
     History: 2019-06-17
     """
-
     schemapath = helpers.FilePath(filepath)
     prefix = get_prefix_from_file(schemapath.name)
     header = helpers.FilePath(os.path.join(srcpath, prefix + ".h"))
@@ -407,13 +399,24 @@ def gen_type_arr_typnode(node_info, src, typ, refname):
     curfile = node_info.curfile
 
     item_type, src = resolve_type(schema_info, name, src, cur["items"], curfile)
-    return helpers.Unite(name,
+
+    if typ == 'array' and typ == item_type.typ and not helpers.valid_basic_map_name(item_type.subtyp):
+        return helpers.Unite(name,
+                        typ,
+                        None,
+                        subtyp=item_type.subtyp,
+                        subtypobj=item_type.subtypobj,
+                        subtypname=item_type.subtypname,
+                        required=item_type.required, doublearray=True), src
+    else:
+        return helpers.Unite(name,
                         typ,
                         None,
                         subtyp=item_type.typ,
                         subtypobj=item_type.children,
                         subtypname=refname,
                         required=item_type.required), src
+
 
 
 def gen_arr_typnode(node_info, src, typ, refname):
@@ -645,10 +648,15 @@ def parse_schema(schema_info, schema, prefix):
     elif 'array' in schema['type']:
         item_type, _ = resolve_type(schema_info, helpers.CombinateName(""), \
                                     schema['items'], schema['items'], schema_info.name.name)
-        return helpers.Unite(helpers.CombinateName(prefix), 'array', None, item_type.typ, \
+        if item_type.typ == 'array' and not helpers.valid_basic_map_name(item_type.subtyp):
+            item_type.doublearray = True
+            return item_type
+        else:
+            return helpers.Unite(helpers.CombinateName(prefix), 'array', None, item_type.typ, \
                             item_type.children, None, item_type.required)
+
     else:
-        print("Not supported type '%s'") % schema['type']
+        print("Not supported type '%s'" % schema['type'])
     return prefix, None
 
 
@@ -703,7 +711,7 @@ def reflection(schema_info, gen_ref):
                 sources.src_reflect(structs, schema_info, source_file, tree.typ)
             except RuntimeError:
                 traceback.print_exc()
-                print("Failed to parse schema file: %s") % schema_info.name.name
+                print("Failed to parse schema file: %s" % schema_info.name.name)
                 sys.exit(1)
             finally:
                 pass
@@ -723,17 +731,8 @@ def gen_common_files(out):
     Interface: None
     History: 2019-06-17
     """
-    with open(os.path.join(out, 'json_common.h'), "w") as \
-            header_file, open(os.path.join(out, 'json_common.c'), "w") as source_file:
-        fcntl.flock(header_file, fcntl.LOCK_EX)
-        fcntl.flock(source_file, fcntl.LOCK_EX)
-
-        header_file.write(common_h.CODE)
-        source_file.write(common_c.CODE)
-
-        fcntl.flock(source_file, fcntl.LOCK_UN)
-        fcntl.flock(header_file, fcntl.LOCK_UN)
-
+    common_h.generate_json_common_h(out)
+    common_c.generate_json_common_c(out)
 
 def handle_single_file(args, srcpath, gen_ref, schemapath):
     """
@@ -741,9 +740,8 @@ def handle_single_file(args, srcpath, gen_ref, schemapath):
     Interface: None
     History: 2019-06-17
     """
-
     if not os.path.exists(schemapath.name) or not os.path.exists(srcpath.name):
-        print('Path %s is not exist') % schemapath.name
+        print('Path %s is not exist' % schemapath.name)
         sys.exit(1)
 
     if os.path.isdir(schemapath.name):
@@ -770,7 +768,7 @@ def handle_single_file(args, srcpath, gen_ref, schemapath):
             reflection(schema_info, gen_ref)
             print("\033[1;34mReflection:\033[0m\t%-60s \033[1;32mSuccess\033[0m" % (schemapath.name))
         else:
-            print('File %s is not ends with .json') % schemapath.name
+            print('File %s is not ends with .json' % schemapath.name)
 
 
 def handle_files(args, srcpath):
@@ -779,7 +777,6 @@ def handle_files(args, srcpath):
     Interface: None
     History: 2019-06-17
     """
-
     for path in args.path:
         gen_ref = args.gen_ref
         schemapath = helpers.FilePath(path)
@@ -824,7 +821,7 @@ def main():
 
     root_path = os.path.realpath(args.root)
     if not os.path.exists(root_path):
-        print('Root %s is not exist') % args.root
+        print('Root %s is not exist' % args.root)
         sys.exit(1)
 
     MyRoot.root_path = root_path
@@ -843,5 +840,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-
