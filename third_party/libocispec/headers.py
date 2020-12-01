@@ -55,9 +55,6 @@ def append_header_arr(obj, header, prefix):
             c_typ = helpers.get_prefixed_pointer(i.name, i.typ, prefix) or \
                 helpers.get_map_c_types(i.typ)
             header.write("    %s%s%s;\n" % (c_typ, " " if '*' not in c_typ else "", i.fixname))
-    for i in obj.subtypobj:
-        if helpers.judge_data_type(i.typ) or i.typ == 'boolean':
-            header.write("    unsigned int %s_present : 1;\n" % (i.fixname))
     typename = helpers.get_name_substr(obj.name, prefix)
     header.write("}\n%s;\n\n" % typename)
     header.write("void free_%s (%s *ptr);\n\n" % (typename, typename))
@@ -162,8 +159,6 @@ def append_type_c_header(obj, header, prefix):
                 append_header_child_arr(i, header, prefix)
             else:
                 append_header_child_others(i, header, prefix)
-            if helpers.judge_data_type(i.typ) or i.typ == 'boolean':
-                header.write("    unsigned int %s_present : 1;\n" % (i.fixname))
         if obj.children is not None:
             header.write("    yajl_val _residual;\n")
     typename = helpers.get_prefixed_name(obj.name, prefix)
