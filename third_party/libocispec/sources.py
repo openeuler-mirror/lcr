@@ -625,7 +625,7 @@ def get_obj_arr_obj(obj, c_file, prefix):
         c_file.write("      }\n")
     elif helpers.judge_data_type(obj.typ):
         c_file.write('    if ((ctx->options & OPT_GEN_KEY_VALUE) ||' \
-                     ' (ptr != NULL && ptr->%s_present))\n' % obj.fixname)
+                     ' (ptr != NULL && ptr->%s))\n' % obj.fixname)
         c_file.write('      {\n')
         if obj.typ == 'double':
             numtyp = 'double'
@@ -664,7 +664,7 @@ def get_obj_arr_obj(obj, c_file, prefix):
         c_file.write("      }\n")
     elif obj.typ == 'boolean':
         c_file.write('    if ((ctx->options & OPT_GEN_KEY_VALUE) ||' \
-                     ' (ptr != NULL && ptr->%s_present))\n' % obj.fixname)
+                     ' (ptr != NULL && ptr->%s))\n' % obj.fixname)
         c_file.write('      {\n')
         c_file.write('        bool b = false;\n')
         l = len(obj.origname)
@@ -824,8 +824,6 @@ def read_val_generator(c_file, level, src, dest, typ, keyname, obj_typename):
                      % ('    ' * (level + 1)))
         c_file.write('%s    return NULL;\n' % ('    ' * (level + 1)))
         c_file.write('%s}\n' % ('    ' * (level + 1)))
-        if '[' not in dest:
-            c_file.write('%s%s_present = 1;\n' % ('    ' * (level + 1), dest))
         c_file.write('%s}\n' % ('    ' * (level)))
     elif helpers.judge_data_pointer_type(typ):
         num_type = helpers.obtain_data_pointer_type(typ)
@@ -856,7 +854,6 @@ def read_val_generator(c_file, level, src, dest, typ, keyname, obj_typename):
         c_file.write('%s  {\n' % ('    ' * (level)))
         c_file.write('%s%s = YAJL_IS_TRUE(val);\n' % ('    ' * (level + 1), dest))
         if '[' not in dest:
-            c_file.write('%s%s_present = 1;\n' % ('    ' * (level + 1), dest))
             c_file.write('%s  }\n' % ('    ' * (level)))
             c_file.write('%selse\n' % ('    ' * (level)))
             c_file.write('%s  {\n' % ('    ' * (level)))
@@ -864,7 +861,6 @@ def read_val_generator(c_file, level, src, dest, typ, keyname, obj_typename):
             c_file.write('%sif (val != NULL)\n' % ('    ' * (level+1)))
             c_file.write('%s  {\n' % ('    ' * (level+1)))
             c_file.write('%s%s = 0;\n' % ('    ' * (level + 2), dest))
-            c_file.write('%s%s_present = 1;\n' % ('    ' * (level + 2), dest))
             c_file.write('%s  }\n' % ('    ' * (level+1)))
         c_file.write('%s  }\n' % ('    ' * (level)))
     elif typ == 'booleanPointer':
