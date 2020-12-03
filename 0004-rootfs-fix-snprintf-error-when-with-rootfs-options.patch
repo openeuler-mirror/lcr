@@ -1,0 +1,29 @@
+From 59f7c9a721e67edef1eae3b669232eaf298c80b1 Mon Sep 17 00:00:00 2001
+From: lifeng68 <lifeng68@huawei.com>
+Date: Tue, 17 Nov 2020 18:34:01 +0800
+Subject: [PATCH 4/7] rootfs: fix snprintf error when with rootfs options
+
+Signed-off-by: lifeng68 <lifeng68@huawei.com>
+---
+ src/conf.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/src/conf.c b/src/conf.c
+index 8bbdcbe..505985e 100644
+--- a/src/conf.c
++++ b/src/conf.c
+@@ -796,8 +796,9 @@ static int trans_oci_root_rootfs_options(const oci_runtime_spec_root *root, stru
+                 goto out;
+             }
+             value = tmpvalue;
+-            nret = snprintf(value + strlen(value), newsize - strlen(value), ",%s", linux->rootfs_propagation);
+-            if (nret < 0 || (size_t)nret >= (newsize - strlen(value))) {
++            size_t tmp = newsize - strlen(value);
++            nret = snprintf(value + strlen(value), tmp, ",%s", linux->rootfs_propagation);
++            if (nret < 0 || (size_t)nret >= tmp) {
+                 ERROR("Failed to print string");
+                 goto out;
+             }
+-- 
+2.25.1
+
