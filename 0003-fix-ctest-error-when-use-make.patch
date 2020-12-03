@@ -1,7 +1,7 @@
 From 88f2a60d014299241b6e53f60340b2debc1adc10 Mon Sep 17 00:00:00 2001
 From: haozi007 <liuhao27@huawei.com>
 Date: Tue, 3 Nov 2020 17:23:57 +0800
-Subject: [PATCH 3/3] fix ctest error when use make
+Subject: [PATCH 3/7] fix ctest error when use make
 
 Signed-off-by: haozi007 <liuhao27@huawei.com>
 ---
@@ -22,5 +22,5 @@ index 8110f10..39d0270 100644
  # run ut and gcov
  if (ENABLE_GCOV)
 -- 
-2.20.1
+2.25.1
 
