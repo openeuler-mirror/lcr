@@ -1,0 +1,26 @@
+From 9f1b1b3d10e09b173d345b89a340eb2f61fef682 Mon Sep 17 00:00:00 2001
+From: haozi007 <liuhao27@huawei.com>
+Date: Thu, 26 Nov 2020 15:04:18 +0800
+Subject: [PATCH 6/7] update describe of lcr
+
+Signed-off-by: haozi007 <liuhao27@huawei.com>
+---
+ README.md | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/README.md b/README.md
+index a1289c5..8a45755 100644
+--- a/README.md
++++ b/README.md
+@@ -1,7 +1,7 @@
+ # lcr
+ 
+ `lcr`(Lightweight Container Runtime) is CLI tool for spawning and running containers according to OCI specification.
+-It is based on `liblxc` and written by `C`.
++It is based on `liblxc` and written by `C`. It can use by container engine: [iSulad](https://gitee.com/openeuler/iSulad). [iSulad](https://gitee.com/openeuler/iSulad) use `ldopen` to call functions defined in lcr.
+ 
+ ## How to Contribute
+ 
+-- 
+2.25.1
+
