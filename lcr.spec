@@ -1,5 +1,5 @@
 %global _version 2.0.4
-%global _release 20201112.184125.gite8506076
+%global _release 20201203.190419.git2ac26b66
 %global _inner_name isula_libutils
 
 Name:      lcr
@@ -15,6 +15,10 @@ BuildRoot: %{_tmppath}/lcr-%{version}
 Patch9001: 0001-support-local-volume.patch
 Patch9002: 0002-remove-extension-json-config-of-cni-net.patch
 Patch9003: 0003-fix-ctest-error-when-use-make.patch
+Patch9004: 0004-rootfs-fix-snprintf-error-when-with-rootfs-options.patch
+Patch9005: 0005-support-default-container-log-options.patch
+Patch9006: 0006-update-describe-of-lcr.patch
+Patch9007: 0007-add-run-count-of-fuzz-test.patch
 
 BuildRequires: cmake
 BuildRequires: lxc
@@ -103,6 +107,12 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Thu Dec 3 2020 haozi007 <liuhao27@huawei.com> - 2.0.4-20201203.185548.gitcc470dc1
+- Type:update from master
+- ID:NA
+- SUG:NA
+- DESC: update from master
+
 * Sat Nov 28 2020 lifeng <lifeng68@huawei.com> - 2.0.4-20201112.184125.gite8506076
 - Type:clean code
 - ID:NA
