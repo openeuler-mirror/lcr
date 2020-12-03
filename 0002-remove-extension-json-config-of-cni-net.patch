@@ -1,7 +1,7 @@
 From 5ef0ddb02783bbe5abeb0998fe8b65b9138268df Mon Sep 17 00:00:00 2001
 From: haozi007 <liuhao27@huawei.com>
 Date: Tue, 27 Oct 2020 11:15:31 +0800
-Subject: [PATCH 2/3] remove extension json config of cni net
+Subject: [PATCH 2/7] remove extension json config of cni net
 
 Signed-off-by: haozi007 <liuhao27@huawei.com>
 ---
@@ -91,5 +91,5 @@ index 89427ae..7a03a3f 100644
              "$ref": "../defs.json#/definitions/mapStringBool"
          }
 -- 
-2.20.1
+2.25.1
 

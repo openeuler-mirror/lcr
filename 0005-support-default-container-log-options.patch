@@ -1,0 +1,42 @@
+From 72cb0bb9f6102751965ec5c4d5216120c75beccb Mon Sep 17 00:00:00 2001
+From: haozi007 <liuhao27@huawei.com>
+Date: Thu, 19 Nov 2020 16:38:35 +0800
+Subject: [PATCH 5/7] support default container log options
+
+Signed-off-by: haozi007 <liuhao27@huawei.com>
+---
+ src/json/schema/isulad-daemon-configs.json | 13 ++++++++++++-
+ 1 file changed, 12 insertions(+), 1 deletion(-)
+
+diff --git a/src/json/schema/isulad-daemon-configs.json b/src/json/schema/isulad-daemon-configs.json
+index 5991f00..27fd916 100644
+--- a/src/json/schema/isulad-daemon-configs.json
++++ b/src/json/schema/isulad-daemon-configs.json
+@@ -26,6 +26,17 @@
+         "log-opts": {
+             "$ref": "defs.json#/definitions/mapStringString"
+         },
++        "container-log": {
++            "type": "object",
++            "properties": {
++                "driver": {
++                    "type": "string"
++                },
++                "opts": {
++                    "$ref": "defs.json#/definitions/mapStringString"
++                }
++            }
++        },
+         "storage-driver": {
+             "type": "string"
+         },
+@@ -149,4 +160,4 @@
+             "type": "boolean"
+         }
+     }
+-}
+\ No newline at end of file
++}
+-- 
+2.25.1
+
