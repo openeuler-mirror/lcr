@@ -4,9 +4,6 @@
 	"properties": {
 		"name": {
 			"type": "string"
-		},
-		"timeout":{
-			"type":"integer"
 		}
 	}
 }
