@@ -29,22 +29,33 @@
                 "type": {
                     "type": "string"
                 },
-                "subnet": {
-                        "type": "string"
-                },
-                "gateway": {
-                        "type": "string"
-                },
-                "range-start": {
-                        "type": "string"
-                },
-                "range-end": {
-                        "type": "string"
-                },
                 "routes": {
                     "type": "array",
                     "items": {
                         "$ref": "network/route.json"
+                    }
+                },
+                "ranges": {
+                    "type": "array",
+                    "items": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "subnet": {
+                                    "type": "string"
+                                },
+                                "rangeStart": {
+                                    "type": "string"
+                                },
+                                "rangeEnd": {
+                                    "type": "string"
+                                },
+                                "gateway": {
+                                    "type": "string"
+                                }
+                            }
+                        }
                     }
                 }
             }
