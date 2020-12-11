@@ -5,7 +5,7 @@
         "images": {
             "type": "array",
             "items": {
-                "$ref": "image.json"
+                "$ref": "image_summary.json"
             }
         }
     }

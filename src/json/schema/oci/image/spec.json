@@ -33,8 +33,7 @@
           }
         },
         "Entrypoint": {
-          "oneOf": [
-            {
+          "oneOf": [{
               "type": "array",
               "items": {
                 "type": "string"
@@ -46,8 +45,7 @@
           ]
         },
         "Cmd": {
-          "oneOf": [
-            {
+          "oneOf": [{
               "type": "array",
               "items": {
                 "type": "string"
@@ -59,8 +57,7 @@
           ]
         },
         "Volumes": {
-          "oneOf": [
-            {
+          "oneOf": [{
               "$ref": "../../defs.json#/definitions/mapStringObject"
             },
             {
@@ -72,8 +69,7 @@
           "type": "string"
         },
         "Labels": {
-          "oneOf": [
-            {
+          "oneOf": [{
               "$ref": "../../defs.json#/definitions/mapStringString"
             },
             {
@@ -83,6 +79,9 @@
         },
         "StopSignal": {
           "type": "string"
+        },
+        "Healthcheck": {
+          "$ref": "../../defs.json#/definitions/HealthCheck"
         }
       }
     },

@@ -17,6 +17,9 @@
     "image": {
       "type": "string"
     },
+    "imageRef": {
+      "type": "string"
+    },
     "command": {
       "type": "string"
     },

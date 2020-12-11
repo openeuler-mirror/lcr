@@ -53,6 +53,9 @@
         "Image": {
             "type": "string"
         },
+        "ImageRef": {
+            "type": "string"
+        },
         "Volumes": {
             "$ref": "../defs.json#/definitions/mapStringObject"
         },
@@ -92,7 +95,7 @@
         "Healthcheck": {
             "$ref": "../defs.json#/definitions/HealthCheck"
         },
-    	"SystemContainer": {
+        "SystemContainer": {
             "type": "boolean"
         },
         "NsChangeOpt": {
@@ -105,6 +108,5 @@
             }
         }
     },
-    "required": [
-    ]
+    "required": []
 }

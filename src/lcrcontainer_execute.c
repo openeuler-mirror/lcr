@@ -461,150 +461,45 @@ out_free:
     return bret;
 }
 
-static inline bool is_blk_stat_read(const char *value)
-{
-    return strcmp(value, "Read") == 0;
-}
-
-static inline bool is_blk_stat_write(const char *value)
-{
-    return strcmp(value, "Write") == 0;
-}
-
-static inline bool is_blk_stat_total(const char *value)
-{
-    return strcmp(value, "Total") == 0;
-}
-
-static void stat_get_blk_stats(struct lxc_container *c, const char *item, struct blkio_stats *stats)
-{
-    char buf[BUFSIZE] = {0};
-    int i = 0;
-    size_t len = 0;
-    char **lines = NULL;
-    char **cols = NULL;
-
-    len = (size_t)c->get_cgroup_item(c, item, buf, sizeof(buf));
-    if (len == 0 || len >= sizeof(buf)) {
-        DEBUG("unable to read cgroup item %s", item);
-        return;
-    }
-
-    lines = lcr_string_split_and_trim(buf, '\n');
-    if (lines == NULL) {
-        return;
-    }
-
-    (void)memset(stats, 0, sizeof(struct blkio_stats));
-
-    for (i = 0; lines[i]; i++) {
-        cols = lcr_string_split_and_trim(lines[i], ' ');
-        if (cols == NULL) {
-            goto err_out;
-        }
-        if (is_blk_stat_read(cols[1])) {
-            stats->read += strtoull(cols[2], NULL, 0);
-        } else if (is_blk_stat_write(cols[1])) {
-            stats->write += strtoull(cols[2], NULL, 0);
-        }
-        if (is_blk_stat_total(cols[0])) {
-            stats->total = strtoull(cols[1], NULL, 0);
-        }
-
-        lcr_free_array((void **)cols);
-    }
-err_out:
-    lcr_free_array((void **)lines);
-    return;
-}
-
-static uint64_t stat_match_get_ull(struct lxc_container *c, const char *item, const char *match, int column)
-{
-    char buf[BUFSIZE] = {0};
-    int i = 0;
-    int j = 0;
-    int len = 0;
-    uint64_t val = 0;
-    char **lines = NULL;
-    char **cols = NULL;
-    size_t matchlen = 0;
-
-    len = c->get_cgroup_item(c, item, buf, sizeof(buf));
-    if (len <= 0) {
-        DEBUG("unable to read cgroup item %s", item);
-        goto err_out;
-    }
-
-    lines = lcr_string_split_and_trim(buf, '\n');
-    if (lines == NULL) {
-        goto err_out;
-    }
-
-    matchlen = strlen(match);
-    for (i = 0; lines[i]; i++) {
-        if (strncmp(lines[i], match, matchlen) != 0) {
-            continue;
-        }
-
-        cols = lcr_string_split_and_trim(lines[i], ' ');
-        if (cols == NULL) {
-            goto err1;
-        }
-        for (j = 0; cols[j]; j++) {
-            if (j == column) {
-                val = strtoull(cols[j], NULL, 0);
-                break;
-            }
-        }
-        lcr_free_array((void **)cols);
-        break;
-    }
-err1:
-    lcr_free_array((void **)lines);
-err_out:
-    return val;
-}
-
 void do_lcr_state(struct lxc_container *c, struct lcr_container_state *lcs)
 {
-    const char *state = NULL;
+    struct lxc_container_metrics lxc_metrics = { 0 };
 
     clear_error_message(&g_lcr_error);
     (void)memset(lcs, 0x00, sizeof(struct lcr_container_state));
 
     lcs->name = lcr_util_strdup_s(c->name);
+    lcs->init = -1;// init to -1
 
-    state = c->state(c);
-    lcs->state = state ? lcr_util_strdup_s(state) : lcr_util_strdup_s("-");
-
-    if (c->is_running(c)) {
-        lcs->init = c->init_pid(c);
-    } else {
-        lcs->init = -1;
+    if (!c->get_container_metrics(c, &lxc_metrics)) {
+        DEBUG("Failed to get container %s metrics", c->name);
+        return;
     }
 
-    lcs->cpu_use_nanos = stat_get_ull(c, "cpuacct.usage");
-    lcs->pids_current = stat_get_ull(c, "pids.current");
+    lcs->state = lcr_util_strdup_s(lxc_metrics.state);
+    lcs->init = lxc_metrics.init;
 
-    lcs->cpu_use_user = stat_match_get_ull(c, "cpuacct.stat", "user", 1);
-    lcs->cpu_use_sys = stat_match_get_ull(c, "cpuacct.stat", "system", 1);
+    lcs->cpu_use_nanos = lxc_metrics.cpu_use_nanos;
+    lcs->pids_current = lxc_metrics.pids_current;
 
-    // Try to read CFQ stats available on all CFQ enabled kernels first
-    stat_get_blk_stats(c, "blkio.io_serviced_recursive", &lcs->io_serviced);
-    if (lcs->io_serviced.read == 0 && lcs->io_serviced.write == 0 && lcs->io_serviced.total == 0) {
-        stat_get_blk_stats(c, "blkio.throttle.io_service_bytes", &lcs->io_service_bytes);
-        stat_get_blk_stats(c, "blkio.throttle.io_serviced", &lcs->io_serviced);
-    } else {
-        stat_get_blk_stats(c, "blkio.io_service_bytes_recursive", &lcs->io_service_bytes);
-    }
+    lcs->cpu_use_user = lxc_metrics.cpu_use_user;
+    lcs->cpu_use_sys = lxc_metrics.cpu_use_sys;
 
-    lcs->mem_used = stat_get_ull(c, "memory.usage_in_bytes");
-    lcs->mem_limit = stat_get_ull(c, "memory.limit_in_bytes");
-    lcs->kmem_used = stat_get_ull(c, "memory.kmem.usage_in_bytes");
-    lcs->kmem_limit = stat_get_ull(c, "memory.kmem.limit_in_bytes");
+    lcs->io_serviced.read = lxc_metrics.io_serviced.read;
+    lcs->io_serviced.write = lxc_metrics.io_serviced.write;
+    lcs->io_serviced.total = lxc_metrics.io_serviced.total;
 
-    lcs->cache = stat_match_get_ull(c, "memory.stat", "cache", 1);
-    lcs->cache_total = stat_match_get_ull(c, "memory.stat", "total_cache", 1);
+    lcs->io_service_bytes.read = lxc_metrics.io_service_bytes.read;
+    lcs->io_service_bytes.write = lxc_metrics.io_service_bytes.write;
+    lcs->io_service_bytes.total = lxc_metrics.io_service_bytes.total;
+
+    lcs->mem_used = lxc_metrics.mem_used;
+    lcs->mem_limit = lxc_metrics.mem_limit;
+    lcs->kmem_used = lxc_metrics.kmem_used;
+    lcs->kmem_limit = lxc_metrics.kmem_limit;
+
+    lcs->cache = lxc_metrics.cache;
+    lcs->cache_total = lxc_metrics.cache_total;
 }
 
 #define ExitSignalOffset 128
