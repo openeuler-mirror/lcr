@@ -19,12 +19,6 @@
                 "Created": {
                     "type": "string"
                 },
-                "HasBeenManuallyStopped": {
-                    "type": "boolean"
-                },
-                "HasBeenStartedBefore": {
-                    "type": "boolean"
-                },
                 "Image": {
                     "type": "string"
                 },
@@ -92,9 +86,6 @@
                 "Name": {
                     "type": "string"
                 },
-                "RestartCount": {
-                    "type": "integer"
-                },
                 "id": {
                     "type": "string"
                 },
@@ -121,62 +112,12 @@
             "type": "string"
         },
         "State": {
-            "properties": {
-                "Dead": {
-                    "type": "boolean"
-                },
-                "Error": {
-                    "type": "string"
-                },
-                "ExitCode": {
-                    "type": "integer"
-                },
-                "FinishedAt": {
-                    "type": "string"
-                },
-                "OOMKilled": {
-                    "type": "boolean"
-                },
-                "Paused": {
-                    "type": "boolean"
-                },
-                "Pid": {
-                    "type": "integer"
-                },
-                "PPid": {
-                    "type": "integer"
-                },
-                "StartTime": {
-                    "type": "uint64"
-                },
-                "PStartTime": {
-                    "type": "uint64"
-                },
-                "RemovalInprogress": {
-                    "type": "boolean"
-                },
-                "Restarting": {
-                    "type": "boolean"
-                },
-                "Running": {
-                    "type": "boolean"
-                },
-                "StartedAt": {
-                    "type": "string"
-                },
-                "Starting": {
-                    "type": "boolean"
-                },
-                "Health": {
-                    "$ref": "../defs.json#/definitions/Health"
-                }
-            },
-            "type": "object"
+            "$ref": "state.json"
         }
     },
     "required": [
-        "CommonConfig",
-        "State"
+        "State",
+        "CommonConfig"
     ],
     "type": "object"
 }
