@@ -1,0 +1,60 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "type": "object",
+    "properties": {
+        "Dead": {
+            "type": "boolean"
+        },
+        "Error": {
+            "type": "string"
+        },
+        "ExitCode": {
+            "type": "integer"
+        },
+        "FinishedAt": {
+            "type": "string"
+        },
+        "OOMKilled": {
+            "type": "boolean"
+        },
+        "Paused": {
+            "type": "boolean"
+        },
+        "Pid": {
+            "type": "integer"
+        },
+        "PPid": {
+            "type": "integer"
+        },
+        "StartTime": {
+            "type": "uint64"
+        },
+        "PStartTime": {
+            "type": "uint64"
+        },
+        "RemovalInprogress": {
+            "type": "boolean"
+        },
+        "Restarting": {
+            "type": "boolean"
+        },
+        "Running": {
+            "type": "boolean"
+        },
+        "StartedAt": {
+            "type": "string"
+        },
+        "Starting": {
+            "type": "boolean"
+        },
+        "RestartCount": {
+            "type": "integer"
+        },
+        "HasBeenManuallyStopped": {
+            "type": "boolean"
+        },
+        "Health": {
+            "$ref": "../defs.json#/definitions/Health"
+        }
+    }
+}
