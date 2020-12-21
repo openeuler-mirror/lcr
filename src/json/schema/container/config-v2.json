@@ -108,6 +108,37 @@
                 },
                 "NoNewPrivileges": {
                     "type": "boolean"
+                },
+                "NetworkSettings": {
+                    "type": "object",
+                    "patternProperties": {
+                        ".{1,}": {
+                            "type": "object",
+                            "properties": {
+                                "Type": {
+                                    "type": "string"
+                                },
+                                "NetworkName": {
+                                    "type": "string"
+                                },
+                                "Bridge": {
+                                    "type": "string"
+                                },
+                                "Gateway": {
+                                    "type": "string"
+                                },
+                                "IPAddress": {
+                                    "type": "string"
+                                },
+                                "MACAddress": {
+                                    "type": "boolean"
+                                },
+                                "IfName": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
                 }
             },
             "required": [
