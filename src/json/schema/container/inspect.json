@@ -178,15 +178,7 @@
             }
         },
         "NetworkSettings": {
-            "type": "object",
-            "properties": {
-                "IPAddress": {
-                    "type": "string"
-                },
-                "SandboxKey":{
-                    "type": "string"
-                }
-            }
+            "$ref": "network-settings.json"
         }
     },
     "required": [
