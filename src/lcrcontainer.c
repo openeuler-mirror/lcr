@@ -179,26 +179,6 @@ int lcr_list_all_containers(const char *lcrpath, struct lcr_container_info **inf
     return (int)info_size;
 }
 
-static inline bool is_invalid_container(const struct lxc_container *c)
-{
-    return c == NULL || c->name == NULL || c->config_path == NULL;
-}
-
-static inline bool is_annotation_key_net_mode(const char *key)
-{
-    return strcmp(key, "host.network.mode") == 0;
-}
-
-static inline bool is_annotation_value_host(const char *value)
-{
-    return strcmp(value, "host") == 0;
-}
-
-static inline bool is_root(const char *path)
-{
-    return strcmp(path, "/") == 0;
-}
-
 static int create_partial(const struct lxc_container *c)
 {
     size_t len = 0;
