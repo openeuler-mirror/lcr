@@ -17,6 +17,15 @@
         "NetworkMode": {
             "type": "string"
         },
+        "BridgeNetwork": {
+            "$ref": "defs.json#/definitions/ArrayOfStrings"
+        },
+        "IP": {
+            "type": "string"
+        },
+        "MacAddress": {
+            "type": "string"
+        },
         "GroupAdd": {
             "$ref": "defs.json#/definitions/ArrayOfStrings"
         },
