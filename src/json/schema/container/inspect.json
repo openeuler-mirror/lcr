@@ -178,12 +178,7 @@
             }
         },
         "NetworkSettings": {
-            "type": "object",
-            "properties": {
-                "IPAddress": {
-                    "type": "string"
-                }
-            }
+            "$ref": "network-settings.json"
         }
     },
     "required": [
