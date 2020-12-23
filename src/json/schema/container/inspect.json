@@ -171,6 +171,9 @@
                 },
                 "ImageRef": {
                     "type": "string"
+                },
+                "StopSignal": {
+                    "type": "string"
                 }
             }
         },
