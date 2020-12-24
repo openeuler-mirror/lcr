@@ -22,6 +22,9 @@
     },
     "VolumeOptions": {
         "$ref": "volume/options.json"
+    },
+    "TmpfsOptions": {
+        "$ref": "tmpfs-options.json"
     }
   }
 }
