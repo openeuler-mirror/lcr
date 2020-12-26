@@ -360,6 +360,19 @@
                 }
             }
         },
+        "mapStringObjectPortBindings": {
+            "type": "object",
+            "patternProperties": {
+                ".{1,}": {
+                    "type": "object",
+                    "properties": {
+                        "Element": {
+                            "$ref": "network/port_binding.json"
+                        }
+                    }
+                }
+            }
+        },
         "digest": {
             "type": "string",
             "pattern": "^[a-z0-9]+(?:[+._-][a-z0-9]+)*:[a-zA-Z0-9=_-]+$"

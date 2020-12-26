@@ -17,6 +17,9 @@
         "NetworkMode": {
             "type": "string"
         },
+        "PortBindings": {
+            "$ref": "defs.json#/definitions/mapStringObjectPortBindings"
+        },
         "BridgeNetwork": {
             "$ref": "defs.json#/definitions/ArrayOfStrings"
         },
