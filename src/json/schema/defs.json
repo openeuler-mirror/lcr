@@ -337,6 +337,9 @@
                         "MacAddress": {
                             "type": "string"
                         },
+                        "IFName": {
+                            "type": "string"
+                        },
                         "DriverOpts": {
                             "$ref": "#/definitions/mapStringString"
                         }
