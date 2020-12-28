@@ -53,6 +53,9 @@
         "ReadonlyRootfs": {
             "type": "boolean"
         },
+        "Tmpfs": {
+            "$ref": "defs.json#/definitions/mapStringString"
+        },
         "UTSMode": {
             "type": "string"
         },
