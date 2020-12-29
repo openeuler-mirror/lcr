@@ -1,3 +1,22 @@
+2020-12-29 lifeng release 2.0.5
+    - !101 adaptor to clang compiler From: @duguhaotian Reviewed-by: @lifeng2221dd1 Signed-off-by: @lifeng2221dd1
+    - !97 support mount tmpfs to container From: @wangfengtu Reviewed-by: @lifeng2221dd1 Signed-off-by: @lifeng2221dd1
+    - !95 inspect: add stop signal to inspect json From: @lifeng2221dd1 Reviewed-by: @duguhaotian Signed-off-by: @duguhaotian
+    - !92 lcr: split state json From: @lifeng2221dd1 Reviewed-by: @duguhaotian Signed-off-by: @duguhaotian
+    - !91 lcr: adjust json to  low cpu work From: @lifeng2221dd1 Reviewed-by: @duguhaotian Signed-off-by: @duguhaotian
+    - !89 add volumes argument when remove container From: @wangfengtu Reviewed-by: @lifeng2221dd1 Signed-off-by: @lifeng2221dd1
+    - !87 add run count of fuzz test From: @duguhaotian Reviewed-by: @lifeng2221dd1 Signed-off-by: @lifeng2221dd1
+    - !82 add related of isulad From: @duguhaotian Reviewed-by: @lifeng2221dd1 Signed-off-by: @lifeng2221dd1
+    - !81 support default container log options From: @duguhaotian Reviewed-by: @lifeng2221dd1 Signed-off-by: @lifeng2221dd1
+    - !80 rootfs: fix snprintf error when with rootfs options From: @lifeng2221dd1 Reviewed-by: @duguhaotian Signed-off-by: @duguhaotian
+    - !79 fix ctest error when use make From: @duguhaotian Reviewed-by: @lifeng2221dd1 Signed-off-by: @lifeng2221dd1
+    - !78 remove extension configs From: @duguhaotian Reviewed-by: @lifeng2221dd1 Signed-off-by: @lifeng2221dd1
+    - !76 support local volume From: @wangfengtu Reviewed-by: @lifeng2221dd1 Signed-off-by: @lifeng2221dd1
+
+    dev stats:
+      - 32 files changed, 447 insertions(+), 385 deletions(-)
+      - contributors: haozi007, lifeng68, WangFengTu
+
 2020-10-14 lifeng release 2.0.4
     - !73 lcr: add libisula_libutils.so isula group From: @gaohuatao Reviewed-by: @jingxiaolu,@lifeng2221dd1 Signed-off-by: @lifeng2221dd1
     - !72 device_cgroup_rule: add support device cgroup rule Merge pull request !72 from lifeng_isula/blk
