@@ -23,9 +23,6 @@
 enable_testing()
 find_package(GTest REQUIRED)
 
-set(CMAKE_C_COMPILER "g++" CACHE PATH "c compiler")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
-
 configure_file("data/ocihook.json" ${CMAKE_BINARY_DIR}/tests/ocihook.json COPYONLY)
 
 macro(_DEFINE_NEW_TEST)
