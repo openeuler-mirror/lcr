@@ -17,6 +17,9 @@
         "Ports": {
             "$ref": "../defs.json#/definitions/mapStringObjectPortBindings"
         },
+        "CNIPorts": {
+            "$ref": "../cni/anno_port_mappings.json"
+        },
         "SandboxKey": {
             "type": "string"
         },
