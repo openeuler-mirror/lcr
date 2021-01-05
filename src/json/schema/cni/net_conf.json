@@ -78,8 +78,40 @@
                         "$ref": "inner_port_mapping.json"
                     }
                 },
+                "ipRanges": {
+                    "type": "array",
+                    "items": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "ip_ranges.json"
+                        }
+                    }
+                },
                 "bandwidth": {
                     "$ref": "bandwidth_entry.json"
+                },
+                "dns": {
+                    "type": "object",
+                    "properties": {
+                        "searches": {
+                            "$ref": "../defs.json#/definitions/ArrayOfStrings"
+                        },
+                        "servers": {
+                            "$ref": "../defs.json#/definitions/ArrayOfStrings"
+                        }
+                    }
+                },
+                "ips": {
+                    "$ref": "../defs.json#/definitions/ArrayOfStrings"
+                },
+                "mac": {
+                    "type": "string"
+                },
+                "infinibandGUID": {
+                    "type": "string"
+                },
+                "deviceID": {
+                    "type": "string"
                 }
             }
         },

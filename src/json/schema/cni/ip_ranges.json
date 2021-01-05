@@ -1,0 +1,18 @@
+{
+	"$schema": "http://json-schema.org/draft-04/schema#",
+	"type": "object",
+	"properties": {
+		"subnet": {
+			"type": "string"
+		},
+		"rangeStart": {
+			"type": "string"
+		},
+		"rangeEnd": {
+			"type": "string"
+		},
+		"gateway": {
+			"type": "string"
+		}
+	}
+}
