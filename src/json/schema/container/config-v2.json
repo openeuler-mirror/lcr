@@ -108,9 +108,6 @@
                 },
                 "NoNewPrivileges": {
                     "type": "boolean"
-                },
-                "NetworkSettings": {
-                    "$ref": "network-settings.json"
                 }
             },
             "required": [
