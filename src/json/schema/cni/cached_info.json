@@ -17,6 +17,9 @@
     "networkName": {
       "type": "string"
     },
+    "cni_args": {
+      "$ref": "../defs.json#/definitions/mapStringString"
+    },
     "args": {
       "$ref": "net_args.json"
     },
