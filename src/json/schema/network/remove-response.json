@@ -5,9 +5,6 @@
 		"name": {
 			"type": "string"
 		},
-		"containers": {
-			"type": "ArrayOfStrings"
-		},
 		"cc": {
 			"type": "uint32"
 		},
