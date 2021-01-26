@@ -63,6 +63,9 @@
         "dns": {
             "$ref": "network/dns.json"
         },
+        "domainName": {
+            "type": "string"
+        },
         "args": {
             "$ref": "net_args.json"
         },
