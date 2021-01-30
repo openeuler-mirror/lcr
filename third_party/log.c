@@ -79,11 +79,9 @@ void isula_libutils_default_log_config(const char *name, struct isula_libutils_l
 {
     log->name = name;
     log->file = NULL;
-    // use to disable log
-    log->priority = "FATAL";
-    if (!log->quiet) {
-        log->driver = ISULA_LOG_DRIVER_STDOUT;
-    }
+    log->priority = "DEBUG";
+    log->quiet = true;
+    log->driver = ISULA_LOG_DRIVER_STDOUT;
 }
 
 void isula_libutils_set_log_prefix(const char *prefix)
@@ -103,9 +101,6 @@ void isula_libutils_free_log_prefix(void)
 /*---------------------------------------------------------------------------*/
 static int log_append_stderr(const struct lxc_log_appender *appender, struct lxc_log_event *event)
 {
-	if (event->priority < LXC_LOG_LEVEL_ERROR)
-		return 0;
-
     if (event->locinfo->file == NULL) {
         return 0;
     }
@@ -410,6 +405,11 @@ int isula_libutils_log_enable(const struct isula_libutils_log_config *log)
 		return 0;
 	}
 
+    if (log->quiet) {
+        g_lxc_log_category_lxc.priority = LXC_LOG_LEVEL_FATAL;
+        return 0;
+    }
+
     if (!choice_log_driver(log)) {
         COMMAND_ERROR("Invalid log config of driver");
         return -1;
@@ -421,7 +421,6 @@ int isula_libutils_log_enable(const struct isula_libutils_log_config *log)
 	g_lxc_log_category_lxc.priority = lxc_priority;
 
     isula_libutils_set_log_prefix(log->prefix != NULL ? log->prefix : log->name);
-
 
 	return 0;
 }
