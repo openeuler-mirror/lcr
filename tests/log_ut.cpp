@@ -40,18 +40,18 @@ TEST(log_testcases, test_isula_libutils_default_log_config)
     isula_libutils_default_log_config(name, &tconf);
 
     ASSERT_EQ(tconf.file, nullptr);
-    ASSERT_EQ(tconf.driver, nullptr);
+    EXPECT_STREQ(tconf.driver, ISULA_LOG_DRIVER_STDOUT);
     EXPECT_STREQ(name, tconf.name);
-    EXPECT_STREQ("FATAL", tconf.priority);
+    EXPECT_STREQ("DEBUG", tconf.priority);
 
     // not quiet configs check
     tconf.quiet = false;
     isula_libutils_default_log_config(name, &tconf);
 
     ASSERT_EQ(tconf.file, nullptr);
-    ASSERT_NE(tconf.driver, nullptr);
+    EXPECT_STREQ(tconf.driver, ISULA_LOG_DRIVER_STDOUT);
     EXPECT_STREQ(name, tconf.name);
-    EXPECT_STREQ(ISULA_LOG_DRIVER_STDOUT, tconf.driver);
+    EXPECT_STREQ("DEBUG", tconf.priority);
 }
 
 static void check_log(int fd, bool exist, bool subcheck, const char *target)
