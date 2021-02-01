@@ -98,6 +98,7 @@ struct lcr_container_state {
     /* Cache usage */
     uint64_t cache;
     uint64_t cache_total;
+    uint64_t inactive_file_total;
 };
 
 typedef enum {

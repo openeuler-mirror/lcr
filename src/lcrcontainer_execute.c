@@ -500,6 +500,7 @@ void do_lcr_state(struct lxc_container *c, struct lcr_container_state *lcs)
 
     lcs->cache = lxc_metrics.cache;
     lcs->cache_total = lxc_metrics.cache_total;
+    lcs->inactive_file_total = lxc_metrics.inactive_file_total;
 }
 
 #define ExitSignalOffset 128

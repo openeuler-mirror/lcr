@@ -55,6 +55,9 @@
     },
     "cache_total": {
       "type": "uint64"
+    },
+    "inactive_file_total": {
+      "type": "uint64"
     }
   }
 }
