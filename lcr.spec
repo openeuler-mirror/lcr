@@ -1,5 +1,5 @@
 %global _version 2.0.5
-%global _release 20201230.150203.git5e91f13f
+%global _release 20210202.093043.git36603cff
 %global _inner_name isula_libutils
 
 Name:      lcr
@@ -11,6 +11,9 @@ Summary:   Lightweight Container Runtime
 Group:     Applications/System
 License:   LGPLv2.1+
 BuildRoot: %{_tmppath}/lcr-%{version}
+
+Patch1:	0001-support-quiet-of-log-config.patch
+Patch2:	0002-lcr-add-inactive-file-total-metric.patch
 
 BuildRequires: cmake
 BuildRequires: lxc
@@ -99,6 +102,11 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Tue Feb 2 2021 lifeng <lifeng68@huawei.com> - 2.0.5-20210202.093043.git36603cff
+- Type:sync with upstream
+- ID:NA
+- SUG:NA
+
 * Wed Dec 30 2020 lifeng <lifeng68@huawei.com> - 2.0.5-20201230.150203.git5e91f13f
 - Type:update to v2.0.5
 - ID:NA
