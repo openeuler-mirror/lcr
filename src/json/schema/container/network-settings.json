@@ -47,6 +47,9 @@
         "MacAddress": {
             "type": "string"
         },
+        "Activation": {
+            "type": "boolean"
+        },
         "Networks": {
             "$ref": "../defs.json#/definitions/mapStringObjectNetworks"
         }
