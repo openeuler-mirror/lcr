@@ -40,6 +40,9 @@
 		},
 		"user": {
 			"type": "string"
+		},
+		"workdir": {
+			"type": "string"
 		}
 	}
 }
