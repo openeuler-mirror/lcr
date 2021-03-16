@@ -54,7 +54,7 @@ the %{name}-libs package contains libraries for running iSula applications.
 %build
 mkdir -p build
 cd build
-%cmake -DDEBUG=ON -DENABLE_UT=ON -DLIB_INSTALL_DIR=%{_libdir} ../
+%cmake -DDEBUG=ON -DENABLE_UT=ON -DCMAKE_SKIP_RPATH=TRUE -DLIB_INSTALL_DIR=%{_libdir} ../
 %make_build
 
 %install
