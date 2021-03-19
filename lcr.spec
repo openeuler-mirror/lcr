@@ -1,5 +1,5 @@
 %global _version 2.0.5
-%global _release 20210202.093043.git36603cff
+%global _release 20210319.090408.git6ac27845
 %global _inner_name isula_libutils
 
 Name:      lcr
@@ -57,7 +57,7 @@ the %{name}-libs package contains libraries for running iSula applications.
 %build
 mkdir -p build
 cd build
-%cmake -DDEBUG=ON -DLIB_INSTALL_DIR=%{_libdir} ../
+%cmake -DDEBUG=ON -DCMAKE_SKIP_RPATH=TRUE -DLIB_INSTALL_DIR=%{_libdir} ../
 %make_build
 
 %install
@@ -102,6 +102,12 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Fri Mar 19 2021 wujing <wujing50@huawei.com> - 2.0.5-20210319.090408.git6ac27845
+- Type:enhancement
+- ID:NA
+- SUG:NA
+- DESC: add secure compile options
+
 * Tue Feb 2 2021 lifeng <lifeng68@huawei.com> - 2.0.5-20210202.093043.git36603cff
 - Type:sync with upstream
 - ID:NA
