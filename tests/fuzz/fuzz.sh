@@ -23,7 +23,7 @@
 #!/bin/bash
 
 LIB_FUZZING_ENGINE="/lib64/libFuzzer.a"
-FUZZ_OPTION="corpus -dict=./dict/log_fuzz.dict -runs=10000000 -max_total_time=3600"
+FUZZ_OPTION="-dict=./dict/log_fuzz.dict -runs=10000000 -max_total_time=3600"
 
 if [ ! -f "$LIB_FUZZING_ENGINE" ];then
     echo "$LIB_FUZZING_ENGINE not exist, pls check"
