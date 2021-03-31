@@ -295,6 +295,7 @@ struct lcr_exec_request {
 
     bool tty;
     bool open_stdin;
+    char *workdir;
 };
 /*
 * Execute process inside a container

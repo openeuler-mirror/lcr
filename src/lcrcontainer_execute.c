@@ -536,6 +536,9 @@ static void execute_lxc_attach(const char *name, const char *path, const struct 
     add_array_elem(params, args_len, &i, path);
     add_array_elem(params, args_len, &i, "--clear-env");
     add_array_elem(params, args_len, &i, "--quiet");
+    if (request->workdir != NULL) {
+        add_array_kv(params, args_len, &i, "--workdir", request->workdir);
+    }
     add_array_kv(params, args_len, &i, "--logfile", request->logpath);
     add_array_kv(params, args_len, &i, "-l", request->loglevel);
     add_array_kv(params, args_len, &i, "--in-fifo", request->console_fifos[0]);
