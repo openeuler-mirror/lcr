@@ -43,11 +43,47 @@
 #define SUB_GID_PATH "/etc/subgid"
 #define ID_MAP_LEN 100
 
-/* files limit checker */
-static int files_limit_checker(const char *value)
+/* files limit checker for cgroup v1 */
+static int files_limit_checker_v1(const char *value)
 {
     long long limit = 0;
     int ret = 0;
+    int cgroup_version = 0;
+
+    cgroup_version = get_cgroup_version();
+    if (cgroup_version < 0) {
+        return -1;
+    }
+
+    // If cgroup version not match, skip the item
+    if (cgroup_version != CGROUP_VERSION_1) {
+        return 1;
+    }
+
+    ret = lcr_util_safe_llong(value, &limit);
+    if (ret) {
+        ret = -1;
+    }
+
+    return ret;
+}
+
+/* files limit checker for cgroup v2 */
+static int files_limit_checker_v2(const char *value)
+{
+    long long limit = 0;
+    int ret = 0;
+    int cgroup_version = 0;
+
+    cgroup_version = get_cgroup_version();
+    if (cgroup_version < 0) {
+        return -1;
+    }
+
+    // If cgroup version not match, skip the item
+    if (cgroup_version != CGROUP_VERSION_2) {
+        return 1;
+    }
 
     ret = lcr_util_safe_llong(value, &limit);
     if (ret) {
@@ -217,7 +253,12 @@ static const lcr_annotation_item_t g_require_annotations[] = {
     {
         "files.limit",
         "lxc.cgroup.files.limit",
-        files_limit_checker,
+        files_limit_checker_v1,
+    },
+    {
+        "files.limit",
+        "lxc.cgroup2.files.limit",
+        files_limit_checker_v2,
     },
     {
         "log.console.file",
@@ -1317,8 +1358,20 @@ static int trans_conf_uint64(struct lcr_list *conf, const char *lxc_key, uint64_
     return 0;
 }
 
-/* trans resources mem swap */
-static int trans_resources_mem_swap(const defs_resources *res, struct lcr_list *conf)
+static int trans_conf_string(struct lcr_list *conf, const char *lxc_key, const char *val)
+{
+    struct lcr_list *node = NULL;
+
+    node = create_lcr_list_node(lxc_key, val);
+    if (node == NULL) {
+        return -1;
+    }
+    lcr_list_add_tail(conf, node);
+    return 0;
+}
+
+/* trans resources mem swap of cgroup v1 */
+static int trans_resources_mem_swap_v1(const defs_resources *res, struct lcr_list *conf)
 {
     int ret = -1;
     int nret;
@@ -1350,7 +1403,7 @@ out:
     return ret;
 }
 
-static int trans_resources_mem_limit(const defs_resources *res, struct lcr_list *conf)
+static int trans_resources_mem_limit_v1(const defs_resources *res, struct lcr_list *conf)
 {
     if (res->memory->limit != INVALID_INT) {
         /* set limit of memory usage */
@@ -1362,8 +1415,8 @@ static int trans_resources_mem_limit(const defs_resources *res, struct lcr_list 
     return 0;
 }
 
-/* trans resources mem kernel */
-static int trans_resources_mem_kernel(const defs_resources *res, struct lcr_list *conf)
+/* trans resources mem kernel of cgroup v1 */
+static int trans_resources_mem_kernel_v1(const defs_resources *res, struct lcr_list *conf)
 {
     int ret = -1;
     int nret;
@@ -1387,7 +1440,7 @@ out:
     return ret;
 }
 
-static int trans_resources_mem_disable_oom(const defs_resources *res, struct lcr_list *conf)
+static int trans_resources_mem_disable_oom_v1(const defs_resources *res, struct lcr_list *conf)
 {
     struct lcr_list *node = NULL;
     if (res->memory->disable_oom_killer) {
@@ -1400,8 +1453,8 @@ static int trans_resources_mem_disable_oom(const defs_resources *res, struct lcr
     return 0;
 }
 
-/* trans resources memory */
-static int trans_resources_memory(const defs_resources *res, struct lcr_list *conf)
+/* trans resources memory of cgroup v1 */
+static int trans_resources_memory_v1(const defs_resources *res, struct lcr_list *conf)
 {
     int ret = -1;
 
@@ -1409,19 +1462,19 @@ static int trans_resources_memory(const defs_resources *res, struct lcr_list *co
         return 0;
     }
 
-    if (trans_resources_mem_limit(res, conf) != 0) {
+    if (trans_resources_mem_limit_v1(res, conf) != 0) {
         goto out;
     }
 
-    if (trans_resources_mem_swap(res, conf) != 0) {
+    if (trans_resources_mem_swap_v1(res, conf) != 0) {
         goto out;
     }
 
-    if (trans_resources_mem_kernel(res, conf) != 0) {
+    if (trans_resources_mem_kernel_v1(res, conf) != 0) {
         goto out;
     }
 
-    if (trans_resources_mem_disable_oom(res, conf) != 0) {
+    if (trans_resources_mem_disable_oom_v1(res, conf) != 0) {
         goto out;
     }
     ret = 0;
@@ -1429,8 +1482,24 @@ out:
     return ret;
 }
 
-static int trans_resources_devices_node(const defs_device_cgroup *lrd, struct lcr_list *conf,
-                                        const char *buf_value)
+static int trans_conf_int64_with_max(struct lcr_list *conf, const char *lxc_key, int64_t val)
+{
+    int ret = 0;
+
+    if (val == -1) {
+        ret = trans_conf_string(conf, lxc_key, "max");
+    } else {
+        ret = trans_conf_int64(conf, lxc_key, val);
+    }
+    if (ret < 0) {
+        return -1;
+    }
+
+    return ret;
+}
+
+static int trans_resources_devices_node_v1(const defs_device_cgroup *lrd, struct lcr_list *conf,
+                                           const char *buf_value)
 {
     struct lcr_list *node = NULL;
     int ret = -1;
@@ -1490,8 +1559,8 @@ static int trans_resources_devices_ret(const defs_device_cgroup *lrd, char *buf_
     return ret;
 }
 
-/* trans resources devices */
-static int trans_resources_devices(const defs_resources *res, struct lcr_list *conf)
+/* trans resources devices for cgroup v1 */
+static int trans_resources_devices_v1(const defs_resources *res, struct lcr_list *conf)
 {
     int ret = -1;
     size_t i = 0;
@@ -1503,7 +1572,7 @@ static int trans_resources_devices(const defs_resources *res, struct lcr_list *c
             goto out;
         }
 
-        if (trans_resources_devices_node(lrd, conf, buf_value) < 0) {
+        if (trans_resources_devices_node_v1(lrd, conf, buf_value) < 0) {
             goto out;
         }
     }
@@ -1589,8 +1658,8 @@ static int trans_resources_cpu_shares(const defs_resources *res, struct lcr_list
     return 0;
 }
 
-/* trans resources cpu */
-static int trans_resources_cpu(const defs_resources *res, struct lcr_list *conf)
+/* trans resources cpu of cgroup v1 */
+static int trans_resources_cpu_v1(const defs_resources *res, struct lcr_list *conf)
 {
     int ret = -1;
 
@@ -1620,8 +1689,8 @@ out:
     return ret;
 }
 
-/* trans resources blkio weight */
-static int trans_blkio_weight(const defs_resources_block_io *block_io, struct lcr_list *conf)
+/* trans resources blkio weight of cgroup v1 */
+static int trans_blkio_weight_v1(const defs_resources_block_io *block_io, struct lcr_list *conf)
 {
     int ret = -1;
 
@@ -1641,8 +1710,8 @@ out:
     return ret;
 }
 
-/* trans resources blkio wdevice */
-static int trans_blkio_wdevice(const defs_resources_block_io *block_io, struct lcr_list *conf)
+/* trans resources blkio wdevice of cgroup v1 */
+static int trans_blkio_wdevice_v1(const defs_resources_block_io *block_io, struct lcr_list *conf)
 {
     struct lcr_list *node = NULL;
     int ret = -1;
@@ -1684,9 +1753,9 @@ out:
     return ret;
 }
 
-/* trans resources blkio throttle */
-static int trans_blkio_throttle(defs_block_io_device_throttle **throttle, size_t len,
-                                const char *lxc_key, struct lcr_list *conf)
+/* trans resources blkio throttle of cgroup v1 */
+static int trans_blkio_throttle_v1(defs_block_io_device_throttle **throttle, size_t len,
+                                   const char *lxc_key, struct lcr_list *conf)
 {
     struct lcr_list *node = NULL;
     int ret = -1;
@@ -1718,8 +1787,8 @@ out:
     return ret;
 }
 
-/* trans resources blkio */
-static int trans_resources_blkio(const defs_resources_block_io *block_io, struct lcr_list *conf)
+/* trans resources blkio of cgroup v1 */
+static int trans_resources_blkio_v1(const defs_resources_block_io *block_io, struct lcr_list *conf)
 {
     int ret = -1;
 
@@ -1727,31 +1796,31 @@ static int trans_resources_blkio(const defs_resources_block_io *block_io, struct
         return 0;
     }
 
-    if (trans_blkio_weight(block_io, conf)) {
+    if (trans_blkio_weight_v1(block_io, conf)) {
         goto out;
     }
 
-    if (trans_blkio_wdevice(block_io, conf)) {
+    if (trans_blkio_wdevice_v1(block_io, conf)) {
         goto out;
     }
 
-    if (trans_blkio_throttle(block_io->throttle_read_bps_device, block_io->throttle_read_bps_device_len,
-                             "lxc.cgroup.blkio.throttle.read_bps_device", conf)) {
+    if (trans_blkio_throttle_v1(block_io->throttle_read_bps_device, block_io->throttle_read_bps_device_len,
+                                "lxc.cgroup.blkio.throttle.read_bps_device", conf)) {
         goto out;
     }
 
-    if (trans_blkio_throttle(block_io->throttle_write_bps_device, block_io->throttle_write_bps_device_len,
-                             "lxc.cgroup.blkio.throttle.write_bps_device", conf)) {
+    if (trans_blkio_throttle_v1(block_io->throttle_write_bps_device, block_io->throttle_write_bps_device_len,
+                                "lxc.cgroup.blkio.throttle.write_bps_device", conf)) {
         goto out;
     }
 
-    if (trans_blkio_throttle(block_io->throttle_read_iops_device, block_io->throttle_read_iops_device_len,
-                             "lxc.cgroup.blkio.throttle.read_iops_device", conf)) {
+    if (trans_blkio_throttle_v1(block_io->throttle_read_iops_device, block_io->throttle_read_iops_device_len,
+                                "lxc.cgroup.blkio.throttle.read_iops_device", conf)) {
         goto out;
     }
 
-    if (trans_blkio_throttle(block_io->throttle_write_iops_device, block_io->throttle_write_iops_device_len,
-                             "lxc.cgroup.blkio.throttle.write_iops_device", conf)) {
+    if (trans_blkio_throttle_v1(block_io->throttle_write_iops_device, block_io->throttle_write_iops_device_len,
+                                "lxc.cgroup.blkio.throttle.write_iops_device", conf)) {
         goto out;
     }
 
@@ -1760,8 +1829,8 @@ out:
     return ret;
 }
 
-/* trans resources hugetlb */
-static int trans_resources_hugetlb(const defs_resources *res, struct lcr_list *conf)
+/* trans resources hugetlb of cgroup v1 */
+static int trans_resources_hugetlb_v1(const defs_resources *res, struct lcr_list *conf)
 {
     int ret = -1;
     size_t i = 0;
@@ -1786,8 +1855,8 @@ out:
     return ret;
 }
 
-/* trans resources network */
-static int trans_resources_network(const defs_resources *res, struct lcr_list *conf)
+/* trans resources network of cgroup v1 */
+static int trans_resources_network_v1(const defs_resources *res, struct lcr_list *conf)
 {
     int ret = -1;
     size_t i = 0;
@@ -1824,8 +1893,8 @@ out:
     return ret;
 }
 
-/* trans resources pids */
-static int trans_resources_pids(const defs_resources *res, struct lcr_list *conf)
+/* trans resources pids of cgroup v1 */
+static int trans_resources_pids_v1(const defs_resources *res, struct lcr_list *conf)
 {
     int ret = -1;
     char buf_value[300] = { 0 };
@@ -1857,8 +1926,8 @@ out:
     return ret;
 }
 
-/* trans oci resources */
-static struct lcr_list *trans_oci_resources(const defs_resources *res)
+/* trans oci resources to lxc cgroup config v1 */
+static struct lcr_list *trans_oci_resources_v1(const defs_resources *res)
 {
     struct lcr_list *conf = NULL;
 
@@ -1868,31 +1937,31 @@ static struct lcr_list *trans_oci_resources(const defs_resources *res)
     }
     lcr_list_init(conf);
 
-    if (trans_resources_devices(res, conf)) {
+    if (trans_resources_devices_v1(res, conf)) {
         goto out_free;
     }
 
-    if (trans_resources_memory(res, conf)) {
+    if (trans_resources_memory_v1(res, conf)) {
         goto out_free;
     }
 
-    if (trans_resources_cpu(res, conf)) {
+    if (trans_resources_cpu_v1(res, conf)) {
         goto out_free;
     }
 
-    if (trans_resources_blkio(res->block_io, conf)) {
+    if (trans_resources_blkio_v1(res->block_io, conf)) {
         goto out_free;
     }
 
-    if (trans_resources_hugetlb(res, conf)) {
+    if (trans_resources_hugetlb_v1(res, conf)) {
         goto out_free;
     }
 
-    if (trans_resources_network(res, conf)) {
+    if (trans_resources_network_v1(res, conf)) {
         goto out_free;
     }
 
-    if (trans_resources_pids(res, conf)) {
+    if (trans_resources_pids_v1(res, conf)) {
         goto out_free;
     }
 
@@ -1903,6 +1972,477 @@ out_free:
     free(conf);
 
     return NULL;
+}
+
+static int trans_resources_devices_node_v2(const defs_device_cgroup *lrd, struct lcr_list *conf,
+                                           const char *buf_value)
+{
+    struct lcr_list *node = NULL;
+    int ret = -1;
+
+    if (lrd->allow == true) {
+        node = create_lcr_list_node("lxc.cgroup2.devices.allow", buf_value);
+    } else {
+        node = create_lcr_list_node("lxc.cgroup2.devices.deny", buf_value);
+    }
+    if (node == NULL) {
+        goto out;
+    }
+    lcr_list_add_tail(conf, node);
+
+    ret = 0;
+out:
+    return ret;
+}
+
+/* trans resources devices for cgroup v2 */
+static int trans_resources_devices_v2(const defs_resources *res, struct lcr_list *conf)
+{
+    int ret = -1;
+    size_t i = 0;
+    char buf_value[300] = { 0 };
+
+    for (i = 0; i < res->devices_len; i++) {
+        defs_device_cgroup *lrd = res->devices[i];
+        if (trans_resources_devices_ret(lrd, buf_value, sizeof(buf_value)) < 0) {
+            goto out;
+        }
+
+        if (trans_resources_devices_node_v2(lrd, conf, buf_value) < 0) {
+            goto out;
+        }
+    }
+    ret = 0;
+out:
+    return ret;
+}
+
+/* set limit of memory usage of cgroup v2 */
+static int trans_resources_mem_limit_v2(const defs_resources *res, struct lcr_list *conf)
+{
+    if (res->memory->limit != INVALID_INT) {
+        if (trans_conf_int64_with_max(conf, "lxc.cgroup2.memory.max", res->memory->limit) != 0) {
+            return -1;
+        }
+    }
+
+    if (res->memory->reservation != INVALID_INT) {
+        if (trans_conf_int64_with_max(conf, "lxc.cgroup2.memory.low", res->memory->reservation) != 0) {
+            return -1;
+        }
+    }
+
+    return 0;
+}
+
+/* trans resources mem swap of cgroup v2 */
+static int trans_resources_mem_swap_v2(const defs_resources *res, struct lcr_list *conf)
+{
+    int64_t swap = 0;
+
+    if (res->memory->swap == INVALID_INT) {
+        return 0;
+    }
+
+    if (get_real_swap(res->memory->limit, res->memory->swap, &swap) != 0) {
+        return -1;
+    }
+
+    if (trans_conf_int64_with_max(conf, "lxc.cgroup2.memory.swap.max", swap) != 0) {
+        return -1;
+    }
+
+    return 0;
+}
+
+/* trans resources memory of cgroup v2 */
+static int trans_resources_memory_v2(const defs_resources *res, struct lcr_list *conf)
+{
+    if (res->memory == NULL) {
+        return 0;
+    }
+
+    if (trans_resources_mem_limit_v2(res, conf) != 0) {
+        return -1;
+    }
+
+    if (trans_resources_mem_swap_v2(res, conf) != 0) {
+        return -1;
+    }
+
+    return 0;
+}
+
+/* trans resources cpu weight of cgroup v2, it's called cpu shares in cgroup v1 */
+static int trans_resources_cpu_weight_v2(const defs_resources *res, struct lcr_list *conf)
+{
+    if (res->cpu->shares == INVALID_INT) {
+        return 0;
+    }
+
+    if (res->cpu->shares < 2 || res->cpu->shares > 262144) {
+        ERROR("invalid cpu shares %lld out of range [2-262144]", (long long)res->cpu->shares);
+        return -1;
+    }
+
+    if (trans_conf_int64(conf, "lxc.cgroup2.cpu.weight", trans_cpushare_to_cpuweight(res->cpu->shares)) != 0) {
+        return -1;
+    }
+
+    return 0;
+}
+
+/* trans resources cpu max of cgroup v2, it's called quota/period in cgroup v1 */
+static int trans_resources_cpu_max_v2(const defs_resources *res, struct lcr_list *conf)
+{
+    char buf_value[300] = {0};
+    uint64_t period = res->cpu->period;
+    int nret = 0;
+
+    if (res->cpu->quota == 0 && period == 0) {
+        return 0;
+    }
+
+    if (period == 0) {
+        period = DEFAULT_CPU_PERIOD;
+    }
+
+    // format:
+    // $MAX $PERIOD
+    if (res->cpu->quota > 0) {
+        nret = snprintf(buf_value, sizeof(buf_value), "%lld %llu", (long long) res->cpu->quota,
+                        (unsigned long long)period);
+    } else {
+        nret = snprintf(buf_value, sizeof(buf_value), "max %llu", (unsigned long long)period);
+    }
+    if (nret < 0 || (size_t)nret >= sizeof(buf_value)) {
+        ERROR("failed to printf cpu max");
+        return -1;
+    }
+
+    if (trans_conf_string(conf, "lxc.cgroup2.cpu.max", buf_value) != 0) {
+        return -1;
+    }
+
+    return 0;
+}
+
+/* trans resources cpu set of cgroup v2 */
+static int trans_resources_cpuset_v2(const defs_resources *res, struct lcr_list *conf)
+{
+    if (res->cpu->cpus != NULL) {
+        if (trans_conf_string(conf, "lxc.cgroup2.cpuset.cpus", res->cpu->cpus) != 0) {
+            return -1;
+        }
+    }
+
+    if (res->cpu->mems != NULL) {
+        if (trans_conf_string(conf, "lxc.cgroup2.cpuset.mems", res->cpu->mems) != 0) {
+            return -1;
+        }
+    }
+
+    return 0;
+}
+
+/* trans resources cpu of cgroup v2 */
+static int trans_resources_cpu_v2(const defs_resources *res, struct lcr_list *conf)
+{
+    if (res->cpu == NULL) {
+        return 0;
+    }
+
+    if (trans_resources_cpu_weight_v2(res, conf) != 0) {
+        return -1;
+    }
+
+    if (trans_resources_cpu_max_v2(res, conf) != 0) {
+        return -1;
+    }
+
+    if (trans_resources_cpuset_v2(res, conf) != 0) {
+        return -1;
+    }
+
+    return 0;
+}
+
+/* trans resources io.weight/io.weight_device of cgroup v2 */
+static int trans_io_weight_v2(const defs_resources_block_io *block_io, struct lcr_list *conf)
+{
+    size_t i = 0;
+    uint64_t weight = 0;
+    defs_block_io_device_weight **weight_device = block_io->weight_device;
+    size_t len = block_io->weight_device_len;
+
+    if (block_io->weight != INVALID_INT) {
+        weight = trans_blkio_weight_to_io_weight(block_io->weight);
+        if (weight < CGROUP2_WEIGHT_MIN || weight > CGROUP2_WEIGHT_MAX) {
+            ERROR("invalid io weight cased by invalid blockio weight %d", block_io->weight);
+            return -1;
+        }
+
+        if (trans_conf_int(conf, "lxc.cgroup2.io.weight", (int)weight) != 0) {
+            return -1;
+        }
+    }
+
+    if ((weight_device == NULL) || len == 0) {
+        return 0;
+    }
+
+    for (i = 0; i < len; i++) {
+        if (weight_device[i] && weight_device[i]->weight != INVALID_INT) {
+            int nret = 0;
+            char buf_value[300] = { 0x00 };
+
+            weight = trans_blkio_weight_to_io_weight(weight_device[i]->weight);
+            if (weight < CGROUP2_WEIGHT_MIN || weight > CGROUP2_WEIGHT_MAX) {
+                ERROR("invalid io weight cased by invalid blockio weight %d", weight_device[i]->weight);
+                return -1;
+            }
+
+            nret = snprintf(buf_value, sizeof(buf_value), "%lld:%lld %d", (long long)weight_device[i]->major,
+                            (long long)(weight_device[i]->minor), (int)weight);
+            if (nret < 0 || (size_t)nret >= sizeof(buf_value)) {
+                ERROR("print device weight failed");
+                return -1;
+            }
+
+            if (trans_conf_string(conf, "lxc.cgroup2.io.weight_device", buf_value) != 0) {
+                return -1;
+            }
+        }
+    }
+
+    return 0;
+}
+
+/* trans resources io.bfq.weight/io.bfq.weight_device of cgroup v2 */
+static int trans_io_bfq_weight_v2(const defs_resources_block_io *block_io, struct lcr_list *conf)
+{
+    size_t i = 0;
+    uint64_t weight = 0;
+    defs_block_io_device_weight **weight_device = block_io->weight_device;
+    size_t len = block_io->weight_device_len;
+
+    if (block_io->weight != INVALID_INT) {
+        weight = trans_blkio_weight_to_io_bfq_weight(block_io->weight);
+        if (weight < CGROUP2_BFQ_WEIGHT_MIN || weight > CGROUP2_BFQ_WEIGHT_MAX) {
+            ERROR("invalid io weight cased by invalid blockio weight %d", block_io->weight);
+            return -1;
+        }
+
+        if (trans_conf_int(conf, "lxc.cgroup2.io.bfq.weight", weight) != 0) {
+            return -1;
+        }
+    }
+
+    if ((weight_device == NULL) || len == 0) {
+        return 0;
+    }
+
+    for (i = 0; i < len; i++) {
+        if (weight_device[i] && weight_device[i]->weight != INVALID_INT) {
+            int nret = 0;
+            char buf_value[300] = { 0x00 };
+
+            weight = trans_blkio_weight_to_io_weight(weight_device[i]->weight);
+            if (weight < CGROUP2_BFQ_WEIGHT_MIN || weight > CGROUP2_BFQ_WEIGHT_MAX) {
+                ERROR("invalid io weight cased by invalid blockio weight %d", weight_device[i]->weight);
+                return -1;
+            }
+
+            nret = snprintf(buf_value, sizeof(buf_value), "%lld:%lld %d", (long long)weight_device[i]->major,
+                            (long long)(weight_device[i]->minor), (int)weight);
+            if (nret < 0 || (size_t)nret >= sizeof(buf_value)) {
+                ERROR("print device weight failed");
+                return -1;
+            }
+
+            if (trans_conf_string(conf, "lxc.cgroup2.io.bfq.weight_device", buf_value) != 0) {
+                return -1;
+            }
+        }
+    }
+
+    return 0;
+}
+
+/* trans resources io throttle of cgroup v2 */
+static int trans_io_throttle_v2(defs_block_io_device_throttle **throttle, size_t len,
+                                const char *lxc_key, const char *rate_key, struct lcr_list *conf)
+{
+    int ret = -1;
+    size_t i;
+
+    if ((throttle == NULL) || len == 0) {
+        return 0;
+    }
+
+    for (i = 0; i < len; i++) {
+        if (throttle[i] && throttle[i]->rate != INVALID_INT) {
+            int nret = 0;
+            char buf_value[300] = { 0x00 };
+            nret = snprintf(buf_value, sizeof(buf_value), "%lld:%lld %s=%llu", (long long)throttle[i]->major,
+                            (long long)(throttle[i]->minor), rate_key, (unsigned long long)(throttle[i]->rate));
+            if (nret < 0 || (size_t)nret >= sizeof(buf_value)) {
+                goto out;
+            }
+
+            if (trans_conf_string(conf, lxc_key, buf_value) != 0) {
+                goto out;
+            }
+        }
+    }
+    ret = 0;
+out:
+    return ret;
+}
+
+
+/* trans resources blkio of cgroup v2 */
+static int trans_resources_blkio_v2(const defs_resources_block_io *block_io, struct lcr_list *conf)
+{
+    if (block_io == NULL) {
+        return 0;
+    }
+
+    if (trans_io_weight_v2(block_io, conf)) {
+        return -1;
+    }
+
+    if (trans_io_bfq_weight_v2(block_io, conf)) {
+        return -1;
+    }
+
+    if (trans_io_throttle_v2(block_io->throttle_read_bps_device, block_io->throttle_read_bps_device_len,
+                             "lxc.cgroup2.io.max", "rbps", conf) != 0) {
+        return -1;
+    }
+
+    if (trans_io_throttle_v2(block_io->throttle_write_bps_device, block_io->throttle_write_bps_device_len,
+                             "lxc.cgroup2.io.max", "wbps", conf) != 0) {
+        return -1;
+    }
+
+    if (trans_io_throttle_v2(block_io->throttle_read_iops_device, block_io->throttle_read_iops_device_len,
+                             "lxc.cgroup2.io.max", "riops", conf) != 0) {
+        return -1;
+    }
+
+    if (trans_io_throttle_v2(block_io->throttle_write_iops_device, block_io->throttle_write_iops_device_len,
+                             "lxc.cgroup2.io.max", "wiops", conf) != 0) {
+        return -1;
+    }
+
+    return 0;
+}
+
+/* trans resources hugetlb of cgroup v2 */
+static int trans_resources_hugetlb_v2(const defs_resources *res, struct lcr_list *conf)
+{
+    size_t i = 0;
+    char buf_key[300] = { 0 };
+
+    for (i = 0; i < res->hugepage_limits_len; i++) {
+        defs_resources_hugepage_limits_element *lrhl = res->hugepage_limits[i];
+        if (lrhl->page_size == NULL) {
+            continue;
+        }
+        int nret = snprintf(buf_key, sizeof(buf_key), "lxc.cgroup2.hugetlb.%s.max", lrhl->page_size);
+        if (nret < 0 || (size_t)nret >= sizeof(buf_key)) {
+            return -1;
+        }
+
+        if (trans_conf_uint64(conf, buf_key, lrhl->limit) < 0) {
+            return -1;
+        }
+    }
+
+    return 0;
+}
+
+/* trans resources pids of cgroup v2 */
+static int trans_resources_pids_v2(const defs_resources *res, struct lcr_list *conf)
+{
+    if (res->pids == NULL) {
+        return 0;
+    }
+
+    if (res->pids->limit != INVALID_INT) {
+        if (trans_conf_int64_with_max(conf, "lxc.cgroup2.pids.max", res->pids->limit) != 0) {
+            return -1;
+        }
+    }
+
+    return 0;
+}
+
+/* trans oci resources to lxc cgroup config v2 */
+static struct lcr_list *trans_oci_resources_v2(const defs_resources *res)
+{
+    struct lcr_list *conf = NULL;
+
+    conf = lcr_util_common_calloc_s(sizeof(*conf));
+    if (conf == NULL) {
+        return NULL;
+    }
+    lcr_list_init(conf);
+
+    if (trans_resources_devices_v2(res, conf)) {
+        goto out_free;
+    }
+
+    if (trans_resources_memory_v2(res, conf)) {
+        goto out_free;
+    }
+
+    if (trans_resources_cpu_v2(res, conf)) {
+        goto out_free;
+    }
+
+    if (trans_resources_blkio_v2(res->block_io, conf)) {
+        goto out_free;
+    }
+
+    if (trans_resources_hugetlb_v2(res, conf)) {
+        goto out_free;
+    }
+
+    if (trans_resources_pids_v2(res, conf)) {
+        goto out_free;
+    }
+
+    return conf;
+
+out_free:
+    lcr_free_config(conf);
+    free(conf);
+
+    return NULL;
+}
+
+/* trans oci resources to lxc cgroup config */
+/* note: we write both cgroup v1 and cgroup v2 config to lxc config file, let lxc choose the right one */
+/* references: */
+/* oci config: https://github.com/opencontainers/runtime-spec/blob/master/schema/config-linux.json */
+/* cgroup v1 config: https://www.kernel.org/doc/html/latest/admin-guide/cgroup-v1/index.html */
+/* cgroup v2 config: https://www.kernel.org/doc/html/latest/admin-guide/cgroup-v2.html */
+static struct lcr_list *trans_oci_resources(const defs_resources *res)
+{
+    int cgroup_version = 0;
+
+    cgroup_version = get_cgroup_version();
+    if (cgroup_version < 0) {
+        return NULL;
+    }
+
+    if (cgroup_version == CGROUP_VERSION_2) {
+        return trans_oci_resources_v2(res);
+    } else {
+        return trans_oci_resources_v1(res);
+    }
 }
 
 struct namespace_map_def {

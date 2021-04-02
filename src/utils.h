@@ -33,6 +33,24 @@
 extern "C" {
 #endif
 
+#define CGROUP2_WEIGHT_MIN 1
+#define CGROUP2_WEIGHT_MAX 10000
+#define CGROUP2_BFQ_WEIGHT_MIN 1
+#define CGROUP2_BFQ_WEIGHT_MAX 1000
+
+#define DEFAULT_CPU_PERIOD 100000
+#define CGROUP_MOUNTPOINT "/sys/fs/cgroup"
+
+#ifndef CGROUP2_SUPER_MAGIC
+#define CGROUP2_SUPER_MAGIC 0x63677270
+#endif
+
+#ifndef CGROUP_SUPER_MAGIC
+#define CGROUP_SUPER_MAGIC 0x27e0eb
+#endif
+
+#define CGROUP_VERSION_1 1
+#define CGROUP_VERSION_2 2
 
 #ifndef O_CLOEXEC
 #define O_CLOEXEC 02000000
@@ -197,6 +215,12 @@ char *lcr_util_strdup_s(const char *src);
 int lcr_util_null_stdfds(void);
 
 int lcr_util_atomic_write_file(const char *filepath, const char *content);
+
+int get_real_swap(int64_t memory, int64_t memory_swap, int64_t *swap);
+int trans_cpushare_to_cpuweight(int64_t cpu_share);
+uint64_t trans_blkio_weight_to_io_weight(int weight);
+uint64_t trans_blkio_weight_to_io_bfq_weight(int weight);
+int get_cgroup_version();
 
 #ifdef __cplusplus
 }

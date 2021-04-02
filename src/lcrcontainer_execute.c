@@ -41,7 +41,7 @@
 #include "oci_runtime_spec.h"
 #include "lcrcontainer_extend.h"
 
-// Cgroup Item Definition
+// Cgroup v1 Item Definition
 #define CGROUP_BLKIO_WEIGHT "blkio.weight"
 #define CGROUP_CPU_SHARES "cpu.shares"
 #define CGROUP_CPU_PERIOD "cpu.cfs_period_us"
@@ -53,6 +53,17 @@
 #define CGROUP_MEMORY_LIMIT "memory.limit_in_bytes"
 #define CGROUP_MEMORY_SWAP "memory.memsw.limit_in_bytes"
 #define CGROUP_MEMORY_RESERVATION "memory.soft_limit_in_bytes"
+
+// Cgroup v2 Item Definition
+#define CGROUP2_IO_WEIGHT "io.weight"
+#define CGROUP2_IO_BFQ_WEIGHT "io.bfq.weight"
+#define CGROUP2_CPU_WEIGHT "cpu.weight"
+#define CGROUP2_CPU_MAX "cpu.max"
+#define CGROUP2_CPUSET_CPUS "cpuset.cpus"
+#define CGROUP2_CPUSET_MEMS "cpuset.mems"
+#define CGROUP2_MEMORY_MAX "memory.max"
+#define CGROUP2_MEMORY_LOW "memory.low"
+#define CGROUP2_MEMORY_SWAP_MAX "memory.swap.max"
 
 #define REPORT_SET_CGROUP_ERROR(item, value)                                                          \
     do                                                                                                \
@@ -126,6 +137,30 @@ err_out:
     return ret;
 }
 
+static int update_resources_cpuset_cpus_v2(struct lxc_container *c, const struct lcr_cgroup_resources *cr)
+{
+    if (cr->cpuset_cpus != NULL && strcmp(cr->cpuset_cpus, "") != 0) {
+        if (!c->set_cgroup_item(c, CGROUP2_CPUSET_CPUS, cr->cpuset_cpus)) {
+            REPORT_SET_CGROUP_ERROR(CGROUP2_CPUSET_CPUS, cr->cpuset_cpus);
+            return -1;
+        }
+    }
+
+    return 0;
+}
+
+static int update_resources_cpuset_mems_v2(struct lxc_container *c, const struct lcr_cgroup_resources *cr)
+{
+    if (cr->cpuset_mems != NULL && strcmp(cr->cpuset_mems, "") != 0) {
+        if (!c->set_cgroup_item(c, CGROUP2_CPUSET_MEMS, cr->cpuset_mems)) {
+            REPORT_SET_CGROUP_ERROR(CGROUP2_CPUSET_MEMS, cr->cpuset_mems);
+            return -1;
+        }
+    }
+
+    return 0;
+}
+
 static int update_resources_cpu_shares(struct lxc_container *c, const struct lcr_cgroup_resources *cr)
 {
     int ret = 0;
@@ -149,6 +184,34 @@ out:
     return ret;
 }
 
+static int update_resources_cpu_weight_v2(struct lxc_container *c, const struct lcr_cgroup_resources *cr)
+{
+    char numstr[128] = {0}; /* max buffer */
+
+    if (cr->cpu_shares == 0) {
+        return 0;
+    }
+
+    // 252144 comes from linux kernel code "#define MAX_SHARES (1UL << 18)"
+    if (cr->cpu_shares < 2 || cr->cpu_shares > 262144) {
+        ERROR("invalid cpu shares %lld out of range [2-262144]", (long long)cr->cpu_shares);
+        return -1;
+    }
+
+    int num = snprintf(numstr, sizeof(numstr), "%llu",
+                       (unsigned long long)trans_cpushare_to_cpuweight(cr->cpu_shares));
+    if (num < 0 || (size_t)num >= sizeof(numstr)) {
+        return -1;
+    }
+
+    if (!c->set_cgroup_item(c, CGROUP2_CPU_WEIGHT, numstr)) {
+        REPORT_SET_CGROUP_ERROR(CGROUP2_CPU_WEIGHT, numstr);
+        return -1;
+    }
+
+    return 0;
+}
+
 static int update_resources_cpu_period(struct lxc_container *c, const struct lcr_cgroup_resources *cr)
 {
     int ret = 0;
@@ -170,6 +233,40 @@ static int update_resources_cpu_period(struct lxc_container *c, const struct lcr
 
 out:
     return ret;
+}
+
+static int update_resources_cpu_max_v2(struct lxc_container *c, const struct lcr_cgroup_resources *cr)
+{
+    int num = 0;
+    uint64_t period = cr->cpu_period;
+    uint64_t quota = cr->cpu_quota;
+    char numstr[128] = {0}; /* max buffer */
+
+    if (quota == 0 && period == 0) {
+        return 0;
+    }
+
+    if (period == 0) {
+        period = DEFAULT_CPU_PERIOD;
+    }
+
+    // format:
+    // $MAX $PERIOD
+    if ((int64_t) quota > 0) {
+        num = snprintf(numstr, sizeof(numstr), "%llu %llu", (unsigned long long)quota, (unsigned long long)period);
+    } else {
+        num = snprintf(numstr, sizeof(numstr), "max %llu", (unsigned long long)period);
+    }
+    if (num < 0 || (size_t)num >= sizeof(numstr)) {
+        return -1;
+    }
+
+    if (!c->set_cgroup_item(c, CGROUP2_CPU_MAX, numstr)) {
+        REPORT_SET_CGROUP_ERROR(CGROUP2_CPU_MAX, numstr);
+        return -1;
+    }
+
+    return 0;
 }
 
 static int update_resources_cpu_rt_period(struct lxc_container *c, const struct lcr_cgroup_resources *cr)
@@ -241,7 +338,7 @@ out:
     return ret;
 }
 
-static bool update_resources_cpu(struct lxc_container *c, const struct lcr_cgroup_resources *cr)
+static bool update_resources_cpu_v1(struct lxc_container *c, const struct lcr_cgroup_resources *cr)
 {
     bool ret = false;
 
@@ -277,6 +374,27 @@ err_out:
     return ret;
 }
 
+static int update_resources_cpu_v2(struct lxc_container *c, const struct lcr_cgroup_resources *cr)
+{
+    if (update_resources_cpu_weight_v2(c, cr) != 0) {
+        return -1;
+    }
+
+    if (update_resources_cpu_max_v2(c, cr) != 0) {
+        return -1;
+    }
+
+    if (update_resources_cpuset_cpus_v2(c, cr) != 0) {
+        return -1;
+    }
+
+    if (update_resources_cpuset_mems_v2(c, cr) != 0) {
+        return -1;
+    }
+
+    return 0;
+}
+
 static int update_resources_memory_limit(struct lxc_container *c, const struct lcr_cgroup_resources *cr)
 {
     int ret = 0;
@@ -298,6 +416,42 @@ static int update_resources_memory_limit(struct lxc_container *c, const struct l
 
 out:
     return ret;
+}
+
+static int trans_int64_to_numstr_with_max(int64_t value, char *numstr, size_t size)
+{
+    int num = 0;
+
+    if (value == -1) {
+        num = snprintf(numstr, size, "max");
+    } else {
+        num = snprintf(numstr, size, "%lld", (long long)value);
+    }
+    if (num < 0 || (size_t)num >= size) {
+        return -1;
+    }
+
+    return 0;
+}
+
+static int update_resources_memory_limit_v2(struct lxc_container *c, const struct lcr_cgroup_resources *cr)
+{
+    char numstr[128] = {0}; /* max buffer */
+
+    if (cr->memory_limit == 0) {
+        return 0;
+    }
+
+    if (trans_int64_to_numstr_with_max((int64_t)cr->memory_limit, numstr, sizeof(numstr)) != 0) {
+        return -1;
+    }
+
+    if (!c->set_cgroup_item(c, CGROUP2_MEMORY_MAX, numstr)) {
+        REPORT_SET_CGROUP_ERROR(CGROUP2_MEMORY_MAX, numstr);
+        return -1;
+    }
+
+    return 0;
 }
 
 static int update_resources_memory_swap(struct lxc_container *c, const struct lcr_cgroup_resources *cr)
@@ -323,6 +477,31 @@ out:
     return ret;
 }
 
+static int update_resources_memory_swap_v2(struct lxc_container *c, const struct lcr_cgroup_resources *cr)
+{
+    char numstr[128] = {0}; /* max buffer */
+    int64_t swap = 0;
+
+    if (cr->memory_swap == 0) {
+        return 0;
+    }
+
+    if (get_real_swap(cr->memory_limit, cr->memory_swap, &swap) != 0) {
+        return -1;
+    }
+
+    if (trans_int64_to_numstr_with_max((int64_t)swap, numstr, sizeof(numstr)) != 0) {
+        return -1;
+    }
+
+    if (!c->set_cgroup_item(c, CGROUP2_MEMORY_SWAP_MAX, numstr)) {
+        REPORT_SET_CGROUP_ERROR(CGROUP2_MEMORY_SWAP_MAX, numstr);
+        return -1;
+    }
+
+    return 0;
+}
+
 static int update_resources_memory_reservation(struct lxc_container *c, const struct lcr_cgroup_resources *cr)
 {
     int ret = 0;
@@ -346,7 +525,26 @@ out:
     return ret;
 }
 
-static bool update_resources_mem(struct lxc_container *c, struct lcr_cgroup_resources *cr)
+static int update_resources_memory_reservation_v2(struct lxc_container *c, const struct lcr_cgroup_resources *cr)
+{
+    char numstr[128] = {0}; /* max buffer */
+
+    if (cr->memory_reservation == 0) {
+        return 0;
+    }
+
+    if (trans_int64_to_numstr_with_max((int64_t)cr->memory_reservation, numstr, sizeof(numstr)) != 0) {
+        return -1;
+    }
+
+    if (!c->set_cgroup_item(c, CGROUP2_MEMORY_LOW, numstr)) {
+        return -1;
+    }
+
+    return 0;
+}
+
+static bool update_resources_mem_v1(struct lxc_container *c, struct lcr_cgroup_resources *cr)
 {
     bool ret = false;
 
@@ -390,7 +588,24 @@ err_out:
     return ret;
 }
 
-static int update_resources_blkio_weight(struct lxc_container *c, const struct lcr_cgroup_resources *cr)
+static int update_resources_mem_v2(struct lxc_container *c, struct lcr_cgroup_resources *cr)
+{
+    if (update_resources_memory_limit_v2(c, cr) != 0) {
+        return -1;
+    }
+
+    if (update_resources_memory_reservation_v2(c, cr) != 0) {
+        return -1;
+    }
+
+    if (update_resources_memory_swap_v2(c, cr) != 0) {
+        return -1;
+    }
+
+    return 0;
+}
+
+static int update_resources_blkio_weight_v1(struct lxc_container *c, const struct lcr_cgroup_resources *cr)
 {
     int ret = 0;
     char numstr[128] = {0}; /* max buffer */
@@ -413,23 +628,101 @@ out:
     return ret;
 }
 
+static int update_resources_io_weight_v2(struct lxc_container *c, const struct lcr_cgroup_resources *cr)
+{
+    uint64_t weight = 0;
+    char numstr[128] = {0}; /* max buffer */
+
+    if (cr->blkio_weight == 0) {
+        return 0;
+    }
+
+    weight = trans_blkio_weight_to_io_weight(cr->blkio_weight);
+    if (weight < CGROUP2_WEIGHT_MIN || weight > CGROUP2_WEIGHT_MAX) {
+        ERROR("invalid io weight cased by invalid blockio weight %llu", (unsigned long long) cr->blkio_weight);
+        return -1;
+    }
+
+    int num = snprintf(numstr, sizeof(numstr), "%llu", (unsigned long long)weight);
+    if (num < 0 || (size_t)num >= sizeof(numstr)) {
+        return -1;
+    }
+
+    if (!c->set_cgroup_item(c, CGROUP2_IO_WEIGHT, numstr)) {
+        REPORT_SET_CGROUP_ERROR(CGROUP2_IO_WEIGHT, numstr);
+        return -1;
+    }
+
+    return 0;
+}
+
+static int update_resources_io_bfq_weight_v2(struct lxc_container *c, const struct lcr_cgroup_resources *cr)
+{
+    uint64_t weight = 0;
+    char numstr[128] = {0}; /* max buffer */
+
+    if (cr->blkio_weight == 0) {
+        return 0;
+    }
+
+    weight = trans_blkio_weight_to_io_bfq_weight(cr->blkio_weight);
+    if (weight < CGROUP2_BFQ_WEIGHT_MIN || weight > CGROUP2_BFQ_WEIGHT_MAX) {
+        ERROR("invalid io weight cased by invalid blockio weight %llu", (unsigned long long) cr->blkio_weight);
+        return -1;
+    }
+
+    int num = snprintf(numstr, sizeof(numstr), "%llu", (unsigned long long)weight);
+    if (num < 0 || (size_t)num >= sizeof(numstr)) {
+        return -1;
+    }
+
+    if (!c->set_cgroup_item(c, CGROUP2_IO_BFQ_WEIGHT, numstr)) {
+        REPORT_SET_CGROUP_ERROR(CGROUP2_IO_BFQ_WEIGHT, numstr);
+        return -1;
+    }
+
+    return 0;
+}
+
 static bool update_resources(struct lxc_container *c, struct lcr_cgroup_resources *cr)
 {
     bool ret = false;
+    int cgroup_version = 0;
 
     if (c == NULL || cr == NULL) {
         return false;
     }
 
-    if (update_resources_blkio_weight(c, cr) != 0) {
-        goto err_out;
+    cgroup_version = get_cgroup_version();
+    if (cgroup_version < 0) {
+        return false;
     }
 
-    if (!update_resources_cpu(c, cr)) {
-        goto err_out;
-    }
-    if (!update_resources_mem(c, cr)) {
-        goto err_out;
+    if (cgroup_version == CGROUP_VERSION_2) {
+        if (update_resources_io_weight_v2(c, cr) != 0) {
+            goto err_out;
+        }
+        if (update_resources_io_bfq_weight_v2(c, cr) != 0) {
+            goto err_out;
+        }
+
+        if (update_resources_cpu_v2(c, cr) != 0) {
+            goto err_out;
+        }
+        if (update_resources_mem_v2(c, cr) != 0) {
+            goto err_out;
+        }
+    } else {
+        if (update_resources_blkio_weight_v1(c, cr) != 0) {
+            goto err_out;
+        }
+
+        if (!update_resources_cpu_v1(c, cr)) {
+            goto err_out;
+        }
+        if (!update_resources_mem_v1(c, cr)) {
+            goto err_out;
+        }
     }
 
     ret = true;
