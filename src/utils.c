@@ -1264,7 +1264,7 @@ out:
 }
 
 /* swap in oci is memoy+swap, so here we need to get real swap */
-int get_real_swap(int64_t memory, int64_t memory_swap, int64_t *swap)
+int lcr_util_get_real_swap(int64_t memory, int64_t memory_swap, int64_t *swap)
 {
     if (memory == -1 && memory_swap == 0) {
         *swap = -1; // -1 is max
@@ -1295,25 +1295,25 @@ int get_real_swap(int64_t memory, int64_t memory_swap, int64_t *swap)
     return 0;
 }
 
-int trans_cpushare_to_cpuweight(int64_t cpu_share)
+int lcr_util_trans_cpushare_to_cpuweight(int64_t cpu_share)
 {
     /* map from range [2-262144] to [1-10000] */
     return 1 + ((cpu_share - 2) * 9999) / 262142;
 }
 
-uint64_t trans_blkio_weight_to_io_weight(int weight)
+uint64_t lcr_util_trans_blkio_weight_to_io_weight(int weight)
 {
     // map from [10-1000] to [1-10000]
     return (uint64_t)(1 + ((uint64_t)weight - 10) * 9999 / 990);
 }
 
-uint64_t trans_blkio_weight_to_io_bfq_weight(int weight)
+uint64_t lcr_util_trans_blkio_weight_to_io_bfq_weight(int weight)
 {
     // map from [10-1000] to [1-1000]
     return (uint64_t)(1 + ((uint64_t)weight - 10) * 999 / 990);
 }
 
-int get_cgroup_version()
+int lcr_util_get_cgroup_version()
 {
     struct statfs fs = {0};
 

@@ -50,7 +50,7 @@ static int files_limit_checker_v1(const char *value)
     int ret = 0;
     int cgroup_version = 0;
 
-    cgroup_version = get_cgroup_version();
+    cgroup_version = lcr_util_get_cgroup_version();
     if (cgroup_version < 0) {
         return -1;
     }
@@ -75,7 +75,7 @@ static int files_limit_checker_v2(const char *value)
     int ret = 0;
     int cgroup_version = 0;
 
-    cgroup_version = get_cgroup_version();
+    cgroup_version = lcr_util_get_cgroup_version();
     if (cgroup_version < 0) {
         return -1;
     }
@@ -2044,7 +2044,7 @@ static int trans_resources_mem_swap_v2(const defs_resources *res, struct lcr_lis
         return 0;
     }
 
-    if (get_real_swap(res->memory->limit, res->memory->swap, &swap) != 0) {
+    if (lcr_util_get_real_swap(res->memory->limit, res->memory->swap, &swap) != 0) {
         return -1;
     }
 
@@ -2085,7 +2085,7 @@ static int trans_resources_cpu_weight_v2(const defs_resources *res, struct lcr_l
         return -1;
     }
 
-    if (trans_conf_int64(conf, "lxc.cgroup2.cpu.weight", trans_cpushare_to_cpuweight(res->cpu->shares)) != 0) {
+    if (trans_conf_int64(conf, "lxc.cgroup2.cpu.weight", lcr_util_trans_cpushare_to_cpuweight(res->cpu->shares)) != 0) {
         return -1;
     }
 
@@ -2176,7 +2176,7 @@ static int trans_io_weight_v2(const defs_resources_block_io *block_io, struct lc
     size_t len = block_io->weight_device_len;
 
     if (block_io->weight != INVALID_INT) {
-        weight = trans_blkio_weight_to_io_weight(block_io->weight);
+        weight = lcr_util_trans_blkio_weight_to_io_weight(block_io->weight);
         if (weight < CGROUP2_WEIGHT_MIN || weight > CGROUP2_WEIGHT_MAX) {
             ERROR("invalid io weight cased by invalid blockio weight %d", block_io->weight);
             return -1;
@@ -2196,7 +2196,7 @@ static int trans_io_weight_v2(const defs_resources_block_io *block_io, struct lc
             int nret = 0;
             char buf_value[300] = { 0x00 };
 
-            weight = trans_blkio_weight_to_io_weight(weight_device[i]->weight);
+            weight = lcr_util_trans_blkio_weight_to_io_weight(weight_device[i]->weight);
             if (weight < CGROUP2_WEIGHT_MIN || weight > CGROUP2_WEIGHT_MAX) {
                 ERROR("invalid io weight cased by invalid blockio weight %d", weight_device[i]->weight);
                 return -1;
@@ -2227,7 +2227,7 @@ static int trans_io_bfq_weight_v2(const defs_resources_block_io *block_io, struc
     size_t len = block_io->weight_device_len;
 
     if (block_io->weight != INVALID_INT) {
-        weight = trans_blkio_weight_to_io_bfq_weight(block_io->weight);
+        weight = lcr_util_trans_blkio_weight_to_io_bfq_weight(block_io->weight);
         if (weight < CGROUP2_BFQ_WEIGHT_MIN || weight > CGROUP2_BFQ_WEIGHT_MAX) {
             ERROR("invalid io weight cased by invalid blockio weight %d", block_io->weight);
             return -1;
@@ -2247,7 +2247,7 @@ static int trans_io_bfq_weight_v2(const defs_resources_block_io *block_io, struc
             int nret = 0;
             char buf_value[300] = { 0x00 };
 
-            weight = trans_blkio_weight_to_io_weight(weight_device[i]->weight);
+            weight = lcr_util_trans_blkio_weight_to_io_weight(weight_device[i]->weight);
             if (weight < CGROUP2_BFQ_WEIGHT_MIN || weight > CGROUP2_BFQ_WEIGHT_MAX) {
                 ERROR("invalid io weight cased by invalid blockio weight %d", weight_device[i]->weight);
                 return -1;
@@ -2433,7 +2433,7 @@ static struct lcr_list *trans_oci_resources(const defs_resources *res)
 {
     int cgroup_version = 0;
 
-    cgroup_version = get_cgroup_version();
+    cgroup_version = lcr_util_get_cgroup_version();
     if (cgroup_version < 0) {
         return NULL;
     }
