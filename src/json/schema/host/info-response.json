@@ -50,6 +50,12 @@
             "isulad_root_dir": {
                 "type": "string"
             },
+            "default_runtime": {
+                "type": "string"
+            },
+            "runtimes": {
+                "type": "ArrayOfStrings"
+            },
             "total_mem": {
                 "type": "uint32"
             },
