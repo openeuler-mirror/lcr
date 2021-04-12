@@ -1,7 +1,7 @@
 # lcr
 
 `lcr`(Lightweight Container Runtime) is CLI tool for spawning and running containers according to OCI specification.
-It is based on `liblxc` and written by `C`. It can use by container engine: [iSulad](https://gitee.com/openeuler/iSulad). [iSulad](https://gitee.com/openeuler/iSulad) use `ldopen` to call functions defined in lcr.
+It is based on `liblxc` and written by `C`. It can use by container engine: [iSulad](https://gitee.com/openeuler/iSulad). [iSulad](https://gitee.com/openeuler/iSulad) use `dlopen` to call functions defined in lcr.
 
 ## How to Contribute
 
