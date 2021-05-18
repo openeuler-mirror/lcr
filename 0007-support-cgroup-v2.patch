@@ -1,0 +1,1418 @@
+From 8c4518abec8712b608fdec36ca9acf297925b7a2 Mon Sep 17 00:00:00 2001
+From: WangFengTu <wangfengtu@huawei.com>
+Date: Mon, 18 Jan 2021 20:09:00 +0800
+Subject: [PATCH 07/10] support cgroup v2
+
+Signed-off-by: WangFengTu <wangfengtu@huawei.com>
+---
+ src/conf.c                 | 652 +++++++++++++++++++++++++++++++++----
+ src/lcrcontainer_execute.c | 315 +++++++++++++++++-
+ src/utils.c                |  70 ++++
+ src/utils.h                |  24 ++
+ 4 files changed, 994 insertions(+), 67 deletions(-)
+
+diff --git a/src/conf.c b/src/conf.c
+index 505985e..d1fd2f3 100644
+--- a/src/conf.c
++++ b/src/conf.c
+@@ -43,11 +43,47 @@
+ #define SUB_GID_PATH "/etc/subgid"
+ #define ID_MAP_LEN 100
+ 
+-/* files limit checker */
+-static int files_limit_checker(const char *value)
++/* files limit checker for cgroup v1 */
++static int files_limit_checker_v1(const char *value)
+ {
+     long long limit = 0;
+     int ret = 0;
++    int cgroup_version = 0;
++
++    cgroup_version = get_cgroup_version();
++    if (cgroup_version < 0) {
++        return -1;
++    }
++
++    // If cgroup version not match, skip the item
++    if (cgroup_version != CGROUP_VERSION_1) {
++        return 1;
++    }
++
++    ret = lcr_util_safe_llong(value, &limit);
++    if (ret) {
++        ret = -1;
++    }
++
++    return ret;
++}
++
++/* files limit checker for cgroup v2 */
++static int files_limit_checker_v2(const char *value)
++{
++    long long limit = 0;
++    int ret = 0;
++    int cgroup_version = 0;
++
++    cgroup_version = get_cgroup_version();
++    if (cgroup_version < 0) {
++        return -1;
++    }
++
++    // If cgroup version not match, skip the item
++    if (cgroup_version != CGROUP_VERSION_2) {
++        return 1;
++    }
+ 
+     ret = lcr_util_safe_llong(value, &limit);
+     if (ret) {
+@@ -217,7 +253,12 @@ static const lcr_annotation_item_t g_require_annotations[] = {
+     {
+         "files.limit",
+         "lxc.cgroup.files.limit",
+-        files_limit_checker,
++        files_limit_checker_v1,
++    },
++    {
++        "files.limit",
++        "lxc.cgroup2.files.limit",
++        files_limit_checker_v2,
+     },
+     {
+         "log.console.file",
+@@ -1317,8 +1358,20 @@ static int trans_conf_uint64(struct lcr_list *conf, const char *lxc_key, uint64_
+     return 0;
+ }
+ 
+-/* trans resources mem swap */
+-static int trans_resources_mem_swap(const defs_resources *res, struct lcr_list *conf)
++static int trans_conf_string(struct lcr_list *conf, const char *lxc_key, const char *val)
++{
++    struct lcr_list *node = NULL;
++
++    node = create_lcr_list_node(lxc_key, val);
++    if (node == NULL) {
++        return -1;
++    }
++    lcr_list_add_tail(conf, node);
++    return 0;
++}
++
++/* trans resources mem swap of cgroup v1 */
++static int trans_resources_mem_swap_v1(const defs_resources *res, struct lcr_list *conf)
+ {
+     int ret = -1;
+     int nret;
+@@ -1350,7 +1403,7 @@ out:
+     return ret;
+ }
+ 
+-static int trans_resources_mem_limit(const defs_resources *res, struct lcr_list *conf)
++static int trans_resources_mem_limit_v1(const defs_resources *res, struct lcr_list *conf)
+ {
+     if (res->memory->limit != INVALID_INT) {
+         /* set limit of memory usage */
+@@ -1362,8 +1415,8 @@ static int trans_resources_mem_limit(const defs_resources *res, struct lcr_list
+     return 0;
+ }
+ 
+-/* trans resources mem kernel */
+-static int trans_resources_mem_kernel(const defs_resources *res, struct lcr_list *conf)
++/* trans resources mem kernel of cgroup v1 */
++static int trans_resources_mem_kernel_v1(const defs_resources *res, struct lcr_list *conf)
+ {
+     int ret = -1;
+     int nret;
+@@ -1387,7 +1440,7 @@ out:
+     return ret;
+ }
+ 
+-static int trans_resources_mem_disable_oom(const defs_resources *res, struct lcr_list *conf)
++static int trans_resources_mem_disable_oom_v1(const defs_resources *res, struct lcr_list *conf)
+ {
+     struct lcr_list *node = NULL;
+     if (res->memory->disable_oom_killer) {
+@@ -1400,8 +1453,8 @@ static int trans_resources_mem_disable_oom(const defs_resources *res, struct lcr
+     return 0;
+ }
+ 
+-/* trans resources memory */
+-static int trans_resources_memory(const defs_resources *res, struct lcr_list *conf)
++/* trans resources memory of cgroup v1 */
++static int trans_resources_memory_v1(const defs_resources *res, struct lcr_list *conf)
+ {
+     int ret = -1;
+ 
+@@ -1409,19 +1462,19 @@ static int trans_resources_memory(const defs_resources *res, struct lcr_list *co
+         return 0;
+     }
+ 
+-    if (trans_resources_mem_limit(res, conf) != 0) {
++    if (trans_resources_mem_limit_v1(res, conf) != 0) {
+         goto out;
+     }
+ 
+-    if (trans_resources_mem_swap(res, conf) != 0) {
++    if (trans_resources_mem_swap_v1(res, conf) != 0) {
+         goto out;
+     }
+ 
+-    if (trans_resources_mem_kernel(res, conf) != 0) {
++    if (trans_resources_mem_kernel_v1(res, conf) != 0) {
+         goto out;
+     }
+ 
+-    if (trans_resources_mem_disable_oom(res, conf) != 0) {
++    if (trans_resources_mem_disable_oom_v1(res, conf) != 0) {
+         goto out;
+     }
+     ret = 0;
+@@ -1429,8 +1482,24 @@ out:
+     return ret;
+ }
+ 
+-static int trans_resources_devices_node(const defs_device_cgroup *lrd, struct lcr_list *conf,
+-                                        const char *buf_value)
++static int trans_conf_int64_with_max(struct lcr_list *conf, const char *lxc_key, int64_t val)
++{
++    int ret = 0;
++
++    if (val == -1) {
++        ret = trans_conf_string(conf, lxc_key, "max");
++    } else {
++        ret = trans_conf_int64(conf, lxc_key, val);
++    }
++    if (ret < 0) {
++        return -1;
++    }
++
++    return ret;
++}
++
++static int trans_resources_devices_node_v1(const defs_device_cgroup *lrd, struct lcr_list *conf,
++                                           const char *buf_value)
+ {
+     struct lcr_list *node = NULL;
+     int ret = -1;
+@@ -1490,8 +1559,8 @@ static int trans_resources_devices_ret(const defs_device_cgroup *lrd, char *buf_
+     return ret;
+ }
+ 
+-/* trans resources devices */
+-static int trans_resources_devices(const defs_resources *res, struct lcr_list *conf)
++/* trans resources devices for cgroup v1 */
++static int trans_resources_devices_v1(const defs_resources *res, struct lcr_list *conf)
+ {
+     int ret = -1;
+     size_t i = 0;
+@@ -1503,7 +1572,7 @@ static int trans_resources_devices(const defs_resources *res, struct lcr_list *c
+             goto out;
+         }
+ 
+-        if (trans_resources_devices_node(lrd, conf, buf_value) < 0) {
++        if (trans_resources_devices_node_v1(lrd, conf, buf_value) < 0) {
+             goto out;
+         }
+     }
+@@ -1589,8 +1658,8 @@ static int trans_resources_cpu_shares(const defs_resources *res, struct lcr_list
+     return 0;
+ }
+ 
+-/* trans resources cpu */
+-static int trans_resources_cpu(const defs_resources *res, struct lcr_list *conf)
++/* trans resources cpu of cgroup v1 */
++static int trans_resources_cpu_v1(const defs_resources *res, struct lcr_list *conf)
+ {
+     int ret = -1;
+ 
+@@ -1620,8 +1689,8 @@ out:
+     return ret;
+ }
+ 
+-/* trans resources blkio weight */
+-static int trans_blkio_weight(const defs_resources_block_io *block_io, struct lcr_list *conf)
++/* trans resources blkio weight of cgroup v1 */
++static int trans_blkio_weight_v1(const defs_resources_block_io *block_io, struct lcr_list *conf)
+ {
+     int ret = -1;
+ 
+@@ -1641,8 +1710,8 @@ out:
+     return ret;
+ }
+ 
+-/* trans resources blkio wdevice */
+-static int trans_blkio_wdevice(const defs_resources_block_io *block_io, struct lcr_list *conf)
++/* trans resources blkio wdevice of cgroup v1 */
++static int trans_blkio_wdevice_v1(const defs_resources_block_io *block_io, struct lcr_list *conf)
+ {
+     struct lcr_list *node = NULL;
+     int ret = -1;
+@@ -1684,9 +1753,9 @@ out:
+     return ret;
+ }
+ 
+-/* trans resources blkio throttle */
+-static int trans_blkio_throttle(defs_block_io_device_throttle **throttle, size_t len,
+-                                const char *lxc_key, struct lcr_list *conf)
++/* trans resources blkio throttle of cgroup v1 */
++static int trans_blkio_throttle_v1(defs_block_io_device_throttle **throttle, size_t len,
++                                   const char *lxc_key, struct lcr_list *conf)
+ {
+     struct lcr_list *node = NULL;
+     int ret = -1;
+@@ -1718,8 +1787,8 @@ out:
+     return ret;
+ }
+ 
+-/* trans resources blkio */
+-static int trans_resources_blkio(const defs_resources_block_io *block_io, struct lcr_list *conf)
++/* trans resources blkio of cgroup v1 */
++static int trans_resources_blkio_v1(const defs_resources_block_io *block_io, struct lcr_list *conf)
+ {
+     int ret = -1;
+ 
+@@ -1727,31 +1796,31 @@ static int trans_resources_blkio(const defs_resources_block_io *block_io, struct
+         return 0;
+     }
+ 
+-    if (trans_blkio_weight(block_io, conf)) {
++    if (trans_blkio_weight_v1(block_io, conf)) {
+         goto out;
+     }
+ 
+-    if (trans_blkio_wdevice(block_io, conf)) {
++    if (trans_blkio_wdevice_v1(block_io, conf)) {
+         goto out;
+     }
+ 
+-    if (trans_blkio_throttle(block_io->throttle_read_bps_device, block_io->throttle_read_bps_device_len,
+-                             "lxc.cgroup.blkio.throttle.read_bps_device", conf)) {
++    if (trans_blkio_throttle_v1(block_io->throttle_read_bps_device, block_io->throttle_read_bps_device_len,
++                                "lxc.cgroup.blkio.throttle.read_bps_device", conf)) {
+         goto out;
+     }
+ 
+-    if (trans_blkio_throttle(block_io->throttle_write_bps_device, block_io->throttle_write_bps_device_len,
+-                             "lxc.cgroup.blkio.throttle.write_bps_device", conf)) {
++    if (trans_blkio_throttle_v1(block_io->throttle_write_bps_device, block_io->throttle_write_bps_device_len,
++                                "lxc.cgroup.blkio.throttle.write_bps_device", conf)) {
+         goto out;
+     }
+ 
+-    if (trans_blkio_throttle(block_io->throttle_read_iops_device, block_io->throttle_read_iops_device_len,
+-                             "lxc.cgroup.blkio.throttle.read_iops_device", conf)) {
++    if (trans_blkio_throttle_v1(block_io->throttle_read_iops_device, block_io->throttle_read_iops_device_len,
++                                "lxc.cgroup.blkio.throttle.read_iops_device", conf)) {
+         goto out;
+     }
+ 
+-    if (trans_blkio_throttle(block_io->throttle_write_iops_device, block_io->throttle_write_iops_device_len,
+-                             "lxc.cgroup.blkio.throttle.write_iops_device", conf)) {
++    if (trans_blkio_throttle_v1(block_io->throttle_write_iops_device, block_io->throttle_write_iops_device_len,
++                                "lxc.cgroup.blkio.throttle.write_iops_device", conf)) {
+         goto out;
+     }
+ 
+@@ -1760,8 +1829,8 @@ out:
+     return ret;
+ }
+ 
+-/* trans resources hugetlb */
+-static int trans_resources_hugetlb(const defs_resources *res, struct lcr_list *conf)
++/* trans resources hugetlb of cgroup v1 */
++static int trans_resources_hugetlb_v1(const defs_resources *res, struct lcr_list *conf)
+ {
+     int ret = -1;
+     size_t i = 0;
+@@ -1786,8 +1855,8 @@ out:
+     return ret;
+ }
+ 
+-/* trans resources network */
+-static int trans_resources_network(const defs_resources *res, struct lcr_list *conf)
++/* trans resources network of cgroup v1 */
++static int trans_resources_network_v1(const defs_resources *res, struct lcr_list *conf)
+ {
+     int ret = -1;
+     size_t i = 0;
+@@ -1824,8 +1893,8 @@ out:
+     return ret;
+ }
+ 
+-/* trans resources pids */
+-static int trans_resources_pids(const defs_resources *res, struct lcr_list *conf)
++/* trans resources pids of cgroup v1 */
++static int trans_resources_pids_v1(const defs_resources *res, struct lcr_list *conf)
+ {
+     int ret = -1;
+     char buf_value[300] = { 0 };
+@@ -1857,8 +1926,8 @@ out:
+     return ret;
+ }
+ 
+-/* trans oci resources */
+-static struct lcr_list *trans_oci_resources(const defs_resources *res)
++/* trans oci resources to lxc cgroup config v1 */
++static struct lcr_list *trans_oci_resources_v1(const defs_resources *res)
+ {
+     struct lcr_list *conf = NULL;
+ 
+@@ -1868,31 +1937,480 @@ static struct lcr_list *trans_oci_resources(const defs_resources *res)
+     }
+     lcr_list_init(conf);
+ 
+-    if (trans_resources_devices(res, conf)) {
++    if (trans_resources_devices_v1(res, conf)) {
++        goto out_free;
++    }
++
++    if (trans_resources_memory_v1(res, conf)) {
++        goto out_free;
++    }
++
++    if (trans_resources_cpu_v1(res, conf)) {
++        goto out_free;
++    }
++
++    if (trans_resources_blkio_v1(res->block_io, conf)) {
++        goto out_free;
++    }
++
++    if (trans_resources_hugetlb_v1(res, conf)) {
++        goto out_free;
++    }
++
++    if (trans_resources_network_v1(res, conf)) {
++        goto out_free;
++    }
++
++    if (trans_resources_pids_v1(res, conf)) {
+         goto out_free;
+     }
+ 
+-    if (trans_resources_memory(res, conf)) {
++    return conf;
++
++out_free:
++    lcr_free_config(conf);
++    free(conf);
++
++    return NULL;
++}
++
++static int trans_resources_devices_node_v2(const defs_device_cgroup *lrd, struct lcr_list *conf,
++                                           const char *buf_value)
++{
++    struct lcr_list *node = NULL;
++    int ret = -1;
++
++    if (lrd->allow == true) {
++        node = create_lcr_list_node("lxc.cgroup2.devices.allow", buf_value);
++    } else {
++        node = create_lcr_list_node("lxc.cgroup2.devices.deny", buf_value);
++    }
++    if (node == NULL) {
++        goto out;
++    }
++    lcr_list_add_tail(conf, node);
++
++    ret = 0;
++out:
++    return ret;
++}
++
++/* trans resources devices for cgroup v2 */
++static int trans_resources_devices_v2(const defs_resources *res, struct lcr_list *conf)
++{
++    int ret = -1;
++    size_t i = 0;
++    char buf_value[300] = { 0 };
++
++    for (i = 0; i < res->devices_len; i++) {
++        defs_device_cgroup *lrd = res->devices[i];
++        if (trans_resources_devices_ret(lrd, buf_value, sizeof(buf_value)) < 0) {
++            goto out;
++        }
++
++        if (trans_resources_devices_node_v2(lrd, conf, buf_value) < 0) {
++            goto out;
++        }
++    }
++    ret = 0;
++out:
++    return ret;
++}
++
++/* set limit of memory usage of cgroup v2 */
++static int trans_resources_mem_limit_v2(const defs_resources *res, struct lcr_list *conf)
++{
++    if (res->memory->limit != INVALID_INT) {
++        if (trans_conf_int64_with_max(conf, "lxc.cgroup2.memory.max", res->memory->limit) != 0) {
++            return -1;
++        }
++    }
++
++    if (res->memory->reservation != INVALID_INT) {
++        if (trans_conf_int64_with_max(conf, "lxc.cgroup2.memory.low", res->memory->reservation) != 0) {
++            return -1;
++        }
++    }
++
++    return 0;
++}
++
++/* trans resources mem swap of cgroup v2 */
++static int trans_resources_mem_swap_v2(const defs_resources *res, struct lcr_list *conf)
++{
++    int64_t swap = 0;
++
++    if (res->memory->swap == INVALID_INT) {
++        return 0;
++    }
++
++    if (get_real_swap(res->memory->limit, res->memory->swap, &swap) != 0) {
++        return -1;
++    }
++
++    if (trans_conf_int64_with_max(conf, "lxc.cgroup2.memory.swap.max", swap) != 0) {
++        return -1;
++    }
++
++    return 0;
++}
++
++/* trans resources memory of cgroup v2 */
++static int trans_resources_memory_v2(const defs_resources *res, struct lcr_list *conf)
++{
++    if (res->memory == NULL) {
++        return 0;
++    }
++
++    if (trans_resources_mem_limit_v2(res, conf) != 0) {
++        return -1;
++    }
++
++    if (trans_resources_mem_swap_v2(res, conf) != 0) {
++        return -1;
++    }
++
++    return 0;
++}
++
++/* trans resources cpu weight of cgroup v2, it's called cpu shares in cgroup v1 */
++static int trans_resources_cpu_weight_v2(const defs_resources *res, struct lcr_list *conf)
++{
++    if (res->cpu->shares == INVALID_INT) {
++        return 0;
++    }
++
++    if (res->cpu->shares < 2 || res->cpu->shares > 262144) {
++        ERROR("invalid cpu shares %lld out of range [2-262144]", (long long)res->cpu->shares);
++        return -1;
++    }
++
++    if (trans_conf_int64(conf, "lxc.cgroup2.cpu.weight", trans_cpushare_to_cpuweight(res->cpu->shares)) != 0) {
++        return -1;
++    }
++
++    return 0;
++}
++
++/* trans resources cpu max of cgroup v2, it's called quota/period in cgroup v1 */
++static int trans_resources_cpu_max_v2(const defs_resources *res, struct lcr_list *conf)
++{
++    char buf_value[300] = {0};
++    uint64_t period = res->cpu->period;
++    int nret = 0;
++
++    if (res->cpu->quota == 0 && period == 0) {
++        return 0;
++    }
++
++    if (period == 0) {
++        period = DEFAULT_CPU_PERIOD;
++    }
++
++    // format:
++    // $MAX $PERIOD
++    if (res->cpu->quota > 0) {
++        nret = snprintf(buf_value, sizeof(buf_value), "%lld %llu", (long long) res->cpu->quota,
++                        (unsigned long long)period);
++    } else {
++        nret = snprintf(buf_value, sizeof(buf_value), "max %llu", (unsigned long long)period);
++    }
++    if (nret < 0 || (size_t)nret >= sizeof(buf_value)) {
++        ERROR("failed to printf cpu max");
++        return -1;
++    }
++
++    if (trans_conf_string(conf, "lxc.cgroup2.cpu.max", buf_value) != 0) {
++        return -1;
++    }
++
++    return 0;
++}
++
++/* trans resources cpu set of cgroup v2 */
++static int trans_resources_cpuset_v2(const defs_resources *res, struct lcr_list *conf)
++{
++    if (res->cpu->cpus != NULL) {
++        if (trans_conf_string(conf, "lxc.cgroup2.cpuset.cpus", res->cpu->cpus) != 0) {
++            return -1;
++        }
++    }
++
++    if (res->cpu->mems != NULL) {
++        if (trans_conf_string(conf, "lxc.cgroup2.cpuset.mems", res->cpu->mems) != 0) {
++            return -1;
++        }
++    }
++
++    return 0;
++}
++
++/* trans resources cpu of cgroup v2 */
++static int trans_resources_cpu_v2(const defs_resources *res, struct lcr_list *conf)
++{
++    if (res->cpu == NULL) {
++        return 0;
++    }
++
++    if (trans_resources_cpu_weight_v2(res, conf) != 0) {
++        return -1;
++    }
++
++    if (trans_resources_cpu_max_v2(res, conf) != 0) {
++        return -1;
++    }
++
++    if (trans_resources_cpuset_v2(res, conf) != 0) {
++        return -1;
++    }
++
++    return 0;
++}
++
++/* trans resources io.weight/io.weight_device of cgroup v2 */
++static int trans_io_weight_v2(const defs_resources_block_io *block_io, struct lcr_list *conf)
++{
++    size_t i = 0;
++    uint64_t weight = 0;
++    defs_block_io_device_weight **weight_device = block_io->weight_device;
++    size_t len = block_io->weight_device_len;
++
++    if (block_io->weight != INVALID_INT) {
++        weight = trans_blkio_weight_to_io_weight(block_io->weight);
++        if (weight < CGROUP2_WEIGHT_MIN || weight > CGROUP2_WEIGHT_MAX) {
++            ERROR("invalid io weight cased by invalid blockio weight %d", block_io->weight);
++            return -1;
++        }
++
++        if (trans_conf_int(conf, "lxc.cgroup2.io.weight", (int)weight) != 0) {
++            return -1;
++        }
++    }
++
++    if ((weight_device == NULL) || len == 0) {
++        return 0;
++    }
++
++    for (i = 0; i < len; i++) {
++        if (weight_device[i] && weight_device[i]->weight != INVALID_INT) {
++            int nret = 0;
++            char buf_value[300] = { 0x00 };
++
++            weight = trans_blkio_weight_to_io_weight(weight_device[i]->weight);
++            if (weight < CGROUP2_WEIGHT_MIN || weight > CGROUP2_WEIGHT_MAX) {
++                ERROR("invalid io weight cased by invalid blockio weight %d", weight_device[i]->weight);
++                return -1;
++            }
++
++            nret = snprintf(buf_value, sizeof(buf_value), "%lld:%lld %d", (long long)weight_device[i]->major,
++                            (long long)(weight_device[i]->minor), (int)weight);
++            if (nret < 0 || (size_t)nret >= sizeof(buf_value)) {
++                ERROR("print device weight failed");
++                return -1;
++            }
++
++            if (trans_conf_string(conf, "lxc.cgroup2.io.weight_device", buf_value) != 0) {
++                return -1;
++            }
++        }
++    }
++
++    return 0;
++}
++
++/* trans resources io.bfq.weight/io.bfq.weight_device of cgroup v2 */
++static int trans_io_bfq_weight_v2(const defs_resources_block_io *block_io, struct lcr_list *conf)
++{
++    size_t i = 0;
++    uint64_t weight = 0;
++    defs_block_io_device_weight **weight_device = block_io->weight_device;
++    size_t len = block_io->weight_device_len;
++
++    if (block_io->weight != INVALID_INT) {
++        weight = trans_blkio_weight_to_io_bfq_weight(block_io->weight);
++        if (weight < CGROUP2_BFQ_WEIGHT_MIN || weight > CGROUP2_BFQ_WEIGHT_MAX) {
++            ERROR("invalid io weight cased by invalid blockio weight %d", block_io->weight);
++            return -1;
++        }
++
++        if (trans_conf_int(conf, "lxc.cgroup2.io.bfq.weight", weight) != 0) {
++            return -1;
++        }
++    }
++
++    if ((weight_device == NULL) || len == 0) {
++        return 0;
++    }
++
++    for (i = 0; i < len; i++) {
++        if (weight_device[i] && weight_device[i]->weight != INVALID_INT) {
++            int nret = 0;
++            char buf_value[300] = { 0x00 };
++
++            weight = trans_blkio_weight_to_io_weight(weight_device[i]->weight);
++            if (weight < CGROUP2_BFQ_WEIGHT_MIN || weight > CGROUP2_BFQ_WEIGHT_MAX) {
++                ERROR("invalid io weight cased by invalid blockio weight %d", weight_device[i]->weight);
++                return -1;
++            }
++
++            nret = snprintf(buf_value, sizeof(buf_value), "%lld:%lld %d", (long long)weight_device[i]->major,
++                            (long long)(weight_device[i]->minor), (int)weight);
++            if (nret < 0 || (size_t)nret >= sizeof(buf_value)) {
++                ERROR("print device weight failed");
++                return -1;
++            }
++
++            if (trans_conf_string(conf, "lxc.cgroup2.io.bfq.weight_device", buf_value) != 0) {
++                return -1;
++            }
++        }
++    }
++
++    return 0;
++}
++
++/* trans resources io throttle of cgroup v2 */
++static int trans_io_throttle_v2(defs_block_io_device_throttle **throttle, size_t len,
++                                const char *lxc_key, const char *rate_key, struct lcr_list *conf)
++{
++    int ret = -1;
++    size_t i;
++
++    if ((throttle == NULL) || len == 0) {
++        return 0;
++    }
++
++    for (i = 0; i < len; i++) {
++        if (throttle[i] && throttle[i]->rate != INVALID_INT) {
++            int nret = 0;
++            char buf_value[300] = { 0x00 };
++            nret = snprintf(buf_value, sizeof(buf_value), "%lld:%lld %s=%llu", (long long)throttle[i]->major,
++                            (long long)(throttle[i]->minor), rate_key, (unsigned long long)(throttle[i]->rate));
++            if (nret < 0 || (size_t)nret >= sizeof(buf_value)) {
++                goto out;
++            }
++
++            if (trans_conf_string(conf, lxc_key, buf_value) != 0) {
++                goto out;
++            }
++        }
++    }
++    ret = 0;
++out:
++    return ret;
++}
++
++
++/* trans resources blkio of cgroup v2 */
++static int trans_resources_blkio_v2(const defs_resources_block_io *block_io, struct lcr_list *conf)
++{
++    if (block_io == NULL) {
++        return 0;
++    }
++
++    if (trans_io_weight_v2(block_io, conf)) {
++        return -1;
++    }
++
++    if (trans_io_bfq_weight_v2(block_io, conf)) {
++        return -1;
++    }
++
++    if (trans_io_throttle_v2(block_io->throttle_read_bps_device, block_io->throttle_read_bps_device_len,
++                             "lxc.cgroup2.io.max", "rbps", conf) != 0) {
++        return -1;
++    }
++
++    if (trans_io_throttle_v2(block_io->throttle_write_bps_device, block_io->throttle_write_bps_device_len,
++                             "lxc.cgroup2.io.max", "wbps", conf) != 0) {
++        return -1;
++    }
++
++    if (trans_io_throttle_v2(block_io->throttle_read_iops_device, block_io->throttle_read_iops_device_len,
++                             "lxc.cgroup2.io.max", "riops", conf) != 0) {
++        return -1;
++    }
++
++    if (trans_io_throttle_v2(block_io->throttle_write_iops_device, block_io->throttle_write_iops_device_len,
++                             "lxc.cgroup2.io.max", "wiops", conf) != 0) {
++        return -1;
++    }
++
++    return 0;
++}
++
++/* trans resources hugetlb of cgroup v2 */
++static int trans_resources_hugetlb_v2(const defs_resources *res, struct lcr_list *conf)
++{
++    size_t i = 0;
++    char buf_key[300] = { 0 };
++
++    for (i = 0; i < res->hugepage_limits_len; i++) {
++        defs_resources_hugepage_limits_element *lrhl = res->hugepage_limits[i];
++        if (lrhl->page_size == NULL) {
++            continue;
++        }
++        int nret = snprintf(buf_key, sizeof(buf_key), "lxc.cgroup2.hugetlb.%s.max", lrhl->page_size);
++        if (nret < 0 || (size_t)nret >= sizeof(buf_key)) {
++            return -1;
++        }
++
++        if (trans_conf_uint64(conf, buf_key, lrhl->limit) < 0) {
++            return -1;
++        }
++    }
++
++    return 0;
++}
++
++/* trans resources pids of cgroup v2 */
++static int trans_resources_pids_v2(const defs_resources *res, struct lcr_list *conf)
++{
++    if (res->pids == NULL) {
++        return 0;
++    }
++
++    if (res->pids->limit != INVALID_INT) {
++        if (trans_conf_int64_with_max(conf, "lxc.cgroup2.pids.max", res->pids->limit) != 0) {
++            return -1;
++        }
++    }
++
++    return 0;
++}
++
++/* trans oci resources to lxc cgroup config v2 */
++static struct lcr_list *trans_oci_resources_v2(const defs_resources *res)
++{
++    struct lcr_list *conf = NULL;
++
++    conf = lcr_util_common_calloc_s(sizeof(*conf));
++    if (conf == NULL) {
++        return NULL;
++    }
++    lcr_list_init(conf);
++
++    if (trans_resources_devices_v2(res, conf)) {
+         goto out_free;
+     }
+ 
+-    if (trans_resources_cpu(res, conf)) {
++    if (trans_resources_memory_v2(res, conf)) {
+         goto out_free;
+     }
+ 
+-    if (trans_resources_blkio(res->block_io, conf)) {
++    if (trans_resources_cpu_v2(res, conf)) {
+         goto out_free;
+     }
+ 
+-    if (trans_resources_hugetlb(res, conf)) {
++    if (trans_resources_blkio_v2(res->block_io, conf)) {
+         goto out_free;
+     }
+ 
+-    if (trans_resources_network(res, conf)) {
++    if (trans_resources_hugetlb_v2(res, conf)) {
+         goto out_free;
+     }
+ 
+-    if (trans_resources_pids(res, conf)) {
++    if (trans_resources_pids_v2(res, conf)) {
+         goto out_free;
+     }
+ 
+@@ -1905,6 +2423,28 @@ out_free:
+     return NULL;
+ }
+ 
++/* trans oci resources to lxc cgroup config */
++/* note: we write both cgroup v1 and cgroup v2 config to lxc config file, let lxc choose the right one */
++/* references: */
++/* oci config: https://github.com/opencontainers/runtime-spec/blob/master/schema/config-linux.json */
++/* cgroup v1 config: https://www.kernel.org/doc/html/latest/admin-guide/cgroup-v1/index.html */
++/* cgroup v2 config: https://www.kernel.org/doc/html/latest/admin-guide/cgroup-v2.html */
++static struct lcr_list *trans_oci_resources(const defs_resources *res)
++{
++    int cgroup_version = 0;
++
++    cgroup_version = get_cgroup_version();
++    if (cgroup_version < 0) {
++        return NULL;
++    }
++
++    if (cgroup_version == CGROUP_VERSION_2) {
++        return trans_oci_resources_v2(res);
++    } else {
++        return trans_oci_resources_v1(res);
++    }
++}
++
+ struct namespace_map_def {
+     char *ns_name;
+     char *lxc_name;
+diff --git a/src/lcrcontainer_execute.c b/src/lcrcontainer_execute.c
+index 8ea479e..bef787b 100644
+--- a/src/lcrcontainer_execute.c
++++ b/src/lcrcontainer_execute.c
+@@ -41,7 +41,7 @@
+ #include "oci_runtime_spec.h"
+ #include "lcrcontainer_extend.h"
+ 
+-// Cgroup Item Definition
++// Cgroup v1 Item Definition
+ #define CGROUP_BLKIO_WEIGHT "blkio.weight"
+ #define CGROUP_CPU_SHARES "cpu.shares"
+ #define CGROUP_CPU_PERIOD "cpu.cfs_period_us"
+@@ -54,6 +54,17 @@
+ #define CGROUP_MEMORY_SWAP "memory.memsw.limit_in_bytes"
+ #define CGROUP_MEMORY_RESERVATION "memory.soft_limit_in_bytes"
+ 
++// Cgroup v2 Item Definition
++#define CGROUP2_IO_WEIGHT "io.weight"
++#define CGROUP2_IO_BFQ_WEIGHT "io.bfq.weight"
++#define CGROUP2_CPU_WEIGHT "cpu.weight"
++#define CGROUP2_CPU_MAX "cpu.max"
++#define CGROUP2_CPUSET_CPUS "cpuset.cpus"
++#define CGROUP2_CPUSET_MEMS "cpuset.mems"
++#define CGROUP2_MEMORY_MAX "memory.max"
++#define CGROUP2_MEMORY_LOW "memory.low"
++#define CGROUP2_MEMORY_SWAP_MAX "memory.swap.max"
++
+ #define REPORT_SET_CGROUP_ERROR(item, value)                                                          \
+     do                                                                                                \
+     {                                                                                                 \
+@@ -126,6 +137,30 @@ err_out:
+     return ret;
+ }
+ 
++static int update_resources_cpuset_cpus_v2(struct lxc_container *c, const struct lcr_cgroup_resources *cr)
++{
++    if (cr->cpuset_cpus != NULL && strcmp(cr->cpuset_cpus, "") != 0) {
++        if (!c->set_cgroup_item(c, CGROUP2_CPUSET_CPUS, cr->cpuset_cpus)) {
++            REPORT_SET_CGROUP_ERROR(CGROUP2_CPUSET_CPUS, cr->cpuset_cpus);
++            return -1;
++        }
++    }
++
++    return 0;
++}
++
++static int update_resources_cpuset_mems_v2(struct lxc_container *c, const struct lcr_cgroup_resources *cr)
++{
++    if (cr->cpuset_mems != NULL && strcmp(cr->cpuset_mems, "") != 0) {
++        if (!c->set_cgroup_item(c, CGROUP2_CPUSET_MEMS, cr->cpuset_mems)) {
++            REPORT_SET_CGROUP_ERROR(CGROUP2_CPUSET_MEMS, cr->cpuset_mems);
++            return -1;
++        }
++    }
++
++    return 0;
++}
++
+ static int update_resources_cpu_shares(struct lxc_container *c, const struct lcr_cgroup_resources *cr)
+ {
+     int ret = 0;
+@@ -149,6 +184,34 @@ out:
+     return ret;
+ }
+ 
++static int update_resources_cpu_weight_v2(struct lxc_container *c, const struct lcr_cgroup_resources *cr)
++{
++    char numstr[128] = {0}; /* max buffer */
++
++    if (cr->cpu_shares == 0) {
++        return 0;
++    }
++
++    // 252144 comes from linux kernel code "#define MAX_SHARES (1UL << 18)"
++    if (cr->cpu_shares < 2 || cr->cpu_shares > 262144) {
++        ERROR("invalid cpu shares %lld out of range [2-262144]", (long long)cr->cpu_shares);
++        return -1;
++    }
++
++    int num = snprintf(numstr, sizeof(numstr), "%llu",
++                       (unsigned long long)trans_cpushare_to_cpuweight(cr->cpu_shares));
++    if (num < 0 || (size_t)num >= sizeof(numstr)) {
++        return -1;
++    }
++
++    if (!c->set_cgroup_item(c, CGROUP2_CPU_WEIGHT, numstr)) {
++        REPORT_SET_CGROUP_ERROR(CGROUP2_CPU_WEIGHT, numstr);
++        return -1;
++    }
++
++    return 0;
++}
++
+ static int update_resources_cpu_period(struct lxc_container *c, const struct lcr_cgroup_resources *cr)
+ {
+     int ret = 0;
+@@ -172,6 +235,40 @@ out:
+     return ret;
+ }
+ 
++static int update_resources_cpu_max_v2(struct lxc_container *c, const struct lcr_cgroup_resources *cr)
++{
++    int num = 0;
++    uint64_t period = cr->cpu_period;
++    uint64_t quota = cr->cpu_quota;
++    char numstr[128] = {0}; /* max buffer */
++
++    if (quota == 0 && period == 0) {
++        return 0;
++    }
++
++    if (period == 0) {
++        period = DEFAULT_CPU_PERIOD;
++    }
++
++    // format:
++    // $MAX $PERIOD
++    if ((int64_t) quota > 0) {
++        num = snprintf(numstr, sizeof(numstr), "%llu %llu", (unsigned long long)quota, (unsigned long long)period);
++    } else {
++        num = snprintf(numstr, sizeof(numstr), "max %llu", (unsigned long long)period);
++    }
++    if (num < 0 || (size_t)num >= sizeof(numstr)) {
++        return -1;
++    }
++
++    if (!c->set_cgroup_item(c, CGROUP2_CPU_MAX, numstr)) {
++        REPORT_SET_CGROUP_ERROR(CGROUP2_CPU_MAX, numstr);
++        return -1;
++    }
++
++    return 0;
++}
++
+ static int update_resources_cpu_rt_period(struct lxc_container *c, const struct lcr_cgroup_resources *cr)
+ {
+     int ret = 0;
+@@ -241,7 +338,7 @@ out:
+     return ret;
+ }
+ 
+-static bool update_resources_cpu(struct lxc_container *c, const struct lcr_cgroup_resources *cr)
++static bool update_resources_cpu_v1(struct lxc_container *c, const struct lcr_cgroup_resources *cr)
+ {
+     bool ret = false;
+ 
+@@ -277,6 +374,27 @@ err_out:
+     return ret;
+ }
+ 
++static int update_resources_cpu_v2(struct lxc_container *c, const struct lcr_cgroup_resources *cr)
++{
++    if (update_resources_cpu_weight_v2(c, cr) != 0) {
++        return -1;
++    }
++
++    if (update_resources_cpu_max_v2(c, cr) != 0) {
++        return -1;
++    }
++
++    if (update_resources_cpuset_cpus_v2(c, cr) != 0) {
++        return -1;
++    }
++
++    if (update_resources_cpuset_mems_v2(c, cr) != 0) {
++        return -1;
++    }
++
++    return 0;
++}
++
+ static int update_resources_memory_limit(struct lxc_container *c, const struct lcr_cgroup_resources *cr)
+ {
+     int ret = 0;
+@@ -300,6 +418,42 @@ out:
+     return ret;
+ }
+ 
++static int trans_int64_to_numstr_with_max(int64_t value, char *numstr, size_t size)
++{
++    int num = 0;
++
++    if (value == -1) {
++        num = snprintf(numstr, size, "max");
++    } else {
++        num = snprintf(numstr, size, "%lld", (long long)value);
++    }
++    if (num < 0 || (size_t)num >= size) {
++        return -1;
++    }
++
++    return 0;
++}
++
++static int update_resources_memory_limit_v2(struct lxc_container *c, const struct lcr_cgroup_resources *cr)
++{
++    char numstr[128] = {0}; /* max buffer */
++
++    if (cr->memory_limit == 0) {
++        return 0;
++    }
++
++    if (trans_int64_to_numstr_with_max((int64_t)cr->memory_limit, numstr, sizeof(numstr)) != 0) {
++        return -1;
++    }
++
++    if (!c->set_cgroup_item(c, CGROUP2_MEMORY_MAX, numstr)) {
++        REPORT_SET_CGROUP_ERROR(CGROUP2_MEMORY_MAX, numstr);
++        return -1;
++    }
++
++    return 0;
++}
++
+ static int update_resources_memory_swap(struct lxc_container *c, const struct lcr_cgroup_resources *cr)
+ {
+     int ret = 0;
+@@ -323,6 +477,31 @@ out:
+     return ret;
+ }
+ 
++static int update_resources_memory_swap_v2(struct lxc_container *c, const struct lcr_cgroup_resources *cr)
++{
++    char numstr[128] = {0}; /* max buffer */
++    int64_t swap = 0;
++
++    if (cr->memory_swap == 0) {
++        return 0;
++    }
++
++    if (get_real_swap(cr->memory_limit, cr->memory_swap, &swap) != 0) {
++        return -1;
++    }
++
++    if (trans_int64_to_numstr_with_max((int64_t)swap, numstr, sizeof(numstr)) != 0) {
++        return -1;
++    }
++
++    if (!c->set_cgroup_item(c, CGROUP2_MEMORY_SWAP_MAX, numstr)) {
++        REPORT_SET_CGROUP_ERROR(CGROUP2_MEMORY_SWAP_MAX, numstr);
++        return -1;
++    }
++
++    return 0;
++}
++
+ static int update_resources_memory_reservation(struct lxc_container *c, const struct lcr_cgroup_resources *cr)
+ {
+     int ret = 0;
+@@ -346,7 +525,26 @@ out:
+     return ret;
+ }
+ 
+-static bool update_resources_mem(struct lxc_container *c, struct lcr_cgroup_resources *cr)
++static int update_resources_memory_reservation_v2(struct lxc_container *c, const struct lcr_cgroup_resources *cr)
++{
++    char numstr[128] = {0}; /* max buffer */
++
++    if (cr->memory_reservation == 0) {
++        return 0;
++    }
++
++    if (trans_int64_to_numstr_with_max((int64_t)cr->memory_reservation, numstr, sizeof(numstr)) != 0) {
++        return -1;
++    }
++
++    if (!c->set_cgroup_item(c, CGROUP2_MEMORY_LOW, numstr)) {
++        return -1;
++    }
++
++    return 0;
++}
++
++static bool update_resources_mem_v1(struct lxc_container *c, struct lcr_cgroup_resources *cr)
+ {
+     bool ret = false;
+ 
+@@ -390,7 +588,24 @@ err_out:
+     return ret;
+ }
+ 
+-static int update_resources_blkio_weight(struct lxc_container *c, const struct lcr_cgroup_resources *cr)
++static int update_resources_mem_v2(struct lxc_container *c, struct lcr_cgroup_resources *cr)
++{
++    if (update_resources_memory_limit_v2(c, cr) != 0) {
++        return -1;
++    }
++
++    if (update_resources_memory_reservation_v2(c, cr) != 0) {
++        return -1;
++    }
++
++    if (update_resources_memory_swap_v2(c, cr) != 0) {
++        return -1;
++    }
++
++    return 0;
++}
++
++static int update_resources_blkio_weight_v1(struct lxc_container *c, const struct lcr_cgroup_resources *cr)
+ {
+     int ret = 0;
+     char numstr[128] = {0}; /* max buffer */
+@@ -413,23 +628,101 @@ out:
+     return ret;
+ }
+ 
++static int update_resources_io_weight_v2(struct lxc_container *c, const struct lcr_cgroup_resources *cr)
++{
++    uint64_t weight = 0;
++    char numstr[128] = {0}; /* max buffer */
++
++    if (cr->blkio_weight == 0) {
++        return 0;
++    }
++
++    weight = trans_blkio_weight_to_io_weight(cr->blkio_weight);
++    if (weight < CGROUP2_WEIGHT_MIN || weight > CGROUP2_WEIGHT_MAX) {
++        ERROR("invalid io weight cased by invalid blockio weight %llu", (unsigned long long) cr->blkio_weight);
++        return -1;
++    }
++
++    int num = snprintf(numstr, sizeof(numstr), "%llu", (unsigned long long)weight);
++    if (num < 0 || (size_t)num >= sizeof(numstr)) {
++        return -1;
++    }
++
++    if (!c->set_cgroup_item(c, CGROUP2_IO_WEIGHT, numstr)) {
++        REPORT_SET_CGROUP_ERROR(CGROUP2_IO_WEIGHT, numstr);
++        return -1;
++    }
++
++    return 0;
++}
++
++static int update_resources_io_bfq_weight_v2(struct lxc_container *c, const struct lcr_cgroup_resources *cr)
++{
++    uint64_t weight = 0;
++    char numstr[128] = {0}; /* max buffer */
++
++    if (cr->blkio_weight == 0) {
++        return 0;
++    }
++
++    weight = trans_blkio_weight_to_io_bfq_weight(cr->blkio_weight);
++    if (weight < CGROUP2_BFQ_WEIGHT_MIN || weight > CGROUP2_BFQ_WEIGHT_MAX) {
++        ERROR("invalid io weight cased by invalid blockio weight %llu", (unsigned long long) cr->blkio_weight);
++        return -1;
++    }
++
++    int num = snprintf(numstr, sizeof(numstr), "%llu", (unsigned long long)weight);
++    if (num < 0 || (size_t)num >= sizeof(numstr)) {
++        return -1;
++    }
++
++    if (!c->set_cgroup_item(c, CGROUP2_IO_BFQ_WEIGHT, numstr)) {
++        REPORT_SET_CGROUP_ERROR(CGROUP2_IO_BFQ_WEIGHT, numstr);
++        return -1;
++    }
++
++    return 0;
++}
++
+ static bool update_resources(struct lxc_container *c, struct lcr_cgroup_resources *cr)
+ {
+     bool ret = false;
++    int cgroup_version = 0;
+ 
+     if (c == NULL || cr == NULL) {
+         return false;
+     }
+ 
+-    if (update_resources_blkio_weight(c, cr) != 0) {
+-        goto err_out;
++    cgroup_version = get_cgroup_version();
++    if (cgroup_version < 0) {
++        return false;
+     }
+ 
+-    if (!update_resources_cpu(c, cr)) {
+-        goto err_out;
+-    }
+-    if (!update_resources_mem(c, cr)) {
+-        goto err_out;
++    if (cgroup_version == CGROUP_VERSION_2) {
++        if (update_resources_io_weight_v2(c, cr) != 0) {
++            goto err_out;
++        }
++        if (update_resources_io_bfq_weight_v2(c, cr) != 0) {
++            goto err_out;
++        }
++
++        if (update_resources_cpu_v2(c, cr) != 0) {
++            goto err_out;
++        }
++        if (update_resources_mem_v2(c, cr) != 0) {
++            goto err_out;
++        }
++    } else {
++        if (update_resources_blkio_weight_v1(c, cr) != 0) {
++            goto err_out;
++        }
++
++        if (!update_resources_cpu_v1(c, cr)) {
++            goto err_out;
++        }
++        if (!update_resources_mem_v1(c, cr)) {
++            goto err_out;
++        }
+     }
+ 
+     ret = true;
+diff --git a/src/utils.c b/src/utils.c
+index ce1e9f1..24dc926 100644
+--- a/src/utils.c
++++ b/src/utils.c
+@@ -33,6 +33,9 @@
+ #include <limits.h>
+ #include <dirent.h>
+ #include <fcntl.h>
++#include <sys/vfs.h>
++#include <linux/magic.h>
++
+ #include "constants.h"
+ #include "utils.h"
+ #include "log.h"
+@@ -1259,3 +1262,70 @@ out:
+     close(fd);
+     return ret;
+ }
++
++/* swap in oci is memoy+swap, so here we need to get real swap */
++int get_real_swap(int64_t memory, int64_t memory_swap, int64_t *swap)
++{
++    if (memory == -1 && memory_swap == 0) {
++        *swap = -1; // -1 is max
++        return 0;
++    }
++
++    if (memory_swap == -1 || memory_swap == 0) {
++        *swap = memory_swap; // keep max or unset
++        return 0;
++    }
++
++    if (memory == -1 || memory == 0) {
++        ERROR("unable to set swap limit without memory limit");
++        return -1;
++    }
++
++    if (memory < 0) {
++        ERROR("invalid memory");
++        return -1;
++    }
++
++    if (memory > memory_swap) {
++        ERROR("memory+swap must >= memory");
++        return -1;
++    }
++
++    *swap = memory_swap - memory;
++    return 0;
++}
++
++int trans_cpushare_to_cpuweight(int64_t cpu_share)
++{
++    /* map from range [2-262144] to [1-10000] */
++    return 1 + ((cpu_share - 2) * 9999) / 262142;
++}
++
++uint64_t trans_blkio_weight_to_io_weight(int weight)
++{
++    // map from [10-1000] to [1-10000]
++    return (uint64_t)(1 + ((uint64_t)weight - 10) * 9999 / 990);
++}
++
++uint64_t trans_blkio_weight_to_io_bfq_weight(int weight)
++{
++    // map from [10-1000] to [1-1000]
++    return (uint64_t)(1 + ((uint64_t)weight - 10) * 999 / 990);
++}
++
++int get_cgroup_version()
++{
++    struct statfs fs = {0};
++
++    if (statfs(CGROUP_MOUNTPOINT, &fs) != 0) {
++        ERROR("failed to statfs %s: %s", CGROUP_MOUNTPOINT, strerror(errno));
++        return -1;
++    }
++
++    if (fs.f_type == CGROUP2_SUPER_MAGIC) {
++        return CGROUP_VERSION_2;
++    } else {
++        return CGROUP_VERSION_1;
++    }
++}
++
+diff --git a/src/utils.h b/src/utils.h
+index 30f1111..423c0c8 100644
+--- a/src/utils.h
++++ b/src/utils.h
+@@ -33,6 +33,24 @@
+ extern "C" {
+ #endif
+ 
++#define CGROUP2_WEIGHT_MIN 1
++#define CGROUP2_WEIGHT_MAX 10000
++#define CGROUP2_BFQ_WEIGHT_MIN 1
++#define CGROUP2_BFQ_WEIGHT_MAX 1000
++
++#define DEFAULT_CPU_PERIOD 100000
++#define CGROUP_MOUNTPOINT "/sys/fs/cgroup"
++
++#ifndef CGROUP2_SUPER_MAGIC
++#define CGROUP2_SUPER_MAGIC 0x63677270
++#endif
++
++#ifndef CGROUP_SUPER_MAGIC
++#define CGROUP_SUPER_MAGIC 0x27e0eb
++#endif
++
++#define CGROUP_VERSION_1 1
++#define CGROUP_VERSION_2 2
+ 
+ #ifndef O_CLOEXEC
+ #define O_CLOEXEC 02000000
+@@ -198,6 +216,12 @@ int lcr_util_null_stdfds(void);
+ 
+ int lcr_util_atomic_write_file(const char *filepath, const char *content);
+ 
++int get_real_swap(int64_t memory, int64_t memory_swap, int64_t *swap);
++int trans_cpushare_to_cpuweight(int64_t cpu_share);
++uint64_t trans_blkio_weight_to_io_weight(int weight);
++uint64_t trans_blkio_weight_to_io_bfq_weight(int weight);
++int get_cgroup_version();
++
+ #ifdef __cplusplus
+ }
+ #endif
+-- 
+2.25.1
+
