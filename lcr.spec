@@ -1,5 +1,5 @@
 %global _version 2.0.5
-%global _release 20210319.090408.git6ac27845
+%global _release 20210518.110611.git5225bddc
 %global _inner_name isula_libutils
 
 Name:      lcr
@@ -14,6 +14,14 @@ BuildRoot: %{_tmppath}/lcr-%{version}
 
 Patch1:	0001-support-quiet-of-log-config.patch
 Patch2:	0002-lcr-add-inactive-file-total-metric.patch
+Patch3:	0003-lcr-add-default-runtime-field-for-isula-info.patch
+Patch4:	0004-support-isula-exec-workdir.patch
+Patch5:	0005-add-secure-compile-options.patch
+Patch6:	0006-remove-invalid-fuzz-option.patch
+Patch7:	0007-support-cgroup-v2.patch
+Patch8:	0008-fix-pause-container-error.patch
+Patch9:	0009-Fix-spelling-errors.patch
+Patch10: 0010-fix-memory-usage-of-stats-not-right-when-runtime-is-.patch
 
 BuildRequires: cmake
 BuildRequires: lxc
@@ -102,6 +110,12 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Tue May 18 2021 wagnfengtu <wagnfengtu@huawei.com> - 2.0.5-20210518.110611.git5225bddc
+- Type:enhancement
+- ID:NA
+- SUG:NA
+- DESC: sync patches from upstream
+
 * Fri Mar 19 2021 wujing <wujing50@huawei.com> - 2.0.5-20210319.090408.git6ac27845
 - Type:enhancement
 - ID:NA
