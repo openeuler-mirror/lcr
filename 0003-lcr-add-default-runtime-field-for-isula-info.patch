@@ -1,0 +1,30 @@
+From 60e18350f884ecc995865eb773da7508ec580f49 Mon Sep 17 00:00:00 2001
+From: jikui <jikui2@huawei.com>
+Date: Mon, 8 Mar 2021 18:16:12 +0800
+Subject: [PATCH 03/10] lcr: add default runtime field for isula info
+
+Signed-off-by: jikui <jikui2@huawei.com>
+---
+ src/json/schema/host/info-response.json | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/src/json/schema/host/info-response.json b/src/json/schema/host/info-response.json
+index c42fa68..a7482eb 100644
+--- a/src/json/schema/host/info-response.json
++++ b/src/json/schema/host/info-response.json
+@@ -50,6 +50,12 @@
+             "isulad_root_dir": {
+                 "type": "string"
+             },
++            "default_runtime": {
++                "type": "string"
++            },
++            "runtimes": {
++                "type": "ArrayOfStrings"
++            },
+             "total_mem": {
+                 "type": "uint32"
+             },
+-- 
+2.25.1
+
