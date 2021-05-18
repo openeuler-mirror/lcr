@@ -1,0 +1,57 @@
+From dee153e7de91235ba179378773bc79efd980d344 Mon Sep 17 00:00:00 2001
+From: WangFengTu <wangfengtu@huawei.com>
+Date: Thu, 11 Mar 2021 11:20:19 +0800
+Subject: [PATCH 04/10] support isula exec --workdir
+
+Signed-off-by: WangFengTu <wangfengtu@huawei.com>
+---
+ src/json/schema/container/exec-request.json | 5 ++++-
+ src/lcrcontainer.h                          | 1 +
+ src/lcrcontainer_execute.c                  | 3 +++
+ 3 files changed, 8 insertions(+), 1 deletion(-)
+
+diff --git a/src/json/schema/container/exec-request.json b/src/json/schema/container/exec-request.json
+index 1482b55..9c9c0d1 100644
+--- a/src/json/schema/container/exec-request.json
++++ b/src/json/schema/container/exec-request.json
+@@ -40,6 +40,9 @@
+ 		},
+ 		"user": {
+ 			"type": "string"
++		},
++		"workdir": {
++			"type": "string"
+ 		}
+ 	}
+-}
+\ No newline at end of file
++}
+diff --git a/src/lcrcontainer.h b/src/lcrcontainer.h
+index dcd1b12..ecf3655 100644
+--- a/src/lcrcontainer.h
++++ b/src/lcrcontainer.h
+@@ -295,6 +295,7 @@ struct lcr_exec_request {
+ 
+     bool tty;
+     bool open_stdin;
++    char *workdir;
+ };
+ /*
+ * Execute process inside a container
+diff --git a/src/lcrcontainer_execute.c b/src/lcrcontainer_execute.c
+index ab04c7e..8ea479e 100644
+--- a/src/lcrcontainer_execute.c
++++ b/src/lcrcontainer_execute.c
+@@ -536,6 +536,9 @@ static void execute_lxc_attach(const char *name, const char *path, const struct
+     add_array_elem(params, args_len, &i, path);
+     add_array_elem(params, args_len, &i, "--clear-env");
+     add_array_elem(params, args_len, &i, "--quiet");
++    if (request->workdir != NULL) {
++        add_array_kv(params, args_len, &i, "--workdir", request->workdir);
++    }
+     add_array_kv(params, args_len, &i, "--logfile", request->logpath);
+     add_array_kv(params, args_len, &i, "-l", request->loglevel);
+     add_array_kv(params, args_len, &i, "--in-fifo", request->console_fifos[0]);
+-- 
+2.25.1
+
