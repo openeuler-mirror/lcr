@@ -171,6 +171,9 @@
         "isuladStderr": {
             "type": "string"
         },
+        "resizeFifo": {
+            "type": "string"
+        },
         "runtimeArgs": {
             "type": "array",
             "items": {
