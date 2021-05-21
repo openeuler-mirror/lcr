@@ -1,0 +1,214 @@
+From 26f52ea703a5a232de6d1bed5a0cbe9a6aea36d7 Mon Sep 17 00:00:00 2001
+From: WangFengTu <wangfengtu@huawei.com>
+Date: Fri, 2 Apr 2021 16:57:58 +0800
+Subject: [PATCH 08/10] fix pause container error
+
+Signed-off-by: WangFengTu <wangfengtu@huawei.com>
+---
+ src/conf.c                 | 18 +++++++++---------
+ src/lcrcontainer_execute.c | 10 +++++-----
+ src/utils.c                | 10 +++++-----
+ src/utils.h                | 10 +++++-----
+ 4 files changed, 24 insertions(+), 24 deletions(-)
+
+diff --git a/src/conf.c b/src/conf.c
+index d1fd2f3..f2569b3 100644
+--- a/src/conf.c
++++ b/src/conf.c
+@@ -50,7 +50,7 @@ static int files_limit_checker_v1(const char *value)
+     int ret = 0;
+     int cgroup_version = 0;
+ 
+-    cgroup_version = get_cgroup_version();
++    cgroup_version = lcr_util_get_cgroup_version();
+     if (cgroup_version < 0) {
+         return -1;
+     }
+@@ -75,7 +75,7 @@ static int files_limit_checker_v2(const char *value)
+     int ret = 0;
+     int cgroup_version = 0;
+ 
+-    cgroup_version = get_cgroup_version();
++    cgroup_version = lcr_util_get_cgroup_version();
+     if (cgroup_version < 0) {
+         return -1;
+     }
+@@ -2044,7 +2044,7 @@ static int trans_resources_mem_swap_v2(const defs_resources *res, struct lcr_lis
+         return 0;
+     }
+ 
+-    if (get_real_swap(res->memory->limit, res->memory->swap, &swap) != 0) {
++    if (lcr_util_get_real_swap(res->memory->limit, res->memory->swap, &swap) != 0) {
+         return -1;
+     }
+ 
+@@ -2085,7 +2085,7 @@ static int trans_resources_cpu_weight_v2(const defs_resources *res, struct lcr_l
+         return -1;
+     }
+ 
+-    if (trans_conf_int64(conf, "lxc.cgroup2.cpu.weight", trans_cpushare_to_cpuweight(res->cpu->shares)) != 0) {
++    if (trans_conf_int64(conf, "lxc.cgroup2.cpu.weight", lcr_util_trans_cpushare_to_cpuweight(res->cpu->shares)) != 0) {
+         return -1;
+     }
+ 
+@@ -2176,7 +2176,7 @@ static int trans_io_weight_v2(const defs_resources_block_io *block_io, struct lc
+     size_t len = block_io->weight_device_len;
+ 
+     if (block_io->weight != INVALID_INT) {
+-        weight = trans_blkio_weight_to_io_weight(block_io->weight);
++        weight = lcr_util_trans_blkio_weight_to_io_weight(block_io->weight);
+         if (weight < CGROUP2_WEIGHT_MIN || weight > CGROUP2_WEIGHT_MAX) {
+             ERROR("invalid io weight cased by invalid blockio weight %d", block_io->weight);
+             return -1;
+@@ -2196,7 +2196,7 @@ static int trans_io_weight_v2(const defs_resources_block_io *block_io, struct lc
+             int nret = 0;
+             char buf_value[300] = { 0x00 };
+ 
+-            weight = trans_blkio_weight_to_io_weight(weight_device[i]->weight);
++            weight = lcr_util_trans_blkio_weight_to_io_weight(weight_device[i]->weight);
+             if (weight < CGROUP2_WEIGHT_MIN || weight > CGROUP2_WEIGHT_MAX) {
+                 ERROR("invalid io weight cased by invalid blockio weight %d", weight_device[i]->weight);
+                 return -1;
+@@ -2227,7 +2227,7 @@ static int trans_io_bfq_weight_v2(const defs_resources_block_io *block_io, struc
+     size_t len = block_io->weight_device_len;
+ 
+     if (block_io->weight != INVALID_INT) {
+-        weight = trans_blkio_weight_to_io_bfq_weight(block_io->weight);
++        weight = lcr_util_trans_blkio_weight_to_io_bfq_weight(block_io->weight);
+         if (weight < CGROUP2_BFQ_WEIGHT_MIN || weight > CGROUP2_BFQ_WEIGHT_MAX) {
+             ERROR("invalid io weight cased by invalid blockio weight %d", block_io->weight);
+             return -1;
+@@ -2247,7 +2247,7 @@ static int trans_io_bfq_weight_v2(const defs_resources_block_io *block_io, struc
+             int nret = 0;
+             char buf_value[300] = { 0x00 };
+ 
+-            weight = trans_blkio_weight_to_io_weight(weight_device[i]->weight);
++            weight = lcr_util_trans_blkio_weight_to_io_weight(weight_device[i]->weight);
+             if (weight < CGROUP2_BFQ_WEIGHT_MIN || weight > CGROUP2_BFQ_WEIGHT_MAX) {
+                 ERROR("invalid io weight cased by invalid blockio weight %d", weight_device[i]->weight);
+                 return -1;
+@@ -2433,7 +2433,7 @@ static struct lcr_list *trans_oci_resources(const defs_resources *res)
+ {
+     int cgroup_version = 0;
+ 
+-    cgroup_version = get_cgroup_version();
++    cgroup_version = lcr_util_get_cgroup_version();
+     if (cgroup_version < 0) {
+         return NULL;
+     }
+diff --git a/src/lcrcontainer_execute.c b/src/lcrcontainer_execute.c
+index bef787b..4c8e0e6 100644
+--- a/src/lcrcontainer_execute.c
++++ b/src/lcrcontainer_execute.c
+@@ -199,7 +199,7 @@ static int update_resources_cpu_weight_v2(struct lxc_container *c, const struct
+     }
+ 
+     int num = snprintf(numstr, sizeof(numstr), "%llu",
+-                       (unsigned long long)trans_cpushare_to_cpuweight(cr->cpu_shares));
++                       (unsigned long long)lcr_util_trans_cpushare_to_cpuweight(cr->cpu_shares));
+     if (num < 0 || (size_t)num >= sizeof(numstr)) {
+         return -1;
+     }
+@@ -486,7 +486,7 @@ static int update_resources_memory_swap_v2(struct lxc_container *c, const struct
+         return 0;
+     }
+ 
+-    if (get_real_swap(cr->memory_limit, cr->memory_swap, &swap) != 0) {
++    if (lcr_util_get_real_swap(cr->memory_limit, cr->memory_swap, &swap) != 0) {
+         return -1;
+     }
+ 
+@@ -637,7 +637,7 @@ static int update_resources_io_weight_v2(struct lxc_container *c, const struct l
+         return 0;
+     }
+ 
+-    weight = trans_blkio_weight_to_io_weight(cr->blkio_weight);
++    weight = lcr_util_trans_blkio_weight_to_io_weight(cr->blkio_weight);
+     if (weight < CGROUP2_WEIGHT_MIN || weight > CGROUP2_WEIGHT_MAX) {
+         ERROR("invalid io weight cased by invalid blockio weight %llu", (unsigned long long) cr->blkio_weight);
+         return -1;
+@@ -665,7 +665,7 @@ static int update_resources_io_bfq_weight_v2(struct lxc_container *c, const stru
+         return 0;
+     }
+ 
+-    weight = trans_blkio_weight_to_io_bfq_weight(cr->blkio_weight);
++    weight = lcr_util_trans_blkio_weight_to_io_bfq_weight(cr->blkio_weight);
+     if (weight < CGROUP2_BFQ_WEIGHT_MIN || weight > CGROUP2_BFQ_WEIGHT_MAX) {
+         ERROR("invalid io weight cased by invalid blockio weight %llu", (unsigned long long) cr->blkio_weight);
+         return -1;
+@@ -693,7 +693,7 @@ static bool update_resources(struct lxc_container *c, struct lcr_cgroup_resource
+         return false;
+     }
+ 
+-    cgroup_version = get_cgroup_version();
++    cgroup_version = lcr_util_get_cgroup_version();
+     if (cgroup_version < 0) {
+         return false;
+     }
+diff --git a/src/utils.c b/src/utils.c
+index 24dc926..7ee9ba8 100644
+--- a/src/utils.c
++++ b/src/utils.c
+@@ -1264,7 +1264,7 @@ out:
+ }
+ 
+ /* swap in oci is memoy+swap, so here we need to get real swap */
+-int get_real_swap(int64_t memory, int64_t memory_swap, int64_t *swap)
++int lcr_util_get_real_swap(int64_t memory, int64_t memory_swap, int64_t *swap)
+ {
+     if (memory == -1 && memory_swap == 0) {
+         *swap = -1; // -1 is max
+@@ -1295,25 +1295,25 @@ int get_real_swap(int64_t memory, int64_t memory_swap, int64_t *swap)
+     return 0;
+ }
+ 
+-int trans_cpushare_to_cpuweight(int64_t cpu_share)
++int lcr_util_trans_cpushare_to_cpuweight(int64_t cpu_share)
+ {
+     /* map from range [2-262144] to [1-10000] */
+     return 1 + ((cpu_share - 2) * 9999) / 262142;
+ }
+ 
+-uint64_t trans_blkio_weight_to_io_weight(int weight)
++uint64_t lcr_util_trans_blkio_weight_to_io_weight(int weight)
+ {
+     // map from [10-1000] to [1-10000]
+     return (uint64_t)(1 + ((uint64_t)weight - 10) * 9999 / 990);
+ }
+ 
+-uint64_t trans_blkio_weight_to_io_bfq_weight(int weight)
++uint64_t lcr_util_trans_blkio_weight_to_io_bfq_weight(int weight)
+ {
+     // map from [10-1000] to [1-1000]
+     return (uint64_t)(1 + ((uint64_t)weight - 10) * 999 / 990);
+ }
+ 
+-int get_cgroup_version()
++int lcr_util_get_cgroup_version()
+ {
+     struct statfs fs = {0};
+ 
+diff --git a/src/utils.h b/src/utils.h
+index 423c0c8..5aae95d 100644
+--- a/src/utils.h
++++ b/src/utils.h
+@@ -216,11 +216,11 @@ int lcr_util_null_stdfds(void);
+ 
+ int lcr_util_atomic_write_file(const char *filepath, const char *content);
+ 
+-int get_real_swap(int64_t memory, int64_t memory_swap, int64_t *swap);
+-int trans_cpushare_to_cpuweight(int64_t cpu_share);
+-uint64_t trans_blkio_weight_to_io_weight(int weight);
+-uint64_t trans_blkio_weight_to_io_bfq_weight(int weight);
+-int get_cgroup_version();
++int lcr_util_get_real_swap(int64_t memory, int64_t memory_swap, int64_t *swap);
++int lcr_util_trans_cpushare_to_cpuweight(int64_t cpu_share);
++uint64_t lcr_util_trans_blkio_weight_to_io_weight(int weight);
++uint64_t lcr_util_trans_blkio_weight_to_io_bfq_weight(int weight);
++int lcr_util_get_cgroup_version();
+ 
+ #ifdef __cplusplus
+ }
+-- 
+2.25.1
+
