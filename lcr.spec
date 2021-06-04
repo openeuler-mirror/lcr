@@ -1,5 +1,5 @@
 %global _version 2.0.5
-%global _release 20210518.110611.git5225bddc
+%global _release 20210604.092653.gite9e32e64
 %global _inner_name isula_libutils
 
 Name:      lcr
@@ -23,11 +23,15 @@ Patch8:	0008-fix-pause-container-error.patch
 Patch9:	0009-Fix-spelling-errors.patch
 Patch10: 0010-fix-memory-usage-of-stats-not-right-when-runtime-is-.patch
 
+%define lxcver 4.0.3-2021012801
+%define yajlver 2.1.0-13
+%define zlibver 1.2.11
+
 BuildRequires: cmake
-BuildRequires: lxc
-BuildRequires: lxc-devel
-BuildRequires: zlib-devel yajl-devel gtest-devel
-Requires:      lxc yajl zlib
+BuildRequires: lxc >= %{lxcver}
+BuildRequires: lxc-devel >= %{lxcver}
+BuildRequires: zlib-devel >= %{zlibver} yajl-devel >= %{yajlver} gtest-devel
+Requires:      lxc >= %{lxcver} yajl >= %{yajlver} zlib >= %{zlibver}
 ExclusiveArch:  x86_64 aarch64
 
 %ifarch x86_64
