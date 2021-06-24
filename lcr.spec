@@ -1,5 +1,5 @@
 %global _version 2.0.5
-%global _release 20210607.094252.git77117626
+%global _release 20210624.185408.git4ce88a49
 %global _inner_name isula_libutils
 
 Name:      lcr
@@ -22,6 +22,7 @@ Patch7:	0007-support-cgroup-v2.patch
 Patch8:	0008-fix-pause-container-error.patch
 Patch9:	0009-Fix-spelling-errors.patch
 Patch10: 0010-fix-memory-usage-of-stats-not-right-when-runtime-is-.patch
+Patch11: 0011-support-auto-resize-of-isulad-shim.patch
 
 %define lxcver 4.0.3-2021012801
 
@@ -110,8 +111,13 @@ rm -rf %{buildroot}
 %{_includedir}/lcr/lcrcontainer.h
 %{_includedir}/%{_inner_name}/*.h
 
-
 %changelog
+* Thu Jun 24 2021 wujing <wujing50@huawei.com> - 2.0.5-20210624.185408.git4ce88a49
+- Type:enhancement
+- ID:NA
+- SUG:NA
+- DESC: support auto resize of isulad shim
+
 * Tue May 18 2021 wagnfengtu <wagnfengtu@huawei.com> - 2.0.5-20210518.110611.git5225bddc
 - Type:enhancement
 - ID:NA
