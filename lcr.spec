@@ -1,5 +1,5 @@
 %global _version 2.0.5
-%global _release 20210624.185408.git4ce88a49
+%global _release 20210628.165131.git738752d8
 %global _inner_name isula_libutils
 
 Name:      lcr
@@ -26,7 +26,7 @@ Patch11: 0011-support-auto-resize-of-isulad-shim.patch
 
 %define lxcver 4.0.3-2021012801
 
-BuildRequires: cmake
+BuildRequires: cmake gcc gcc-c++ git
 BuildRequires: lxc >= %{lxcver}
 BuildRequires: lxc-devel >= %{lxcver}
 BuildRequires: zlib-devel yajl-devel gtest-devel
@@ -112,6 +112,12 @@ rm -rf %{buildroot}
 %{_includedir}/%{_inner_name}/*.h
 
 %changelog
+* Mon Jun 28 2021 wujing <wujing50@huawei.com> - 2.0.5-20210628.165131.git738752d8
+- Type:enhancement
+- ID:NA
+- SUG:NA
+- DESC: add git and gcc to build require
+
 * Thu Jun 24 2021 wujing <wujing50@huawei.com> - 2.0.5-20210624.185408.git4ce88a49
 - Type:enhancement
 - ID:NA
