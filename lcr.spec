@@ -1,5 +1,5 @@
 %global _version 2.0.5
-%global _release 20210628.164318.gitb63048d2
+%global _release 20210816.092741.gitacd2ee7d
 %global _inner_name isula_libutils
 
 Name:      lcr
@@ -99,6 +99,12 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Mon Aug 16 2021 wujing <wujing50@huawei.com> - 20210816.092741.gitacd2ee7d
+- Type:enhancement
+- ID:NA
+- SUG:NA
+- DESC: support cri exec resize
+
 * Mon Jun 28 2021 wujing <wujing50@huawei.com> - 2.0.5-20210628.164318.gitb63048d2
 - Type:enhancement
 - ID:NA
