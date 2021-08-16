@@ -1,5 +1,5 @@
 %global _version 2.0.5
-%global _release 20201229.102829.git0abc21b6
+%global _release 20210816.092741.gitacd2ee7d
 %global _inner_name isula_libutils
 
 Name:      lcr
@@ -12,7 +12,7 @@ Group:     Applications/System
 License:   LGPLv2.1+
 BuildRoot: %{_tmppath}/lcr-%{version}
 
-BuildRequires: cmake
+BuildRequires: cmake gcc gcc-c++ git
 BuildRequires: lxc
 BuildRequires: lxc-devel
 BuildRequires: zlib-devel yajl-devel gtest-devel
@@ -99,6 +99,18 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Mon Aug 16 2021 wujing <wujing50@huawei.com> - 20210816.092741.gitacd2ee7d
+- Type:enhancement
+- ID:NA
+- SUG:NA
+- DESC: support cri exec resize
+
+* Mon Jun 28 2021 wujing <wujing50@huawei.com> - 2.0.5-20210628.164318.gitb63048d2
+- Type:enhancement
+- ID:NA
+- SUG:NA
+- DESC: add git/gcc/gcc-c++ to build require
+
 * Mon Aug 03 2020 openEuler Buildteam <buildteam@openeuler.org> - 2.0.2-20200803.120020.git8462c29a
 - Type:enhancement
 - ID:NA
