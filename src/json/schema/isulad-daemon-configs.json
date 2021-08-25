@@ -70,9 +70,6 @@
         "insecure-registries": {
             "type": "ArrayOfStrings"
         },
-        "registry-transformation": {
-            "$ref": "defs.json#/definitions/mapStringString"
-        },
         "native.umask": {
             "type": "string"
         },
