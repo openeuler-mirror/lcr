@@ -161,6 +161,9 @@
         },
         "selinux-enabled": {
             "type": "boolean"
-        }
+        },
+	"metrics-port": {
+	    "type": "int32"
+	}
     }
 }

@@ -1,0 +1,12 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "type": "object",
+    "properties": {
+        "Width": {
+            "type": "uint64"
+        },
+        "Height": {
+            "type": "uint64"
+        }
+    }
+}
