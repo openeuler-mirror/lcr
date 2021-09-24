@@ -92,7 +92,7 @@ IF(ENABLE_GCOV)
 
         COMMAND lcov --directory . --capture --output-file coverage.info
         COMMAND lcov -a coverage.base -a coverage.info --output-file coverage.total
-        COMMAND lcov --remove coverage.total  --output-file ${PROJECT_BINARY_DIR}/coverage.info.cleaned
+        COMMAND lcov --remove coverage.total '/usr/*' '*/json/*' --output-file ${PROJECT_BINARY_DIR}/coverage.info.cleaned
         COMMAND genhtml -o coverage ${PROJECT_BINARY_DIR}/coverage.info.cleaned
         COMMAND ${CMAKE_COMMAND} -E remove coverage.base coverage.total ${PROJECT_BINARY_DIR}/coverage.info.cleaned
 
