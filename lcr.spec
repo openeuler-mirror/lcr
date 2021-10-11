@@ -1,5 +1,5 @@
-%global _version 2.0.5
-%global _release 20210816.092741.gitacd2ee7d
+%global _version 2.0.6
+%global _release 1
 %global _inner_name isula_libutils
 
 Name:      lcr
