@@ -53,6 +53,7 @@ macro(_DEFINE_NEW_TEST)
     add_test(
         NAME ${ARGV1}
         COMMAND ${ARGV0}
+        --gtest_output=xml:${ARGV1}-Results.xml
     )
 endmacro()
 
@@ -82,32 +83,27 @@ target_link_libraries(mock_ut
     )
 add_dependencies(mock_ut log_ut libocispec_ut go_crc64_ut)
 
-# run ut and gcov
-if (ENABLE_GCOV)
-    set(result isula_libutils.info)
-    set(result_dir lcr_gcovs)
-    set(target_dir src/CMakeFiles/isula_libutils.dir)
+IF(ENABLE_GCOV)
+    add_custom_target(coverage
+        COMMAND lcov --directory . --zerocounters
+        COMMAND lcov -c -i -d . -o coverage.base
 
-    add_custom_command(TARGET mock_ut
-        POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E remove -f ${result}
-        COMMAND ${CMAKE_COMMAND} -E make_directory ${result_dir}
-        COMMAND ctest -VV
-        COMMAND ${CMD_LCOV} --gcov-tool ${CMD_GCOV} --exclude "/usr/*" --exclude "*/src/utils.c" --exclude "*/json/*" -d ${CMAKE_BINARY_DIR}/${target_dir} -c -o ${result}
-        COMMAND ${CMD_GENHTML} --ignore-errors source -o ${result_dir} ${result}
-        COMMAND ${CMAKE_COMMAND} -E echo run gcov finish
-        VERBATIM
-        WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/tests
-        )
-else()
-    add_custom_command(TARGET mock_ut
-        PRE_BUILD
-        COMMAND ${CMAKE_CTEST_COMMAND} -VV
-        COMMAND ${CMAKE_COMMAND} -E echo UT finish
-        VERBATIM
-        WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/tests
-        )
-endif()
+        COMMAND ctest
 
+        COMMAND lcov --directory . --capture --output-file coverage.info
+        COMMAND lcov -a coverage.base -a coverage.info --output-file coverage.total
+        COMMAND lcov --remove coverage.total '/usr/*' '*/json/*' --output-file ${PROJECT_BINARY_DIR}/coverage.info.cleaned
+        COMMAND genhtml -o coverage ${PROJECT_BINARY_DIR}/coverage.info.cleaned
+        COMMAND ${CMAKE_COMMAND} -E remove coverage.base coverage.total ${PROJECT_BINARY_DIR}/coverage.info.cleaned
+
+        WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
+        COMMENT "generating report..."
+    )
+
+    add_custom_command(TARGET coverage POST_BUILD
+        COMMAND ;
+        COMMENT "open .test/coverage/index.html in browser to view the coverage analysis report."
+    )
+ENDIF(ENABLE_GCOV)
 # --------------- testcase add finish -----------------
 

@@ -1,3 +1,25 @@
+2021-10-11 root release 2.0.6
+    - deleted redundant coverage analysis
+    - Unit test build optimization 1. cmake -DCMAKE_BUILD_TYPE=Debug -DENABLE_UT=ON -DENABLE_GCOV=ON  .. 2. make -j $(nproc) 3. make test [or ctest] 4. make coverage
+    - !134 make domain name configurable Merge pull request !134 from wangfengtu/configuralbe_stable
+    - !132 make registry transformation configable Merge pull request !132 from wangfengtu/registry_transformation_stable
+    - !127 add git/gcc/gcc-c++ to build requires From: @jingwoo Reviewed-by: @duguhaotian Signed-off-by: @duguhaotian
+    - !126 support auto resize of isulad shim From: @jackey_1024 Reviewed-by: @lifeng2221dd1 Signed-off-by: @lifeng2221dd1
+    - !125 fix memory usage of stats not right when runtime is kata From: @wangfengtu Reviewed-by: @duguhaotian Signed-off-by: @duguhaotian
+    - !124 Fix spelling errors From: @wangyueliang Reviewed-by: @lifeng2221dd1 Signed-off-by: @lifeng2221dd1
+    - !117 isula info 添加Runtimes 和 Default Runtime 字段 From: @jackey_1024 Reviewed-by: @lifeng2221dd1 Signed-off-by: @lifeng2221dd1
+    - !123 fix pause container error From: @wangfengtu Reviewed-by: @lifeng2221dd1 Signed-off-by: @lifeng2221dd1
+    - !115 support cgroup v2 From: @wangfengtu Reviewed-by: Signed-off-by:
+    - !119 support isula exec --workdir From: @wangfengtu Reviewed-by: @lifeng2221dd1 Signed-off-by: @lifeng2221dd1
+    - !122 remove invalid fuzz option From: @duguhaotian Reviewed-by: @lifeng2221dd1 Signed-off-by: @lifeng2221dd1
+    - !121 add secure compile options From: @jingwoo Reviewed-by: @lifeng2221dd1 Signed-off-by: @lifeng2221dd1
+    - !110 lcr: add inactive file total metric From: @lifeng2221dd1 Reviewed-by: Signed-off-by:
+    - !111 support quiet of log config From: @duguhaotian Reviewed-by: @lifeng2221dd1 Signed-off-by: @lifeng2221dd1
+
+    dev stats:
+      - 22 files changed, 1280 insertions(+), 182 deletions(-)
+      - contributors: WangFengTu, wujing, haozi007, jikui, Li Feng, wangyueliang
+
 2020-12-29 lifeng release 2.0.5
     - !101 adaptor to clang compiler From: @duguhaotian Reviewed-by: @lifeng2221dd1 Signed-off-by: @lifeng2221dd1
     - !97 support mount tmpfs to container From: @wangfengtu Reviewed-by: @lifeng2221dd1 Signed-off-by: @lifeng2221dd1

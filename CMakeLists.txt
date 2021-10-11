@@ -25,7 +25,7 @@ project (lcr)
 
 option(VERSION "set lcr version" ON)
 if (VERSION STREQUAL "ON")
-	set(LCR_VERSION "2.0.5")
+	set(LCR_VERSION "2.0.6")
 endif()
 
 option(DEBUG "set lcr gcc option" ON)
@@ -87,9 +87,34 @@ add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/third_party)
 
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/src)
 
-# ut and gcoverage
-if (ENABLE_UT)
-    add_subdirectory(tests)
+# unit test and coverage
+set(CMAKE_VERBOSE_MAKEFILE OFF)
+if(ENABLE_GCOV)
+    if(NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
+        message(WARNING "Debugging mode should be turned on when generating code coverage reports, otherwise coverage may be inaccurate")
+    endif()
+    MESSAGE(STATUS "Enable coverage compile option")
+    set(COVERAGE_C_OPTION "${COVERAGE_OPTION} -fprofile-arcs -ftest-coverage -fkeep-static-functions -fkeep-inline-functions")
+    set(COVERAGE_CXX_OPTION "${COVERAGE_OPTION} -fprofile-arcs -ftest-coverage")
+endif(ENABLE_GCOV)
+
+if(ENABLE_ASAN)
+    MESSAGE(STATUS "Enable asan compile option")
+    SET(ASAN_OPTIONS "${ASAN_OPTION} -fsanitize=address -fsanitize-recover=address -fno-omit-frame-pointer")
+endif(ENABLE_ASAN)
+
+if(CMAKE_BUILD_TYPE STREQUAL Debug)
+    SET(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} ${COVERAGE_C_OPTION} ${ASAN_OPTIONS}")
+    SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} ${COVERAGE_CXX_OPTION} ${ASAN_OPTIONS}")
+endif()
+
+if(ENABLE_UT)
+    include(CTest)
+    include(Dart)
+    find_program(MEMORYCHECK_COMMAND NAMES valgrind)
+    set(MEMORYCHECK_COMMAND_OPTIONS "--trace-children=yes --leak-check=full")
+    enable_testing()
+    add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/tests)
 endif()
 
 # install all files
