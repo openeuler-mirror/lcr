@@ -201,6 +201,7 @@ struct lcr_start_request {
     uint32_t start_timeout;
     const char *container_pidfile;
     const char *exit_fifo;
+    bool image_type_oci;
 };
 bool lcr_start(const struct lcr_start_request *request);
 
