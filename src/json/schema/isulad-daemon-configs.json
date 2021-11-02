@@ -58,6 +58,9 @@
         "enable-plugins": {
             "type": "string"
         },
+        "userns-remap": {
+            "type": "string"
+        },
         "cpu-rt-period": {
             "type": "int64"
         },
