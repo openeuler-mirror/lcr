@@ -966,7 +966,9 @@ void execute_lxc_start(const char *name, const char *path, const struct lcr_star
 {
     // should check the size of params when add new params.
     char *params[PARAM_NUM] = {NULL};
+    char buf[PARAM_NUM] = { 0 };
     size_t i = 0;
+    int nret = 0;
 
     if (lcr_util_check_inherited(true, -1) != 0) {
         COMMAND_ERROR("Close inherited fds failed");
@@ -983,6 +985,17 @@ void execute_lxc_start(const char *name, const char *path, const struct lcr_star
     add_array_kv(params, PARAM_NUM, &i, "--in-fifo", request->console_fifos[0]);
     add_array_kv(params, PARAM_NUM, &i, "--out-fifo", request->console_fifos[1]);
     add_array_kv(params, PARAM_NUM, &i, "--err-fifo", request->console_fifos[2]);
+
+    nret = snprintf(buf, sizeof(buf), "%s=true", LXC_IMAGE_OCI_KEY);
+    if (nret < 0 || (size_t)nret >= sizeof(buf)) {
+        COMMAND_ERROR("Format KEY=VAL of image type error");
+        exit(EXIT_FAILURE);
+    }
+
+    if (request->image_type_oci) {
+        add_array_kv(params, PARAM_NUM, &i, "-s", buf);
+    }
+
     if (!request->tty) {
         add_array_elem(params, PARAM_NUM, &i, "--disable-pty");
     }
