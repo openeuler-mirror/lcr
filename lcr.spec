@@ -1,5 +1,5 @@
 %global _version 2.0.6
-%global _release 1
+%global _release 2
 %global _inner_name isula_libutils
 
 Name:      lcr
@@ -103,6 +103,12 @@ rm -rf %{buildroot}
 %{_includedir}/%{_inner_name}/*.h
 
 %changelog
+* Thu Nov 09 2021 gaohuatao <gaohuatao@huawei.com> - 2.0.6-2
+- Type:enhancement
+- ID:NA
+- SUG:NA
+- DESC: update source
+
 * Thu Nov 09 2021 gaohuatao <gaohuatao@huawei.com> - 2.0.6-1
 - Type:enhancement
 - ID:NA
