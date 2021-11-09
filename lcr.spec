@@ -1,5 +1,5 @@
-%global _version 2.0.5
-%global _release 20210628.165131.git738752d8
+%global _version 2.0.6
+%global _release 1
 %global _inner_name isula_libutils
 
 Name:      lcr
@@ -12,17 +12,8 @@ Group:     Applications/System
 License:   LGPLv2.1+
 BuildRoot: %{_tmppath}/lcr-%{version}
 
-Patch1:	0001-support-quiet-of-log-config.patch
-Patch2:	0002-lcr-add-inactive-file-total-metric.patch
-Patch3:	0003-lcr-add-default-runtime-field-for-isula-info.patch
-Patch4:	0004-support-isula-exec-workdir.patch
-Patch5:	0005-add-secure-compile-options.patch
-Patch6:	0006-remove-invalid-fuzz-option.patch
-Patch7:	0007-support-cgroup-v2.patch
-Patch8:	0008-fix-pause-container-error.patch
-Patch9:	0009-Fix-spelling-errors.patch
-Patch10: 0010-fix-memory-usage-of-stats-not-right-when-runtime-is-.patch
-Patch11: 0011-support-auto-resize-of-isulad-shim.patch
+Patch1:	0001-modified-ipconfig.json-to-adapt-to-newest-version-of.patch
+Patch2:	0002-disable-lxc_keep-with-oci-image.patch
 
 %define lxcver 4.0.3-2021012801
 
@@ -112,6 +103,12 @@ rm -rf %{buildroot}
 %{_includedir}/%{_inner_name}/*.h
 
 %changelog
+* Thu Nov 09 2021 gaohuatao <gaohuatao@huawei.com> - 2.0.6-1
+- Type:enhancement
+- ID:NA
+- SUG:NA
+- DESC: update to 2.0.6
+
 * Mon Jun 28 2021 wujing <wujing50@huawei.com> - 2.0.5-20210628.165131.git738752d8
 - Type:enhancement
 - ID:NA
