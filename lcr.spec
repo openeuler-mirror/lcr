@@ -1,5 +1,5 @@
 %global _version 2.0.6
-%global _release 1
+%global _release 2
 %global _inner_name isula_libutils
 
 Name:      lcr
@@ -11,6 +11,9 @@ Summary:   Lightweight Container Runtime
 Group:     Applications/System
 License:   LGPLv2.1+
 BuildRoot: %{_tmppath}/lcr-%{version}
+
+Patch1:	0001-modified-ipconfig.json-to-adapt-to-newest-version-of.patch
+Patch2:	0002-disable-lxc_keep-with-oci-image.patch
 
 %define lxcver 4.0.3-2021012801
 
@@ -100,11 +103,11 @@ rm -rf %{buildroot}
 %{_includedir}/%{_inner_name}/*.h
 
 %changelog
-* Tue Oct 12 2021 wujing <wujing50@huawei.com> - 2.0.6-1
-- Type:sync
+* Wed Nov 10 2021 gaohuatao <gaohuatao@huawei.com> - 2.0.6-2
+- Type:enhancement
 - ID:NA
 - SUG:NA
-- DESC: upgrade to 2.0.6
+- DESC: update to 2.0.6
 
 * Mon Jun 28 2021 wujing <wujing50@huawei.com> - 2.0.5-20210628.165131.git738752d8
 - Type:enhancement
