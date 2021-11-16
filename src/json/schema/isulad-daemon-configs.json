@@ -26,6 +26,9 @@
         "log-opts": {
             "$ref": "defs.json#/definitions/mapStringString"
         },
+        "cri-runtimes": {
+            "$ref": "defs.json#/definitions/mapStringString"
+        },
         "container-log": {
             "type": "object",
             "properties": {
