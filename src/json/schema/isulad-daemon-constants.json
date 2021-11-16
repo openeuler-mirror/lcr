@@ -7,6 +7,9 @@
         },
         "registry-transformation": {
             "$ref": "defs.json#/definitions/mapStringString"
+        },
+        "cri-shimv2-runtimes": {
+            "$ref": "defs.json#/definitions/mapStringString"
         }
     }
 }
