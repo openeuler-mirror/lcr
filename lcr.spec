@@ -1,5 +1,5 @@
 %global _version 2.0.6
-%global _release 2
+%global _release 3
 %global _inner_name isula_libutils
 
 Name:      lcr
@@ -22,7 +22,6 @@ BuildRequires: lxc >= %{lxcver}
 BuildRequires: lxc-devel >= %{lxcver}
 BuildRequires: zlib-devel yajl-devel gtest-devel
 Requires:      lxc >= %{lxcver} yajl zlib
-ExclusiveArch:  x86_64 aarch64
 
 %ifarch x86_64
 Provides:       liblcr.so()(64bit)
@@ -103,6 +102,12 @@ rm -rf %{buildroot}
 %{_includedir}/%{_inner_name}/*.h
 
 %changelog
+* Tue Nov 16 2021 wujing <wujing50@huawei.com> - 2.0.6-3
+- Type:enhancement
+- ID:NA
+- SUG:NA
+- DESC: remove build platform restrictions
+
 * Thu Nov 09 2021 gaohuatao <gaohuatao@huawei.com> - 2.0.6-2
 - Type:enhancement
 - ID:NA
