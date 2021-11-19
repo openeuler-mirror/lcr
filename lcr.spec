@@ -1,5 +1,5 @@
 %global _version 2.0.6
-%global _release 3
+%global _release 4
 %global _inner_name isula_libutils
 
 Name:      lcr
@@ -14,6 +14,8 @@ BuildRoot: %{_tmppath}/lcr-%{version}
 
 Patch1:	0001-modified-ipconfig.json-to-adapt-to-newest-version-of.patch
 Patch2:	0002-disable-lxc_keep-with-oci-image.patch
+Patch3:	0003-add-self-def-runtime-for-shimv2.patch
+Patch4:	0004-move-cri-runtimes-to-daemon.patch
 
 %define lxcver 4.0.3-2021102101
 
@@ -102,6 +104,12 @@ rm -rf %{buildroot}
 %{_includedir}/%{_inner_name}/*.h
 
 %changelog
+* Fri Nov 19 2021 gaohuatao <gaohuatao@huawei.com> - 2.0.6-4
+- Type:enhancement
+- ID:NA
+- SUG:NA
+- DESC: sync from upstream
+
 * Tue Nov 16 2021 wujing <wujing50@huawei.com> - 2.0.6-3
 - Type:enhancement
 - ID:NA
