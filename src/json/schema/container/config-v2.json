@@ -43,6 +43,14 @@
                 "BaseFs": {
                     "type": "string"
                 },
+                "NetworkSettings": {
+                    "type": "object",
+                    "properties": {
+                        "SandboxKey": {
+                            "type": "string"
+                        }
+                    }
+                },
                 "MountPoints": {
                     "type": "object",
                     "patternProperties": {
