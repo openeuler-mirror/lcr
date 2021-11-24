@@ -1,8 +1,8 @@
 From a4ad5c5d0a428d1e603e91d14585f942e0e7453c Mon Sep 17 00:00:00 2001
 From: chengzrz <czrzrichard@gmail.com>
 Date: Thu, 11 Nov 2021 16:47:58 +0800
-Subject: [PATCH] config-v2 and inspect were modified to support modifications
- on isulad
+Subject: [PATCH 5/6] config-v2 and inspect were modified to support
+ modifications on isulad
 
 Signed-off-by: chengzrz <czrzrichard@gmail.com>
 ---
@@ -44,5 +44,5 @@ index 66307bc..ef7792f 100644
              }
          }
 -- 
-2.25.1
+2.20.1
 
