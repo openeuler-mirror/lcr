@@ -1,5 +1,5 @@
 %global _version 2.0.6
-%global _release 5
+%global _release 6
 %global _inner_name isula_libutils
 
 Name:      lcr
@@ -12,11 +12,12 @@ Group:     Applications/System
 License:   LGPLv2.1+
 BuildRoot: %{_tmppath}/lcr-%{version}
 
-Patch1:	0001-modified-ipconfig.json-to-adapt-to-newest-version-of.patch
-Patch2:	0002-disable-lxc_keep-with-oci-image.patch
-Patch3:	0003-add-self-def-runtime-for-shimv2.patch
-Patch4:	0004-move-cri-runtimes-to-daemon.patch
+Patch1: 0001-modified-ipconfig.json-to-adapt-to-newest-version-of.patch
+Patch2: 0002-disable-lxc_keep-with-oci-image.patch
+Patch3: 0003-add-self-def-runtime-for-shimv2.patch
+Patch4: 0004-move-cri-runtimes-to-daemon.patch
 Patch5: 0005-config-v2-and-inspect-were-modified-to-support-modif.patch
+Patch6: 0006-support-null-value-in-json.patch
 
 %define lxcver 4.0.3-2021012801
 
@@ -105,6 +106,12 @@ rm -rf %{buildroot}
 %{_includedir}/%{_inner_name}/*.h
 
 %changelog
+* Wed Nov 24 2021 haozi007 <liuhao27@huawei.com> - 2.0.6-6
+- Type:enhancement
+- ID:NA
+- SUG:NA
+- DESC: support null value in json
+
 * Tue Nov 23 2021 chengzeruizhi <chengzeruizhi@huawei.com> - 2.0.6-5
 - Type:enhancement
 - ID:NA
