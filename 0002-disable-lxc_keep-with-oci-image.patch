@@ -1,7 +1,7 @@
 From 409f5bf06e782fe5cbcf01e463b114c973b33dcb Mon Sep 17 00:00:00 2001
 From: gaohuatao <gaohuatao@huawei.com>
 Date: Thu, 21 Oct 2021 12:11:00 +0800
-Subject: [PATCH 2/2] disable lxc_keep with oci image
+Subject: [PATCH 2/6] disable lxc_keep with oci image
 
 Signed-off-by: gaohuatao <gaohuatao@huawei.com>
 ---

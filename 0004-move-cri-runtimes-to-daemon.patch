@@ -1,7 +1,7 @@
 From 3297f92307fd8a733f5d72ad2a0a85f7e61fb473 Mon Sep 17 00:00:00 2001
 From: gaohuatao <gaohuatao@huawei.com>
 Date: Tue, 16 Nov 2021 18:53:33 +0800
-Subject: [PATCH 4/4] move cri runtimes to daemon
+Subject: [PATCH 4/6] move cri runtimes to daemon
 
 Signed-off-by: gaohuatao <gaohuatao@huawei.com>
 ---
