@@ -1,7 +1,7 @@
 From 456e7da83acd8e5ad6d478d41d5f6e81c5611964 Mon Sep 17 00:00:00 2001
 From: gaohuatao <gaohuatao@huawei.com>
 Date: Tue, 16 Nov 2021 11:35:11 +0800
-Subject: [PATCH 3/4] add self def runtime for shimv2
+Subject: [PATCH 3/6] add self def runtime for shimv2
 
 Signed-off-by: gaohuatao <gaohuatao@huawei.com>
 ---
