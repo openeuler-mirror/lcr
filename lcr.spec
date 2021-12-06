@@ -1,5 +1,5 @@
 %global _version 2.0.6
-%global _release 6
+%global _release 7
 %global _inner_name isula_libutils
 
 Name:      lcr
@@ -19,7 +19,7 @@ Patch4: 0004-move-cri-runtimes-to-daemon.patch
 Patch5: 0005-config-v2-and-inspect-were-modified-to-support-modif.patch
 Patch6: 0006-support-null-value-in-json.patch
 
-%define lxcver 4.0.3-2021102101
+%define lxcver 4.0.3-2021112501
 
 BuildRequires: cmake gcc gcc-c++ git
 BuildRequires: lxc >= %{lxcver}
@@ -106,6 +106,12 @@ rm -rf %{buildroot}
 %{_includedir}/%{_inner_name}/*.h
 
 %changelog
+* Mon Dec 06 2021 gaohuatao <gaohuatao@huawei.com> - 2.0.6-7
+- Type:enhancement
+- ID:NA
+- SUG:NA
+- DESC: specify version
+
 * Wed Nov 24 2021 haozi007 <liuhao27@huawei.com> - 2.0.6-6
 - Type:enhancement
 - ID:NA
