@@ -30,7 +30,7 @@ endif()
 
 option(DEBUG "set lcr gcc option" ON)
 if (DEBUG STREQUAL "ON")
-    add_definitions("-g -o2")
+    add_definitions("-g -O2")
 endif()
 
 option(ENABLE_UT "enable ut" OFF)
