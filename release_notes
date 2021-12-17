@@ -1,3 +1,59 @@
+2021-12-17 root release 2.1.0
+    - network: add network activation flag, which means attach network finish
+    - add update network setting callback
+    - support ref for item of double array
+    - network: add dns domain
+    - network: delete remove -f option
+    - add cni args into cache
+    - network: remove network settings out of config v2
+    - support cni conventions
+    - add cni portmapping for network settings
+    - add port binding struct
+    - network: record network interface name
+    - network: network create response network name instead of path
+    - add network settings def
+    - add container network config
+    - modify network conflist json and adapt to array of array
+    - add portmaping array for annotation
+    - do not support present for bool and int
+    - add isula use functions
+    - backport libocispec
+    - network: add config for cni spec
+    - lcr: add network command json
+    - !155 fix the error of gcc compilation optimization level From: @jingwoo Reviewed-by: @duguhaotian Signed-off-by: @duguhaotian
+    - !153 permit other read so and pc of lcr From: @duguhaotian Reviewed-by: @jingxiaolu Signed-off-by: @jingxiaolu
+    - !151 support null value in json From: @duguhaotian Reviewed-by: @jingxiaolu Signed-off-by: @jingxiaolu
+    - !146 config-v2 and inspect were modified to support modifications on isulad From: @chengzrz Reviewed-by: @duguhaotian Signed-off-by: @duguhaotian
+    - !148 move cri runtimes to daemon From: @gaohuatao Reviewed-by: @duguhaotian Signed-off-by: @duguhaotian
+    - !147 add self def runtime for shimv2 From: @gaohuatao Reviewed-by: @duguhaotian Signed-off-by: @duguhaotian
+    - !131 Add the userns-remap fielto d the daemon.json file From: @HumbleHunger Reviewed-by: @duguhaotian Signed-off-by: @duguhaotian
+    - !141 Optimized the README file. From: @judithsq Reviewed-by: @duguhaotian Signed-off-by: @duguhaotian
+    - !143 修改ipconfig.json以适配最新版本的cni插件 From: @chengzrz Reviewed-by: @duguhaotian Signed-off-by: @duguhaotian
+    - !140 disable lxc_keep with oci image From: @gaohuatao Reviewed-by: @duguhaotian Signed-off-by: @duguhaotian
+    - !142 add branch coverage From: @wangfengtu Reviewed-by: @jingwoo,@duguhaotian Signed-off-by: @duguhaotian
+    - !138 upgrade version to 2.0.6 From: @jingwoo Reviewed-by: @duguhaotian Signed-off-by: @duguhaotian
+    - !137 deleted redundant coverage analysis From: @jingwoo Reviewed-by: @duguhaotian Signed-off-by: @duguhaotian
+    - !136 Unit test build optimization From: @jingwoo Reviewed-by: @duguhaotian Signed-off-by: @duguhaotian
+    - !128 Daemon config add metrics server port. From: @tiamo0 Reviewed-by: @jingwoo,@duguhaotian,@duguhaotian,@duguhaotian,@duguhaotian Signed-off-by: @duguhaotian,@duguhaotian,@duguhaotian,@duguhaotian
+    - !133 make domain name configurable From: @wangfengtu Reviewed-by: @gaohuatao,@caihaomin Signed-off-by: @caihaomin
+    - !130 make registry transformation configable From: @wangfengtu Reviewed-by: @gaohuatao,@duguhaotian,@duguhaotian Signed-off-by: @duguhaotian,@duguhaotian
+    - !127 add git/gcc/gcc-c++ to build requires From: @jingwoo Reviewed-by: @duguhaotian Signed-off-by: @duguhaotian
+    - !126 support auto resize of isulad shim From: @jackey_1024 Reviewed-by: @lifeng2221dd1 Signed-off-by: @lifeng2221dd1
+    - !125 fix memory usage of stats not right when runtime is kata From: @wangfengtu Reviewed-by: @duguhaotian Signed-off-by: @duguhaotian
+    - !124 Fix spelling errors From: @wangyueliang Reviewed-by: @lifeng2221dd1 Signed-off-by: @lifeng2221dd1
+    - !117 isula info 添加Runtimes 和 Default Runtime 字段 From: @jackey_1024 Reviewed-by: @lifeng2221dd1 Signed-off-by: @lifeng2221dd1
+    - !123 fix pause container error From: @wangfengtu Reviewed-by: @lifeng2221dd1 Signed-off-by: @lifeng2221dd1
+    - !115 support cgroup v2 From: @wangfengtu Reviewed-by: Signed-off-by:
+    - !119 support isula exec --workdir From: @wangfengtu Reviewed-by: @lifeng2221dd1 Signed-off-by: @lifeng2221dd1
+    - !122 remove invalid fuzz option From: @duguhaotian Reviewed-by: @lifeng2221dd1 Signed-off-by: @lifeng2221dd1
+    - !121 add secure compile options From: @jingwoo Reviewed-by: @lifeng2221dd1 Signed-off-by: @lifeng2221dd1
+    - !110 lcr: add inactive file total metric From: @lifeng2221dd1 Reviewed-by: Signed-off-by:
+    - !111 support quiet of log config From: @duguhaotian Reviewed-by: @lifeng2221dd1 Signed-off-by: @lifeng2221dd1
+
+    dev stats:
+      - 60 files changed, 4677 insertions(+), 2160 deletions(-)
+      - contributors: haozi007, zhangxiaoyu, Judith, WangFengTu, wujing, gaohuatao, chengzrz, jikui, HumbleHunger, Li Feng, Tiamo0, wangyueliang
+
 2021-09-27 root release 2.0.6
     - deleted redundant coverage analysis
     - Unit test build optimization 1. cmake -DCMAKE_BUILD_TYPE=Debug -DENABLE_UT=ON -DENABLE_GCOV=ON  .. 2. make -j $(nproc) 3. make test [or ctest] 4. make coverage

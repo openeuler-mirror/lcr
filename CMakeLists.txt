@@ -25,7 +25,7 @@ project (lcr)
 
 option(VERSION "set lcr version" ON)
 if (VERSION STREQUAL "ON")
-	set(LCR_VERSION "2.0.6")
+	set(LCR_VERSION "2.1.0")
 endif()
 
 option(DEBUG "set lcr gcc option" ON)
