@@ -11,8 +11,17 @@
         "type": {
             "type": "string"
         },
+        "bridge": {
+            "type": "string"
+        },
+        "isGateway": {
+            "type": "boolean"
+        },
         "ipMasq": {
             "type": "boolean"
+        },
+        "hairpinMode": {
+            "type":"boolean"
         },
         "ipam": {
             "type": "object",
@@ -20,28 +29,42 @@
                 "type": {
                     "type": "string"
                 },
-                "subnet": {
-                        "type": "string"
-                },
-                "gateway": {
-                        "type": "string"
-                },
-                "range-start": {
-                        "type": "string"
-                },
-                "range-end": {
-                        "type": "string"
-                },
                 "routes": {
                     "type": "array",
                     "items": {
                         "$ref": "network/route.json"
+                    }
+                },
+                "ranges": {
+                    "type": "array",
+                    "items": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "subnet": {
+                                    "type": "string"
+                                },
+                                "rangeStart": {
+                                    "type": "string"
+                                },
+                                "rangeEnd": {
+                                    "type": "string"
+                                },
+                                "gateway": {
+                                    "type": "string"
+                                }
+                            }
+                        }
                     }
                 }
             }
         },
         "dns": {
             "$ref": "network/dns.json"
+        },
+        "domainName": {
+            "type": "string"
         },
         "args": {
             "$ref": "net_args.json"
@@ -58,8 +81,40 @@
                         "$ref": "inner_port_mapping.json"
                     }
                 },
+                "ipRanges": {
+                    "type": "array",
+                    "items": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "ip_ranges.json"
+                        }
+                    }
+                },
                 "bandwidth": {
                     "$ref": "bandwidth_entry.json"
+                },
+                "dns": {
+                    "type": "object",
+                    "properties": {
+                        "searches": {
+                            "$ref": "../defs.json#/definitions/ArrayOfStrings"
+                        },
+                        "servers": {
+                            "$ref": "../defs.json#/definitions/ArrayOfStrings"
+                        }
+                    }
+                },
+                "ips": {
+                    "$ref": "../defs.json#/definitions/ArrayOfStrings"
+                },
+                "mac": {
+                    "type": "string"
+                },
+                "infinibandGUID": {
+                    "type": "string"
+                },
+                "deviceID": {
+                    "type": "string"
                 }
             }
         },

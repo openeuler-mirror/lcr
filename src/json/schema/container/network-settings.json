@@ -1,0 +1,57 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "type": "object",
+    "properties": {
+        "Bridge": {
+            "type": "string"
+        },
+        "SandboxID": {
+           "type": "string"
+        },
+        "LinkLocalIPv6Address": {
+            "type": "string"
+        },
+        "LinkLocalIPv6PrefixLen": {
+            "type": "integer"
+        },
+        "Ports": {
+            "$ref": "../defs.json#/definitions/mapStringObjectPortBindings"
+        },
+        "CNIPorts": {
+            "$ref": "../cni/anno_port_mappings.json"
+        },
+        "SandboxKey": {
+            "type": "string"
+        },
+        "EndpointID": {
+            "type": "string"
+        },
+        "Gateway": {
+            "type": "string"
+        },
+        "GlobalIPv6Address": {
+            "type": "string"
+        },
+        "GlobalIPv6PrefixLen": {
+            "type": "integer"
+        },
+        "IPAddress": {
+            "type": "string"
+        },
+        "IPPrefixLen": {
+            "type": "integer"
+        },
+        "IPv6Gateway": {
+            "type": "string"
+        },
+        "MacAddress": {
+            "type": "string"
+        },
+        "Activation": {
+            "type": "boolean"
+        },
+        "Networks": {
+            "$ref": "../defs.json#/definitions/mapStringObjectNetworks"
+        }
+    }
+}

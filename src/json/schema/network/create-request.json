@@ -2,20 +2,20 @@
 	"$schema": "http://json-schema.org/draft-04/schema#",
 	"type": "object",
 	"properties": {
-		"cniVersion": {
-			"type": "string"
-		},
 		"name": {
 			"type": "string"
 		},
-		"disableCheck": {
+		"driver": {
+			"type": "string"
+		},
+		"gateway": {
+			"type": "string"
+		},
+		"internal": {
 			"type": "boolean"
 		},
-		"plugins": {
-			"type": "array",
-			"items": {
-				"$ref": "net_conf.json"
-			}
+		"subnet": {
+			"type": "string"
 		}
 	}
 }

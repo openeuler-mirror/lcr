@@ -1,15 +1,8 @@
 # -*- coding: utf-8 -*-
-'''
-Description: helper class and functions
-Interface: None
-History: 2019-06-17
-'''
 #
 # libocispec - a C library for parsing OCI spec files.
 #
-# Copyright (C) 2017, 2019 Giuseppe Scrivano <giuseppe@scrivano.org>
-# Copyright (C) Huawei Technologies., Ltd. 2018-2019. All rights reserved.
-#
+# Copyright (C) Huawei Technologies., Ltd. 2018-2020. All rights reserved.
 # libocispec is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; either version 3 of the License, or
@@ -32,7 +25,6 @@ History: 2019-06-17
 # special exception, which will cause the skeleton and the resulting
 # libocispec output files to be licensed under the GNU General Public
 # License without this special exception.
-#!/usr/bin/python -Es
 import os
 import sys
 
@@ -139,10 +131,19 @@ def make_basic_map_name(mapname):
     if len(parts) != 3 or parts[0] != 'map' or \
             (parts[1] not in basic_map_types) or \
             (parts[2] not in basic_map_types):
-        print('Invalid map name: %s') % mapname
+        print('Invalid map name: %s' % mapname)
         sys.exit(1)
     return "json_map_%s_%s" % (parts[1], parts[2])
 
+
+def get_top_array_type_name(name, prefix):
+    '''
+    Description: Make top array type to contain subtype and length
+    Interface: None
+    History: 2020-10-24
+    '''
+    return "%s_container" % prefix if name is None or name == "" or prefix == name \
+        else "%s_%s_container" % (prefix, name)
 
 def get_name_substr(name, prefix):
     '''
@@ -153,7 +154,7 @@ def get_name_substr(name, prefix):
     return "%s_element" % prefix if name is None or name == "" or prefix == name \
         else "%s_%s_element" % (prefix, name)
 
-def get_prefixe_name(name, prefix):
+def get_prefixed_name(name, prefix):
     '''
     Description: Make name
     Interface: None
@@ -165,7 +166,7 @@ def get_prefixe_name(name, prefix):
         return "%s" % name
     return "%s_%s" % (prefix, name)
 
-def get_prefixe_pointer(name, typ, prefix):
+def get_prefixed_pointer(name, typ, prefix):
     '''
     Description: Make pointer name
     Interface: None
@@ -175,7 +176,7 @@ def get_prefixe_pointer(name, typ, prefix):
             not valid_basic_map_name(typ):
         return ""
     return '%s *' % make_basic_map_name(typ) if valid_basic_map_name(typ) \
-        else "%s *" % get_prefixe_name(name, prefix)
+        else "%s *" % get_prefixed_name(name, prefix)
 
 def judge_complex(typ):
     '''
@@ -221,7 +222,7 @@ def obtain_pointer(name, typ, prefix):
     Interface: None
     History: 2019-06-17
     '''
-    ptr = get_prefixe_pointer(name, typ, prefix)
+    ptr = get_prefixed_pointer(name, typ, prefix)
     if ptr != "":
         return ptr
 
@@ -262,7 +263,7 @@ class Unite(object):
     History: 2019-06-17
     '''
     def __init__(self, name, typ, children, subtyp=None, subtypobj=None, subtypname=None, \
-        required=None):
+        required=None, doublearray=False):
         self.typ = typ
         self.children = children
         self.subtyp = subtyp
@@ -272,6 +273,7 @@ class Unite(object):
         self.name = conv_to_c_style(name.name.replace('.', '_'))
         self.origname = name.leaf or name.name
         self.fixname = conv_to_c_style(self.origname.replace('.', '_'))
+        self.doublearray = doublearray
 
 
 
@@ -327,7 +329,3 @@ class SchemaInfo(object):
 
     def __str__(self):
         return self.__repr__(self)
-
-
-
-

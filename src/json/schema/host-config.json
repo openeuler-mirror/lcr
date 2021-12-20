@@ -17,6 +17,18 @@
         "NetworkMode": {
             "type": "string"
         },
+        "PortBindings": {
+            "$ref": "defs.json#/definitions/mapStringObjectPortBindings"
+        },
+        "BridgeNetwork": {
+            "$ref": "defs.json#/definitions/ArrayOfStrings"
+        },
+        "IP": {
+            "type": "string"
+        },
+        "MacAddress": {
+            "type": "string"
+        },
         "GroupAdd": {
             "$ref": "defs.json#/definitions/ArrayOfStrings"
         },

@@ -292,6 +292,61 @@
                 }
             }
         },
+        "mapStringObjectNetworks": {
+            "type": "object",
+            "patternProperties": {
+                ".{1,}": {
+                    "type": "object",
+                    "properties": {
+                        "Links": {
+                            "type": "array",
+                            "items": {
+                                "type":"string"
+                            }
+                        },
+                        "Alias": {
+                            "type": "array",
+                            "items": {
+                                "type":"string"
+                            }
+                        },
+                        "NetworkID": {
+                            "type": "string"
+                        },
+                        "EndpointID": {
+                            "type": "string"
+                        },
+                        "Gateway": {
+                            "type": "string"
+                        },
+                        "IPAddress": {
+                            "type": "string"
+                        },
+                        "IPPrefixLen": {
+                            "type": "integer"
+                        },
+                        "IPv6Gateway": {
+                            "type": "string"
+                        },
+                        "GlobalIPv6Address": {
+                            "type": "string"
+                        },
+                        "GlobalIPv6PrefixLen": {
+                            "type": "integer"
+                        },
+                        "MacAddress": {
+                            "type": "string"
+                        },
+                        "IFName": {
+                            "type": "string"
+                        },
+                        "DriverOpts": {
+                            "$ref": "#/definitions/mapStringString"
+                        }
+                    }
+                }
+            }
+        },
         "mapStringObjectAuths": {
             "type": "object",
             "patternProperties": {
@@ -300,6 +355,19 @@
                     "properties": {
                         "auth": {
                             "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "mapStringObjectPortBindings": {
+            "type": "object",
+            "patternProperties": {
+                ".{1,}": {
+                    "type": "object",
+                    "properties": {
+                        "Element": {
+                            "$ref": "network/port_binding.json"
                         }
                     }
                 }
