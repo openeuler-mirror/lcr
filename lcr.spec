@@ -1,5 +1,5 @@
 %global _version 2.0.6
-%global _release 7
+%global _release 8
 %global _inner_name isula_libutils
 
 Name:      lcr
@@ -12,12 +12,13 @@ Group:     Applications/System
 License:   LGPLv2.1+
 BuildRoot: %{_tmppath}/lcr-%{version}
 
-Patch1: 0001-modified-ipconfig.json-to-adapt-to-newest-version-of.patch
-Patch2: 0002-disable-lxc_keep-with-oci-image.patch
-Patch3: 0003-add-self-def-runtime-for-shimv2.patch
-Patch4: 0004-move-cri-runtimes-to-daemon.patch
-Patch5: 0005-config-v2-and-inspect-were-modified-to-support-modif.patch
-Patch6: 0006-support-null-value-in-json.patch
+Patch0001: 0001-modified-ipconfig.json-to-adapt-to-newest-version-of.patch
+Patch0002: 0002-disable-lxc_keep-with-oci-image.patch
+Patch0003: 0003-add-self-def-runtime-for-shimv2.patch
+Patch0004: 0004-move-cri-runtimes-to-daemon.patch
+Patch0005: 0005-config-v2-and-inspect-were-modified-to-support-modif.patch
+Patch0006: 0006-support-null-value-in-json.patch
+Patch0007: 0007-fix-the-error-of-gcc-compilation-optimization-level.patch
 
 %define lxcver 4.0.3-2021112501
 
@@ -106,6 +107,12 @@ rm -rf %{buildroot}
 %{_includedir}/%{_inner_name}/*.h
 
 %changelog
+* Wed Dec 29 2021 wangfengtu <wangfengtu@huawei.com> - 2.0.6-8
+- Type:bugfix
+- ID:NA
+- SUG:NA
+- DESC: fix compile error
+
 * Mon Dec 06 2021 gaohuatao <gaohuatao@huawei.com> - 2.0.6-7
 - Type:enhancement
 - ID:NA
