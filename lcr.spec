@@ -62,11 +62,13 @@ rm -rf %{buildroot}
 cd build
 mkdir -p %{buildroot}/{%{_libdir},%{_libdir}/pkgconfig,%{_includedir}/lcr,%{_bindir}}
 install -m 0644 ./src/liblcr.so            %{buildroot}/%{_libdir}/liblcr.so
+install -m 0644 ./src/liblcr.a            %{buildroot}/%{_libdir}/liblcr.a
 install -m 0644 ./conf/lcr.pc          %{buildroot}/%{_libdir}/pkgconfig/lcr.pc
 install -m 0644 ../src/lcrcontainer.h  %{buildroot}/%{_includedir}/lcr/lcrcontainer.h
 chmod +x %{buildroot}/%{_libdir}/liblcr.so
 
 install -m 0644 ./src/libisula_libutils.so        %{buildroot}/%{_libdir}/libisula_libutils.so
+install -m 0644 ./src/libisula_libutils.a        %{buildroot}/%{_libdir}/libisula_libutils.a
 install -d $RPM_BUILD_ROOT/%{_includedir}/%{_inner_name}
 install -m 0644 ../build/json/*.h  %{buildroot}/%{_includedir}/%{_inner_name}/
 install -m 0644 ../src/json/*.h  %{buildroot}/%{_includedir}/%{_inner_name}/
