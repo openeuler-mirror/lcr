@@ -32,6 +32,7 @@ else()
 endif()
 endmacro()
 
+if (ENABLE_LIBLCR)
 # check liblxc
 pkg_check_modules(PC_LIBLXC REQUIRED "lxc>=3")
 find_path(LIBLXC_INCLUDE_DIR lxc/lxccontainer.h
@@ -41,15 +42,7 @@ _CHECK(LIBLXC_INCLUDE_DIR "LIBLXC_INCLUDE_DIR-NOTFOUND" "lxc/lxccontainer.h")
 find_library(LIBLXC_LIBRARY lxc
 	HINTS ${PC_LIBLXC_LIBDIR} ${PC_LIBLXC_LIBRARY_DIRS})
 _CHECK(LIBLXC_LIBRARY "LIBLXC_LIBRARY-NOTFOUND" "liblxc.so")
-
-# check zlib
-pkg_check_modules(PC_ZLIB "zlib>=1.2.8")
-find_path(ZLIB_INCLUDE_DIR zlib.h
-    HINTS ${PC_ZLIB_INCLUDEDIR} ${PC_ZLIB_INCLUDE_DIRS})
-_CHECK(ZLIB_INCLUDE_DIR "ZLIB_INCLUDE_DIR-NOTFOUND" "zlib.h")
-find_library(ZLIB_LIBRARY z
-  HINTS ${PC_ZLIB_LIBDIR} ${PC_ZLIB_LIBRARY_DIRS})
-_CHECK(ZLIB_LIBRARY "ZLIB_LIBRARY-NOTFOUND" "libz.so")
+endif()
 
 #check python3
 find_program(CMD_PYTHON python3)

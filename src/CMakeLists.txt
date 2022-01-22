@@ -32,11 +32,9 @@ list(REMOVE_DUPLICATES check_incs)
 list(REMOVE_DUPLICATES check_libs)
 
 set(check_isula_utils_incs
-    ${ZLIB_INCLUDE_DIR}
     ${LIBYAJL_INCLUDE_DIR}
     )
 set(check_isula_utils_libs
-    ${ZLIB_LIBRARY}
     ${LIBYAJL_LIBRARY}
     )
 list(REMOVE_DUPLICATES check_isula_utils_libs)
@@ -74,12 +72,12 @@ target_include_directories(isula_libutils
     PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/json/schema/src
     PUBLIC ${CMAKE_BINARY_DIR}/json
     PUBLIC ${THIRD_PARTY_INCS}
-    PUBLIC ${ZLIB_INCLUDE_DIR}
     PUBLIC ${check_isula_utils_incs}
     )
 
 target_link_libraries(isula_libutils ${check_isula_utils_libs})
 
+if (ENABLE_LIBLCR)
 # set liblcr library
 add_library(liblcr ${LIBTYPE} ${topsrcs})
 
@@ -106,5 +104,7 @@ endif()
 # install all files
 install(TARGETS liblcr
   LIBRARY DESTINATION ${LIB_INSTALL_DIR_DEFAULT} PERMISSIONS OWNER_READ OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)
+endif()
+
 install(TARGETS isula_libutils
   LIBRARY DESTINATION ${LIB_INSTALL_DIR_DEFAULT} PERMISSIONS OWNER_READ OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)

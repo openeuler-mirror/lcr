@@ -122,7 +122,7 @@ char *read_file(const char *path, size_t *length)
         return NULL;
     }
 
-    fd = open(rpath, O_RDONLY | O_CLOEXEC, FILE_MODE);
+    fd = open(rpath, O_RDONLY | O_CLOEXEC);
     if (fd < 0) {
         return NULL;
     }
