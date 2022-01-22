@@ -35,8 +35,9 @@ endif()
 
 option(ENABLE_UT "enable ut" OFF)
 
-include(cmake/set_build_flags.cmake)
+include(cmake/options.cmake)
 
+include(cmake/set_build_flags.cmake)
 
 if (LIB_INSTALL_DIR)
   set(LIB_INSTALL_DIR_DEFAULT ${LIB_INSTALL_DIR})
