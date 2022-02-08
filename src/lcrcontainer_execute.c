@@ -1019,6 +1019,6 @@ void execute_lxc_start(const char *name, const char *path, const struct lcr_star
 
     execvp("lxc-start", params);
 
-    COMMAND_ERROR("Failed to exec lxc-start\n");
+    COMMAND_ERROR("Failed to exec lxc-start: %s.", strerror(errno));
     exit(EXIT_FAILURE);
 }
