@@ -1,3 +1,19 @@
+2022-02-22 root release 2.0.7
+    - refactor lcr build system
+    - !166 add errno for execv lxc-start debug message Merge pull request !166 from haozi007/stable-v2.0.x
+    - !163 support -DENABLE_LIBLCR=OFF to build isula_libutils only Merge pull request !163 from wangfengtu/enable_liblcr_stable
+    - !156 fix the error of gcc compilation optimization level Merge pull request !156 from JingWoo/stable-v2.0.x
+    - !154 permit other read so and pc of lcr From: @duguhaotian Reviewed-by: @jingxiaolu Signed-off-by: @jingxiaolu
+    - !152 support null value in json From: @duguhaotian Reviewed-by: @jingxiaolu Signed-off-by: @jingxiaolu
+    - !150 config-v2 and inspect were modified to support modifications on isulad Merge pull request !150 from czrz/stable-v2.0.x
+    - !149 sycn from master From: @gaohuatao Reviewed-by: @duguhaotian Signed-off-by: @duguhaotian
+    - !145 disable lxc_keep with oci image Merge pull request !145 from gaohuatao/sta_ght
+    - !144 修改ipconfig.json以适配最新版本的cni插件 From: @chengzrz Reviewed-by: @duguhaotian Signed-off-by: @duguhaotian
+
+    dev stats:
+      - 16 files changed, 213 insertions(+), 59 deletions(-)
+      - contributors: haozi007, gaohuatao, chengzrz, WangFengTu, wujing
+
 2021-10-11 root release 2.0.6
     - deleted redundant coverage analysis
     - Unit test build optimization 1. cmake -DCMAKE_BUILD_TYPE=Debug -DENABLE_UT=ON -DENABLE_GCOV=ON  .. 2. make -j $(nproc) 3. make test [or ctest] 4. make coverage
