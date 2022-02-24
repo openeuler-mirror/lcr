@@ -1,5 +1,5 @@
-%global _version 2.0.6
-%global _release 8
+%global _version 2.0.7
+%global _release 1
 %global _inner_name isula_libutils
 
 Name:      lcr
@@ -11,14 +11,6 @@ Summary:   Lightweight Container Runtime
 Group:     Applications/System
 License:   LGPLv2.1+
 BuildRoot: %{_tmppath}/lcr-%{version}
-
-Patch0001: 0001-modified-ipconfig.json-to-adapt-to-newest-version-of.patch
-Patch0002: 0002-disable-lxc_keep-with-oci-image.patch
-Patch0003: 0003-add-self-def-runtime-for-shimv2.patch
-Patch0004: 0004-move-cri-runtimes-to-daemon.patch
-Patch0005: 0005-config-v2-and-inspect-were-modified-to-support-modif.patch
-Patch0006: 0006-support-null-value-in-json.patch
-Patch0007: 0007-fix-the-error-of-gcc-compilation-optimization-level.patch
 
 %define lxcver 4.0.3-2021112501
 
@@ -58,7 +50,7 @@ the %{name}-libs package contains libraries for running iSula applications.
 
 
 %prep
-%autosetup -n lcr -Sgit -p1
+%autosetup -n lcr-v%{_version} -Sgit -p1
 
 %build
 mkdir -p build
@@ -107,6 +99,12 @@ rm -rf %{buildroot}
 %{_includedir}/%{_inner_name}/*.h
 
 %changelog
+* Thu Feb 24 2022 wangfengtu <wangfengtu@huawei.com> - 2.0.7-1
+- Type:enhancement
+- ID:NA
+- SUG:NA
+- DESC: update to v2.0.7
+
 * Wed Dec 29 2021 wangfengtu <wangfengtu@huawei.com> - 2.0.6-8
 - Type:bugfix
 - ID:NA
@@ -143,13 +141,13 @@ rm -rf %{buildroot}
 - SUG:NA
 - DESC: remove build platform restrictions
 
-* Thu Nov 09 2021 gaohuatao <gaohuatao@huawei.com> - 2.0.6-2
+* Tue Nov 09 2021 gaohuatao <gaohuatao@huawei.com> - 2.0.6-2
 - Type:enhancement
 - ID:NA
 - SUG:NA
 - DESC: update source
 
-* Thu Nov 09 2021 gaohuatao <gaohuatao@huawei.com> - 2.0.6-1
+* Tue Nov 09 2021 gaohuatao <gaohuatao@huawei.com> - 2.0.6-1
 - Type:enhancement
 - ID:NA
 - SUG:NA
