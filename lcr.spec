@@ -1,5 +1,5 @@
 %global _version 2.0.7
-%global _release 1
+%global _release 2
 %global _inner_name isula_libutils
 
 Name:      lcr
@@ -11,6 +11,8 @@ Summary:   Lightweight Container Runtime
 Group:     Applications/System
 License:   LGPLv2.1+
 BuildRoot: %{_tmppath}/lcr-%{version}
+
+Patch0001: 0001-parse-userns-remap-in-daemmon.json.patch
 
 %define lxcver 4.0.3-2021112501
 
@@ -100,6 +102,12 @@ rm -rf %{buildroot}
 %{_includedir}/%{_inner_name}/*.h
 
 %changelog
+* Wed Mar 02 2022 wangfengtu <wangfengtu@huawei.com> - 2.0.7-2
+- Type:enhancement
+- ID:NA
+- SUG:NA
+- DESC: parse userns-remap in daemmon.json
+
 * Thu Feb 24 2022 wangfengtu <wangfengtu@huawei.com> - 2.0.7-1
 - Type:enhancement
 - ID:NA
