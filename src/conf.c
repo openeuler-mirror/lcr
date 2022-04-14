@@ -2704,6 +2704,7 @@ static char *get_hostarch(void)
         { "ppc64", "[ppc64]", 5 },   { "ppc", "[ppc]", 3 },           { "mips64n32", "[mips64n32]", 9 },
         { "mips64", "[mips64]", 6 }, { "mips", "[mips]", 4 },         { "s390x", "[s390x]", 5 },
         { "s390", "[s390]", 4 },     { "parisc64", "[parisc64]", 8 }, { "parisc", "[parisc]", 6 },
+        { "riscv64", "[riscv64]", 7 },
     };
 
     if (uname(&uts) < 0) {
@@ -2749,6 +2750,7 @@ static char *seccomp_trans_arch(const char *arch)
         { "SCMP_ARCH_S390X", "[s390x]" },
         { "SCMP_ARCH_PARISC", "[parisc]" },
         { "SCMP_ARCH_PARISC64", "[parisc64]" },
+        { "SCMP_ARCH_RISCV64", "[riscv64]" },
         { "SCMP_ARCH_ALL", "[all]" },
         { "SCMP_ARCH_AUTO", "" },
     };
