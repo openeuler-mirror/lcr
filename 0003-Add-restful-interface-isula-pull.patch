@@ -1,0 +1,54 @@
+From be04a305d16c91bb05011a9b8e88ec41f1a5f90e Mon Sep 17 00:00:00 2001
+From: "yanshui.li" <yanshuili.lys@gmail.com>
+Date: Fri, 25 Mar 2022 03:04:59 +0000
+Subject: [PATCH 3/3] Add restful interface isula pull
+
+---
+ src/json/schema/image/pull-image-request.json  |  9 +++++++++
+ src/json/schema/image/pull-image-response.json | 18 ++++++++++++++++++
+ 2 files changed, 27 insertions(+)
+ create mode 100644 src/json/schema/image/pull-image-request.json
+ create mode 100644 src/json/schema/image/pull-image-response.json
+
+diff --git a/src/json/schema/image/pull-image-request.json b/src/json/schema/image/pull-image-request.json
+new file mode 100644
+index 0000000..a1d81a7
+--- /dev/null
++++ b/src/json/schema/image/pull-image-request.json
+@@ -0,0 +1,9 @@
++{
++	"$schema": "http://json-schema.org/draft-04/schema#",
++	"type": "object",
++	"properties": {
++		"image_name": {
++			"type": "string"
++		}
++	}
++}
+diff --git a/src/json/schema/image/pull-image-response.json b/src/json/schema/image/pull-image-response.json
+new file mode 100644
+index 0000000..86c429a
+--- /dev/null
++++ b/src/json/schema/image/pull-image-response.json
+@@ -0,0 +1,18 @@
++{
++	"$schema": "http://json-schema.org/draft-04/schema#",
++	"type": "object",
++	"properties": {
++		"image_ref": {
++			"type": "string"
++		},
++		"cc": {
++			"type": "uint32"
++		},
++		"server_errono": {
++			"type": "uint32"
++		},
++		"errmsg": {
++			"type": "string"
++		}
++	}
++}
+-- 
+2.25.1
+
