@@ -194,7 +194,7 @@ int buffer_nappendf(Buffer *buf, size_t length, const char *format, ...)
     }
 
     va_start(argp, format);
-    status = vsprintf(tmp, format, argp);
+    status = vsnprintf(tmp, length, format, argp);
     va_end(argp);
     if (status < 0) {
         goto error;
