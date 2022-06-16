@@ -68,7 +68,7 @@ void lcr_set_error_message(lcr_errno_t errcode, const char *format, ...)
     va_list argp;
     va_start(argp, format);
 
-    ret = vsprintf(errbuf, format, argp);
+    ret = vsnprintf(errbuf, BUFSIZ, format, argp);
     va_end(argp);
     clear_error_message(&g_lcr_error);
     if (ret < 0) {
@@ -89,7 +89,7 @@ void lcr_try_set_error_message(lcr_errno_t errcode, const char *format, ...)
         return;
     }
     va_start(argp, format);
-    ret = vsprintf(errbuf, format, argp);
+    ret = vsnprintf(errbuf, BUFSIZ, format, argp);
     va_end(argp);
     clear_error_message(&g_lcr_error);
     if (ret < 0) {
@@ -109,7 +109,7 @@ void lcr_append_error_message(lcr_errno_t errcode, const char *format, ...)
     va_list argp;
     va_start(argp, format);
 
-    ret = vsprintf(errbuf, format, argp);
+    ret = vsnprintf(errbuf, BUFSIZ, format, argp);
     va_end(argp);
     if (ret < 0) {
         g_lcr_error.errcode = LCR_ERR_FORMAT;
