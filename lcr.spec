@@ -1,5 +1,5 @@
 %global _version 2.0.7
-%global _release 3
+%global _release 4
 %global _inner_name isula_libutils
 
 Name:      lcr
@@ -15,6 +15,7 @@ BuildRoot: %{_tmppath}/lcr-%{version}
 Patch0001: 0001-parse-userns-remap-in-daemmon.json.patch
 Patch0002: 0002-add-rename-json-schema-for-rename-subcommand-in-rest.patch
 Patch0003: 0003-Add-restful-interface-isula-pull.patch
+Patch0004: 0004-use-vsnprintf-to-replace-vsprintf.patch
 
 %define lxcver 4.0.3-2021112501
 
@@ -104,6 +105,12 @@ rm -rf %{buildroot}
 %{_includedir}/%{_inner_name}/*.h
 
 %changelog
+* Thu Jun 16 2022 haozi007 <liuhao27@huawei.com> - 2.0.7-4
+- Type:enhancement
+- ID:NA
+- SUG:NA
+- DESC: use vsnprintf replace vsprintf
+
 * Mon Apr 18 2022 wangfengtu <wangfengtu@huawei.com> - 2.0.7-3
 - Type:enhancement
 - ID:NA

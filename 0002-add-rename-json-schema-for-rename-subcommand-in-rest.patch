@@ -1,7 +1,7 @@
 From 91c988d01b96ba31ac495228a17644aa4aab47c9 Mon Sep 17 00:00:00 2001
 From: haozi007 <liuhao27@huawei.com>
 Date: Tue, 22 Mar 2022 07:24:11 +0000
-Subject: [PATCH 2/3] add rename json schema for rename subcommand in restful
+Subject: [PATCH 2/4] add rename json schema for rename subcommand in restful
  mode
 
 Signed-off-by: haozi007 <liuhao27@huawei.com>
@@ -52,5 +52,5 @@ index 0000000..048f43d
 +	}
 +}
 -- 
-2.25.1
+2.20.1
 
