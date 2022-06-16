@@ -1,7 +1,7 @@
 From be04a305d16c91bb05011a9b8e88ec41f1a5f90e Mon Sep 17 00:00:00 2001
 From: "yanshui.li" <yanshuili.lys@gmail.com>
 Date: Fri, 25 Mar 2022 03:04:59 +0000
-Subject: [PATCH 3/3] Add restful interface isula pull
+Subject: [PATCH 3/4] Add restful interface isula pull
 
 ---
  src/json/schema/image/pull-image-request.json  |  9 +++++++++
@@ -50,5 +50,5 @@ index 0000000..86c429a
 +	}
 +}
 -- 
-2.25.1
+2.20.1
 
