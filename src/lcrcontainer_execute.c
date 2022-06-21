@@ -903,7 +903,7 @@ bool do_attach(const char *name, const char *path, const struct lcr_exec_request
     bool ret = false;
     pid_t pid = 0;
     ssize_t size_read = 0;
-    char buffer[BUFSIZ] = {0};
+    char buffer[BUFSIZ + 1] = {0};
     int pipefd[2] = {-1, -1};
     int status = 0;
 
