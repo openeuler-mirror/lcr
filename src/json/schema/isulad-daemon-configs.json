@@ -70,6 +70,9 @@
         "cpu-rt-runtime": {
             "type": "int64"
         },
+        "sup-groups": {
+            "$ref": "defs.json#/definitions/ArrayOfGIDs"
+        },
         "registry-mirrors": {
             "type": "ArrayOfStrings"
         },
