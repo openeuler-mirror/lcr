@@ -1,5 +1,5 @@
-%global _version 2.0.7
-%global _release 4
+%global _version 2.0.8
+%global _release 1
 %global _inner_name isula_libutils
 
 Name:      lcr
@@ -11,11 +11,6 @@ Summary:   Lightweight Container Runtime
 Group:     Applications/System
 License:   LGPLv2.1+
 BuildRoot: %{_tmppath}/lcr-%{version}
-
-Patch0001: 0001-parse-userns-remap-in-daemmon.json.patch
-Patch0002: 0002-add-rename-json-schema-for-rename-subcommand-in-rest.patch
-Patch0003: 0003-Add-restful-interface-isula-pull.patch
-Patch0004: 0004-use-vsnprintf-to-replace-vsprintf.patch
 
 %define lxcver 4.0.3-2021112501
 
@@ -104,6 +99,12 @@ rm -rf %{buildroot}
 %{_includedir}/%{_inner_name}/*.h
 
 %changelog
+* Mon Jul 04 2022 czrz<chengzeruizhi@huawei.com> - 2.0.8-1
+- Type: enhancement
+- ID: NA
+- SUG: NA
+- DESC: upgrade version to v2.0.8
+
 * Thu Jun 16 2022 haozi007 <liuhao27@huawei.com> - 2.0.7-4
 - Type:enhancement
 - ID:NA
