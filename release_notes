@@ -1,3 +1,15 @@
+2022-07-04 czrz release 2.0.8
+    - !180 support set groups Merge pull request !180 from wangfengtu/sup-groups
+    - !178 fix misuse of BUFSIZ From: @wangfengtu Reviewed-by: @duguhaotian Signed-off-by: @duguhaotian
+    - !176 use vsnprintf to replace vsprintf From: @duguhaotian Reviewed-by: @jingwoo Signed-off-by: @jingwoo
+    - !173 Add restful interface isula pull Merge pull request !173 from zhangxiaoyu/stable-v2.0.x
+    - !172 add rename json schema for rename subcommand in restful mode Merge pull request !172 from haozi007/stable-v2.0.x
+    - !169 parse userns-remap in daemmon.json Merge pull request !169 from wangfengtu/userns-remap
+
+    dev stats:
+      - 8 files changed, 65 insertions(+), 5 deletions(-)
+      - contributors: WangFengTu, haozi007, HumbleHunger, yanshui.li
+
 2022-02-22 root release 2.0.7
     - refactor lcr build system
     - !166 add errno for execv lxc-start debug message Merge pull request !166 from haozi007/stable-v2.0.x
