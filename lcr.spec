@@ -1,5 +1,5 @@
 %global _version 2.0.8
-%global _release 1
+%global _release 2
 %global _inner_name isula_libutils
 
 Name:      lcr
@@ -11,6 +11,9 @@ Summary:   Lightweight Container Runtime
 Group:     Applications/System
 License:   LGPLv2.1+
 BuildRoot: %{_tmppath}/lcr-%{version}
+
+
+Patch0001: 0001-feat-Add-json-spec-for-rest-resize-api.patch
 
 %define lxcver 4.0.3-2021112501
 
@@ -100,6 +103,12 @@ rm -rf %{buildroot}
 %{_includedir}/%{_inner_name}/*.h
 
 %changelog
+* Thu Jul 14 2022 haozi007<liuhao27@huawei.com> - 2.0.8-2
+- Type: enhancement
+- ID: NA
+- SUG: NA
+- DESC: add resize restful json
+
 * Mon Jul 04 2022 czrz<chengzeruizhi@huawei.com> - 2.0.8-1
 - Type: enhancement
 - ID: NA
