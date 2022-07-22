@@ -63,6 +63,7 @@ message("--  commit id: " ${GIT_COMMIT_HASH})
 add_definitions(-DLCRPATH="${CMAKE_INSTALL_PREFIX}/var/lib/lcr")
 add_definitions(-DLOGPATH="${CMAKE_INSTALL_PREFIX}/var/log/lcr")
 add_definitions(-DLCR_GIT_COMMIT="${GIT_COMMIT_HASH}")
+add_definitions(-DHAVE_ISULAD)
 
 configure_file(
 	"${CMAKE_CURRENT_SOURCE_DIR}/config.h.in"
