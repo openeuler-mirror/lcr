@@ -353,6 +353,9 @@
       },
       {
         "type": "ipc"
+      },
+      {
+        "type": "cgroup"
       }
     ],
     "intelRdt": {
