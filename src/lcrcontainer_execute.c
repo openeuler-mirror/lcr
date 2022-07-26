@@ -321,7 +321,7 @@ static int update_resources_cpu_quota(struct lxc_container *c, const struct lcr_
     char numstr[128] = {0}; /* max buffer */
 
     if (cr->cpu_quota != 0) {
-        int num = snprintf(numstr, sizeof(numstr), "%llu", (unsigned long long)(cr->cpu_quota));
+        int num = snprintf(numstr, sizeof(numstr), "%lld", (long long int)cr->cpu_quota);
         if (num < 0 || (size_t)num >= sizeof(numstr)) {
             ret = -1;
             goto out;
