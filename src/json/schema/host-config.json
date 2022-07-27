@@ -11,7 +11,7 @@
         "Mounts": {
             "type": "array",
             "items": {
-		"$ref": "mount_spec.json"
+                "$ref": "mount_spec.json"
             }
         },
         "NetworkMode": {
@@ -72,6 +72,9 @@
             "type": "string"
         },
         "UsernsMode": {
+            "type": "string"
+        },
+        "CgroupnsMode": {
             "type": "string"
         },
         "Sysctls": {
