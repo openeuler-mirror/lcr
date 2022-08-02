@@ -1,5 +1,5 @@
 %global _version 2.0.8
-%global _release 2
+%global _release 3
 %global _inner_name isula_libutils
 
 Name:      lcr
@@ -14,6 +14,8 @@ BuildRoot: %{_tmppath}/lcr-%{version}
 
 
 Patch0001: 0001-feat-Add-json-spec-for-rest-resize-api.patch
+Patch0002: 0002-add-HAVE_ISULAD-definition-for-lxc-header.patch 
+Patch0003: 0003-fix-cpu-quota-out-of-range-when-update-to-1.patch
 
 %define lxcver 4.0.3-2021112501
 
@@ -102,6 +104,12 @@ rm -rf %{buildroot}
 %{_includedir}/%{_inner_name}/*.h
 
 %changelog
+* Tue Aug 2 2022 chengzeruizhi<chengzeruizhi@huawei.com> - 2.0.8-3
+- Type: enhancement
+- ID: NA
+- SUG: NA
+- DESC: add HAVE_ISULAD definition and fix cpu quota out of range
+
 * Thu Jul 14 2022 haozi007<liuhao27@huawei.com> - 2.0.8-2
 - Type: enhancement
 - ID: NA
