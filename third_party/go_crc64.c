@@ -21,7 +21,6 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  ********************************************************************************/
 
-#include <stdlib.h>
 #include <pthread.h>
 
 #include "go_crc64.h"

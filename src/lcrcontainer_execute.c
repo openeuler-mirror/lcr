@@ -27,19 +27,15 @@
 
 #define _GNU_SOURCE
 #include <unistd.h>
-#include <fcntl.h>
-#include <sys/stat.h>
-#include <sys/types.h>
-#include <signal.h>
 #include <string.h>
+
+#include <lxc/lxccontainer.h>
 
 #include "constants.h"
 #include "lcrcontainer_execute.h"
 #include "utils.h"
 #include "log.h"
 #include "error.h"
-#include "oci_runtime_spec.h"
-#include "lcrcontainer_extend.h"
 
 // Cgroup v1 Item Definition
 #define CGROUP_BLKIO_WEIGHT "blkio.weight"
