@@ -30,7 +30,6 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/stat.h>
-#include <sys/types.h>
 #include <signal.h>
 
 #include <lxc/lxccontainer.h>
@@ -43,6 +42,7 @@
 #include "log.h"
 #include "conf.h"
 #include "oci_runtime_hooks.h"
+#include "lcr_list.h"
 
 static struct lxc_container *lcr_new_container(const char *name, const char *path)
 {

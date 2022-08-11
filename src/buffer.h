@@ -25,8 +25,6 @@
 #define LCR_BUFFER_H
 
 #include <stdlib.h>
-#include <strings.h>
-#include <stdarg.h>
 
 typedef struct Buffer {
     char *contents;

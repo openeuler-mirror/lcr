@@ -21,7 +21,6 @@
 extern "C" {
 #endif
 
-#include <stddef.h>
 #include <stdio.h>
 
 char *fread_file (FILE *stream, size_t *length);

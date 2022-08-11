@@ -32,8 +32,6 @@
 #include <stdbool.h>
 #include <sys/types.h>
 
-#include <lxc/lxccontainer.h>
-
 #ifdef __cplusplus
 extern "C" {
 #endif

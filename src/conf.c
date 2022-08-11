@@ -20,10 +20,9 @@
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  ********************************************************************************/
+#include "conf.h"
 
-#include <sys/types.h>
 #include <sys/stat.h>
-#include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
@@ -31,13 +30,14 @@
 #include <sys/utsname.h>
 #include <linux/oom.h>
 
-#include "conf.h"
 #include "lcrcontainer.h"
 #include "lcrcontainer_extend.h"
 #include "error.h"
 #include "utils.h"
 #include "log.h"
+
 #include "buffer.h"
+#include "lcr_list.h"
 
 #define SUB_UID_PATH "/etc/subuid"
 #define SUB_GID_PATH "/etc/subgid"

@@ -25,7 +25,6 @@
 #define __LCR_CONF_H
 
 #include "oci_runtime_spec.h"
-#include "lcr_list.h"
 
 #define INVALID_INT 0
 
