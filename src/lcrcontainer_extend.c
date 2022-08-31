@@ -346,7 +346,7 @@ out:
     return ret;
 }
 
-static int lcr_spec_write_seccomp_line(int fd, const char *seccomp)
+static int lcr_spec_write_seccomp_line(FILE *fp, const char *seccomp)
 {
     size_t len;
     char *line = NULL;
@@ -371,14 +371,17 @@ static int lcr_spec_write_seccomp_line(int fd, const char *seccomp)
         ERROR("Sprintf failed");
         goto cleanup;
     }
+
     if ((size_t)nret > len - 1) {
         nret = (int)(len - 1);
     }
+
     line[nret] = '\n';
-    if (write(fd, line, len) == -1) {
-        SYSERROR("Write failed");
+    if (fwrite(line, 1, len ,fp) != len) {
+        ERROR("Write file failed: %s", strerror(errno));
         goto cleanup;
     }
+
     ret = 0;
 cleanup:
     free(line);
@@ -719,12 +722,13 @@ out_free:
 }
 
 
-static int lcr_open_config_file(const char *bundle)
+static FILE *lcr_open_config_file(const char *bundle)
 {
     char config[PATH_MAX] = { 0 };
     char *real_config = NULL;
     int fd = -1;
     int nret;
+    FILE *fp = NULL;
 
     nret = snprintf(config, sizeof(config), "%s/config", bundle);
     if (nret < 0 || (size_t)nret >= sizeof(config)) {
@@ -743,9 +747,16 @@ static int lcr_open_config_file(const char *bundle)
         lcr_set_error_message(LCR_ERR_RUNTIME, "Create file %s failed, %s", real_config, strerror(errno));
         goto out;
     }
+
+    fp = fdopen(fd, "w");
+    if(fp == NULL){
+        ERROR("FILE open failed");
+        goto out;
+    }
+
 out:
     free(real_config);
-    return fd;
+    return fp;
 }
 
 // escape_string_encode unzip some escape characters
@@ -807,13 +818,13 @@ static char *escape_string_encode(const char *src)
     return dst;
 }
 
-static int lcr_spec_write_config(int fd, const struct lcr_list *lcr_conf)
+static int lcr_spec_write_config(FILE *fp, const struct lcr_list *lcr_conf)
 {
-    struct lcr_list *it = NULL;
     size_t len;
-    char *line = NULL;
-    char *line_encode = NULL;
     int ret = -1;
+    struct lcr_list *it = NULL;
+    char *line_encode = NULL;
+    char *line = NULL;
 
     lcr_list_for_each(it, lcr_conf) {
         lcr_config_item_t *item = it->elem;
@@ -845,16 +856,19 @@ static int lcr_spec_write_config(int fd, const struct lcr_list *lcr_conf)
             nret = strlen(line_encode);
 
             line_encode[nret] = '\n';
-            if (write(fd, line_encode, nret + 1) == -1) {
-                SYSERROR("Write failed");
+
+            if (fwrite(line_encode, 1, len, fp) != len) {
+                ERROR("Write file failed: %s", strerror(errno));
                 goto cleanup;
             }
+
             free(line);
             line = NULL;
             free(line_encode);
             line_encode = NULL;
         }
     }
+
     ret = 0;
 cleanup:
     free(line);
@@ -912,7 +926,7 @@ bool lcr_save_spec(const char *name, const char *lcrpath, const struct lcr_list 
     const char *path = lcrpath ? lcrpath : LCRPATH;
     char *bundle = NULL;
     char *seccomp = NULL;
-    int fd = -1;
+    FILE *fp = NULL;
     int nret = 0;
 
     if (name == NULL) {
@@ -932,17 +946,17 @@ bool lcr_save_spec(const char *name, const char *lcrpath, const struct lcr_list 
         }
     }
 
-    fd = lcr_open_config_file(bundle);
-    if (fd == -1) {
+    fp = lcr_open_config_file(bundle);
+    if (fp == NULL) {
         goto out_free;
     }
 
-    if (lcr_spec_write_config(fd, lcr_conf)) {
+    if (lcr_spec_write_config(fp, lcr_conf)) {
         goto out_free;
     }
 
     if (seccomp_conf != NULL) {
-        nret = lcr_spec_write_seccomp_line(fd, seccomp);
+        nret = lcr_spec_write_seccomp_line(fp, seccomp);
         if (nret) {
             goto out_free;
         }
@@ -951,11 +965,11 @@ bool lcr_save_spec(const char *name, const char *lcrpath, const struct lcr_list 
     bret = true;
 
 out_free:
-    free(bundle);
-    free(seccomp);
-    if (fd != -1) {
-        close(fd);
+    if (fp != NULL) {
+        fclose(fp);
     }
+    free(seccomp);
+    free(bundle);
 
     return bret;
 }
