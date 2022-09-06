@@ -85,12 +85,6 @@
         "pod-sandbox-image": {
             "type": "string"
         },
-        "image_service": {
-            "type": "boolean"
-        },
-        "rootfsmntdir": {
-            "type": "string"
-        },
         "network-plugin": {
             "type": "string"
         },
