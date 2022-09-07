@@ -1,5 +1,5 @@
 %global _version 2.0.8
-%global _release 3
+%global _release 4
 %global _inner_name isula_libutils
 
 Name:      lcr
@@ -16,6 +16,7 @@ BuildRoot: %{_tmppath}/lcr-%{version}
 Patch0001: 0001-feat-Add-json-spec-for-rest-resize-api.patch
 Patch0002: 0002-add-HAVE_ISULAD-definition-for-lxc-header.patch 
 Patch0003: 0003-fix-cpu-quota-out-of-range-when-update-to-1.patch
+Patch0004: 0004-remove-unused-daemon-config-args.patch
 
 %define lxcver 4.0.3-2021112501
 
@@ -104,6 +105,12 @@ rm -rf %{buildroot}
 %{_includedir}/%{_inner_name}/*.h
 
 %changelog
+* Wed Sep 07 2022 zhangxiaoyu <zhangxiaoyu58@huawei.com> - 2.0.8-4
+- Type: enhancement
+- ID: NA
+- SUG: NA
+- DESC: remove unused daemon config args
+
 * Tue Aug 2 2022 chengzeruizhi<chengzeruizhi@huawei.com> - 2.0.8-3
 - Type: enhancement
 - ID: NA
