@@ -818,6 +818,7 @@ static int lcr_spec_write_config(int fd, const struct lcr_list *lcr_conf)
     lcr_list_for_each(it, lcr_conf) {
         lcr_config_item_t *item = it->elem;
         int nret;
+        size_t encode_len;
         if (item != NULL) {
             if (strlen(item->value) > ((SIZE_MAX - strlen(item->name)) - 4)) {
                 goto cleanup;
@@ -842,10 +843,10 @@ static int lcr_spec_write_config(int fd, const struct lcr_list *lcr_conf)
                 goto cleanup;
             }
 
-            nret = strlen(line_encode);
+            encode_len = strlen(line_encode);
 
-            line_encode[nret] = '\n';
-            if (write(fd, line_encode, nret + 1) == -1) {
+            line_encode[encode_len] = '\n';
+            if (write(fd, line_encode, encode_len + 1) == -1) {
                 SYSERROR("Write failed");
                 goto cleanup;
             }

@@ -25,7 +25,6 @@
 #ifndef _GNU_SOURCE
 #define _GNU_SOURCE 1
 #endif
-#define __STDC_FORMAT_MACROS /* Required for PRIu64 to work. */
 #include <errno.h>
 #include <fcntl.h>
 #include <inttypes.h>
@@ -267,7 +266,7 @@ static int log_append_logfile(const struct lxc_log_appender *appender,
 		if (ret < 0)
 			return 0;
 
-		n += ret;
+		n += (int)ret;
 	}
 
 	if ((size_t)n >= sizeof(buffer))
@@ -275,7 +274,7 @@ static int log_append_logfile(const struct lxc_log_appender *appender,
 
 	buffer[n] = '\n';
 
-	return lcr_util_write_nointr(fd_to_use, buffer, n + 1);
+	return lcr_util_write_nointr(fd_to_use, buffer, (size_t)n + 1);
 }
 
 static struct lxc_log_appender log_appender_stderr = {

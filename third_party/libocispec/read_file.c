@@ -29,7 +29,6 @@
 #endif
 
 #define JSON_MAX_SIZE (10LL * 1024LL * 1024LL)
-#define FILE_MODE 0640
 
 static int do_check_fread_args(const FILE *stream, const size_t *length)
 {
