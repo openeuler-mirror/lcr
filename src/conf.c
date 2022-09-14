@@ -1391,7 +1391,8 @@ static int trans_resources_mem_swap_v1(const defs_resources *res, struct lcr_lis
         }
     }
 
-    if (res->memory->swappiness != -1) {
+    // int64: swappiness should be int64
+    if (res->memory->swappiness != (uint64_t)-1) {
         /* set swappiness parameter of vmscan */
         nret = trans_conf_uint64(conf, "lxc.cgroup.memory.swappiness", res->memory->swappiness);
         if (nret < 0) {
@@ -2085,7 +2086,7 @@ static int trans_resources_cpu_weight_v2(const defs_resources *res, struct lcr_l
         return -1;
     }
 
-    if (trans_conf_int64(conf, "lxc.cgroup2.cpu.weight", lcr_util_trans_cpushare_to_cpuweight(res->cpu->shares)) != 0) {
+    if (trans_conf_int64(conf, "lxc.cgroup2.cpu.weight", lcr_util_trans_cpushare_to_cpuweight((int64_t)res->cpu->shares)) != 0) {
         return -1;
     }
 
@@ -2227,13 +2228,17 @@ static int trans_io_bfq_weight_v2(const defs_resources_block_io *block_io, struc
     size_t len = block_io->weight_device_len;
 
     if (block_io->weight != INVALID_INT) {
+        if (block_io->weight < 10 || block_io->weight > 1000) {
+            ERROR("invalid io weight %d out of range [10-1000]", block_io->weight);
+            return -1;
+        }
         weight = lcr_util_trans_blkio_weight_to_io_bfq_weight(block_io->weight);
         if (weight < CGROUP2_BFQ_WEIGHT_MIN || weight > CGROUP2_BFQ_WEIGHT_MAX) {
             ERROR("invalid io weight cased by invalid blockio weight %d", block_io->weight);
             return -1;
         }
 
-        if (trans_conf_int(conf, "lxc.cgroup2.io.bfq.weight", weight) != 0) {
+        if (trans_conf_uint64(conf, "lxc.cgroup2.io.bfq.weight", weight) != 0) {
             return -1;
         }
     }

@@ -888,7 +888,7 @@ restart:
     }
     directory = opendir("/proc/self/fd");
     if (directory == NULL) {
-        WARN("Failed to open directory: %m.");
+        WARN("Failed to open directory: /proc/self/fd.");
         return -1;
     }
 
@@ -1307,10 +1307,10 @@ uint64_t lcr_util_trans_blkio_weight_to_io_weight(int weight)
     return (uint64_t)(1 + ((uint64_t)weight - 10) * 9999 / 990);
 }
 
-uint64_t lcr_util_trans_blkio_weight_to_io_bfq_weight(int weight)
+uint64_t lcr_util_trans_blkio_weight_to_io_bfq_weight(uint64_t weight)
 {
     // map from [10-1000] to [1-1000]
-    return (uint64_t)(1 + ((uint64_t)weight - 10) * 999 / 990);
+    return (uint64_t)(1 + (weight - 10) * 999 / 990);
 }
 
 int lcr_util_get_cgroup_version()

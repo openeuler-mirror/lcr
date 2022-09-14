@@ -498,11 +498,11 @@ bool lcr_kill(const char *name, const char *lcrpath, uint32_t signal)
     sret = kill(pid, (int)signal);
     if (sret < 0) {
         if (errno == ESRCH) {
-            WARN("Can not kill process (pid=%d) with signal %d for container: no such process", pid, signal);
+            WARN("Can not kill process (pid=%ld) with signal %u for container: no such process", (long)pid, (unsigned int)signal);
             ret = true;
             goto out_put;
         }
-        ERROR("Can not kill process (pid=%d) with signal %d for container", pid, signal);
+        ERROR("Can not kill process (pid=%ld) with signal %u for container", (long)pid, (unsigned int)signal);
         goto out_put;
     }
 
@@ -999,6 +999,7 @@ static char *lcr_get_config_item(struct lxc_container *c, const char *key, bool 
     char *cret = NULL;
     size_t len = 0;
     int nret = 0;
+    int config_item = 0;
 
     if (key == NULL) {
         ERROR("Key cannot be NULL");
@@ -1032,7 +1033,8 @@ static char *lcr_get_config_item(struct lxc_container *c, const char *key, bool 
         goto out;
     }
 
-    if ((size_t)c->get_config_item(c, key, cret, (int)len + 1) != len) {
+    config_item = c->get_config_item(c, key, cret, (int)len + 1);
+    if (config_item < 0 || (size_t)config_item != len) {
         free(cret);
         cret = NULL;
     }

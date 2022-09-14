@@ -199,7 +199,7 @@ static int update_resources_cpu_weight_v2(struct lxc_container *c, const struct 
     }
 
     int num = snprintf(numstr, sizeof(numstr), "%llu",
-                       (unsigned long long)lcr_util_trans_cpushare_to_cpuweight(cr->cpu_shares));
+                       (unsigned long long)lcr_util_trans_cpushare_to_cpuweight((int64_t)cr->cpu_shares));
     if (num < 0 || (size_t)num >= sizeof(numstr)) {
         return -1;
     }
@@ -239,7 +239,7 @@ static int update_resources_cpu_max_v2(struct lxc_container *c, const struct lcr
 {
     int num = 0;
     uint64_t period = cr->cpu_period;
-    uint64_t quota = cr->cpu_quota;
+    int64_t quota = cr->cpu_quota;
     char numstr[128] = {0}; /* max buffer */
 
     if (quota == 0 && period == 0) {
@@ -252,8 +252,8 @@ static int update_resources_cpu_max_v2(struct lxc_container *c, const struct lcr
 
     // format:
     // $MAX $PERIOD
-    if ((int64_t) quota > 0) {
-        num = snprintf(numstr, sizeof(numstr), "%llu %llu", (unsigned long long)quota, (unsigned long long)period);
+    if (quota > 0) {
+        num = snprintf(numstr, sizeof(numstr), "%lld %llu", (long long int)quota, (unsigned long long)period);
     } else {
         num = snprintf(numstr, sizeof(numstr), "max %llu", (unsigned long long)period);
     }
@@ -486,7 +486,7 @@ static int update_resources_memory_swap_v2(struct lxc_container *c, const struct
         return 0;
     }
 
-    if (lcr_util_get_real_swap(cr->memory_limit, cr->memory_swap, &swap) != 0) {
+    if (lcr_util_get_real_swap((int64_t)cr->memory_limit, (int64_t)cr->memory_swap, &swap) != 0) {
         return -1;
     }
 
@@ -549,13 +549,15 @@ static bool update_resources_mem_v1(struct lxc_container *c, struct lcr_cgroup_r
     bool ret = false;
 
     // If the memory update is set to -1 we should also set swap to -1, it means unlimited memory.
-    if (cr->memory_limit == -1) {
-        cr->memory_swap = -1;
+    // int64 : memory_limit should be int64
+    if (cr->memory_limit == (uint64_t)-1) {
+        cr->memory_swap = (uint64_t)-1;
     }
 
+    // int64 : memory_limit should be int64
     if (cr->memory_limit != 0 && cr->memory_swap != 0) {
         uint64_t cur_mem_limit = stat_get_ull(c, "memory.limit_in_bytes");
-        if (cr->memory_swap == -1 || cur_mem_limit < cr->memory_swap) {
+        if (cr->memory_swap == (uint64_t)-1 || cur_mem_limit < cr->memory_swap) {
             if (update_resources_memory_swap(c, cr) != 0) {
                 goto err_out;
             }
@@ -637,7 +639,12 @@ static int update_resources_io_weight_v2(struct lxc_container *c, const struct l
         return 0;
     }
 
-    weight = lcr_util_trans_blkio_weight_to_io_weight(cr->blkio_weight);
+    if (cr->blkio_weight < 10 || cr->blkio_weight > 1000) {
+        ERROR("invalid io weight %llu out of range [10-1000]", (unsigned long long)cr->blkio_weight);
+        return -1;
+    }
+
+    weight = lcr_util_trans_blkio_weight_to_io_weight((int)cr->blkio_weight);
     if (weight < CGROUP2_WEIGHT_MIN || weight > CGROUP2_WEIGHT_MAX) {
         ERROR("invalid io weight cased by invalid blockio weight %llu", (unsigned long long) cr->blkio_weight);
         return -1;
@@ -663,6 +670,11 @@ static int update_resources_io_bfq_weight_v2(struct lxc_container *c, const stru
 
     if (cr->blkio_weight == 0) {
         return 0;
+    }
+
+    if (cr->blkio_weight < 10 || cr->blkio_weight > 1000) {
+        ERROR("invalid io weight %llu out of range [10-1000]", (unsigned long long)cr->blkio_weight);
+        return -1;
     }
 
     weight = lcr_util_trans_blkio_weight_to_io_bfq_weight(cr->blkio_weight);
