@@ -1,0 +1,27 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "type": "object",
+    "properties": {
+        "num_pages": {
+            "type": "int64"
+        },
+        "num_results": {
+            "type": "int64"
+        },
+        "page_size": {
+            "type": "int64"
+        },
+        "page": {
+            "type": "int64"
+        },
+        "query": {
+            "type": "string"
+        },
+        "results": {
+            "type": "array",
+            "items": {
+                "$ref": "../image/search-image.json"
+            }
+        }
+    }
+}
