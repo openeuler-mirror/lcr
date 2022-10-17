@@ -1,5 +1,5 @@
 %global _version 2.0.8
-%global _release 5
+%global _release 6
 %global _inner_name isula_libutils
 
 Name:      lcr
@@ -19,13 +19,14 @@ Patch0003: 0003-fix-cpu-quota-out-of-range-when-update-to-1.patch
 Patch0004: 0004-remove-unused-daemon-config-args.patch
 Patch0005: 0005-refactor-handle-warnings.patch
 
-%define lxcver 4.0.3-2021112501
+%define lxcver_lower 4.0.3-2022101700
+%define lxcver_upper 4.0.3-2022101800
 
 BuildRequires: cmake gcc gcc-c++ git
-BuildRequires: lxc >= %{lxcver}
-BuildRequires: lxc-devel >= %{lxcver}
+BuildRequires: lxc > %{lxcver_lower} lxc < %{lxcver_upper}
+BuildRequires: lxc-devel > %{lxcver_lower} lxc-devel < %{lxcver_upper}
 BuildRequires: zlib-devel yajl-devel gtest-devel
-Requires:      lxc >= %{lxcver} yajl zlib
+Requires:      lxc > %{lxcver_lower} lxc < %{lxcver_upper} yajl zlib
 
 %ifarch x86_64
 Provides:       liblcr.so()(64bit)
@@ -106,6 +107,12 @@ rm -rf %{buildroot}
 %{_includedir}/%{_inner_name}/*.h
 
 %changelog
+* Tue Oct 18 2022 zhangxiaoyu<zhangxiaoyu58@huawei.com> - 2.0.8-6
+- Type: enhancement
+- ID: NA
+- SUG: NA
+- DESC: add required package lxc lower and upper version
+
 * Mon Sep 19 2022 Neil.wrz <wangrunze13@huawei.com> - 2.0.8-5
 - Type: refactor
 - ID: NA
