@@ -1,5 +1,5 @@
 %global _version 2.0.8
-%global _release 6
+%global _release 7
 %global _inner_name isula_libutils
 
 Name:      lcr
@@ -19,8 +19,8 @@ Patch0003: 0003-fix-cpu-quota-out-of-range-when-update-to-1.patch
 Patch0004: 0004-remove-unused-daemon-config-args.patch
 Patch0005: 0005-refactor-handle-warnings.patch
 
-%define lxcver_lower 4.0.3-2022101700
-%define lxcver_upper 4.0.3-2022101800
+%define lxcver_lower 4.0.3-2022102400
+%define lxcver_upper 4.0.3-2022102500
 
 BuildRequires: cmake gcc gcc-c++ git
 BuildRequires: lxc > %{lxcver_lower} lxc < %{lxcver_upper}
@@ -108,6 +108,12 @@ rm -rf %{buildroot}
 %{_includedir}/%{_inner_name}/*.h
 
 %changelog
+* Tue Nov 08 2022 zhangxiaoyu<zhangxiaoyu58@huawei.com> - 2.0.8-7
+- Type: enhancement
+- ID: NA
+- SUG: NA
+- DESC: modify depends package lxc version to 4.0.3-20221024XX
+
 * Tue Oct 18 2022 zhangxiaoyu<zhangxiaoyu58@huawei.com> - 2.0.8-6
 - Type: enhancement
 - ID: NA
