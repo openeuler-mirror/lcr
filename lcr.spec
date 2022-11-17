@@ -1,5 +1,5 @@
 %global _version 2.0.8
-%global _release 7
+%global _release 8
 %global _inner_name isula_libutils
 
 Name:      lcr
@@ -50,7 +50,7 @@ lxc-based containers.
 %package devel
 Summary: Huawei container runtime, json and log C Library
 Group:   Libraries
-ExclusiveArch:  x86_64 aarch64
+ExclusiveArch:  x86_64 aarch64 sw_64
 Requires:       %{name} = %{version}-%{release}
 
 %description devel
@@ -107,6 +107,12 @@ rm -rf %{buildroot}
 %{_includedir}/%{_inner_name}/*.h
 
 %changelog
+* Tue Nov 8 2022 wuzx<wuzx1226@qq.com> - 2.0.8-8
+- Type:feature
+- CVE:NA
+- SUG:NA
+- DESC:Add sw64 architecture
+
 * Tue Nov 08 2022 zhangxiaoyu<zhangxiaoyu58@huawei.com> - 2.0.8-7
 - Type: enhancement
 - ID: NA
