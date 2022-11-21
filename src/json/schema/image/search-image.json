@@ -1,0 +1,27 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "type": "object",
+    "properties": {
+        "star_count": {
+        "type": "int64"
+        },
+        "is_official": {
+          "type": "boolean"
+        },
+        "name": {
+          "type": "string"
+        },
+        "is_automated": {
+          "type": "boolean"
+        },
+        "description": {
+          "type": "string"
+        },
+        "pull_count": {
+          "type": "int64"
+        },
+        "is_trusted": {
+          "type": "boolean"
+        }
+    }
+}
