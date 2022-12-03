@@ -282,6 +282,7 @@ struct lcr_exec_request {
     const char **console_fifos;
 
     const char *user;
+    const char *add_gids;
 
     const char **env;
     size_t env_len;
