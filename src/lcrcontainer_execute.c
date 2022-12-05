@@ -854,6 +854,9 @@ static void execute_lxc_attach(const char *name, const char *path, const struct 
         add_array_elem(params, args_len, &i, "-u");
         add_array_elem(params, args_len, &i, request->user);
     }
+    if (request->add_gids != NULL) {
+        add_array_kv(params, args_len, &i, "--add-gids", request->add_gids);
+    }
 
     add_array_kv(params, args_len, &i, "--suffix", request->suffix);
 
