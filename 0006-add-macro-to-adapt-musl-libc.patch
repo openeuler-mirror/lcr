@@ -1,0 +1,66 @@
+From 6422cb8a639f125cecfdf0829dd713d84ab3a9aa Mon Sep 17 00:00:00 2001
+From: zhangxiaoyu <zhangxiaoyu58@huawei.com>
+Date: Tue, 15 Nov 2022 20:54:23 +0800
+Subject: [PATCH 6/7] add macro to adapt musl libc
+
+Signed-off-by: zhangxiaoyu <zhangxiaoyu58@huawei.com>
+---
+ cmake/set_build_flags.cmake        | 14 ++++++++++++--
+ third_party/libocispec/common_h.py |  9 +++++++++
+ 2 files changed, 21 insertions(+), 2 deletions(-)
+
+diff --git a/cmake/set_build_flags.cmake b/cmake/set_build_flags.cmake
+index 2b9249d..3b6842a 100644
+--- a/cmake/set_build_flags.cmake
++++ b/cmake/set_build_flags.cmake
+@@ -21,11 +21,11 @@
+ #
+ 
+ # set common FLAGS
+-set(CMAKE_C_FLAGS "-fPIC -fstack-protector-all -D_FORTIFY_SOURCE=2 -O2 -Wall -Werror -fPIE")
++set(CMAKE_C_FLAGS "-fPIC -fstack-protector-all -D_FORTIFY_SOURCE=2 -O2 -Wall -fPIE")
+ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -D__FILENAME__='\"$(subst ${CMAKE_SOURCE_DIR}/,,$(abspath $<))\"'")
+ 
+ if (ENABLE_UT)
+-    set(CMAKE_CXX_FLAGS "-fPIC -std=c++11 -fstack-protector-all -D_FORTIFY_SOURCE=2 -O2 -Wall -Werror")
++    set(CMAKE_CXX_FLAGS "-fPIC -std=c++11 -fstack-protector-all -D_FORTIFY_SOURCE=2 -O2 -Wall")
+     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D__FILENAME__='\"$(subst ${CMAKE_SOURCE_DIR}/,,$(abspath $<))\"'")
+ endif()
+ set(CMAKE_SHARED_LINKER_FLAGS "-Wl,-E -Wl,-z,relro -Wl,-z,now -Wl,-z,noexecstack -Wtrampolines -shared -pthread")
+@@ -40,3 +40,13 @@ if (ENABLE_GCOV)
+     message("-----CFLAGS: " ${CMAKE_C_FLAGS})
+     message("------------------------------------")
+ endif()
++
++if (MUSL)
++    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -D__MUSL__")
++    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D__MUSL__")
++endif()
++
++if (NOT DISABLE_WERROR)
++    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Werror")
++    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Werror")
++endif()
+diff --git a/third_party/libocispec/common_h.py b/third_party/libocispec/common_h.py
+index 4ce7bda..02c689d 100644
+--- a/third_party/libocispec/common_h.py
++++ b/third_party/libocispec/common_h.py
+@@ -60,6 +60,15 @@ extern "C" {
+ 
+ # undef linux
+ 
++#ifdef __MUSL__
++#undef stdin
++#undef stdout
++#undef stderr
++#define stdin stdin
++#define stdout stdout
++#define stderr stderr
++#endif
++
+ // options to report error if there is unknown key found in json
+ # define OPT_PARSE_STRICT 0x01
+ // options to generate all key and value
+-- 
+2.25.1
+
