@@ -1,0 +1,40 @@
+From 9f8fd81fab4fc0a8c48509c5f1eeb53be2c053af Mon Sep 17 00:00:00 2001
+From: zhangxiaoyu <zhangxiaoyu58@huawei.com>
+Date: Sat, 3 Dec 2022 14:47:43 +0800
+Subject: [PATCH 7/7] add add-gids option for exec
+
+Signed-off-by: zhangxiaoyu <zhangxiaoyu58@huawei.com>
+---
+ src/lcrcontainer.h         | 1 +
+ src/lcrcontainer_execute.c | 3 +++
+ 2 files changed, 4 insertions(+)
+
+diff --git a/src/lcrcontainer.h b/src/lcrcontainer.h
+index a051097..5cb3647 100644
+--- a/src/lcrcontainer.h
++++ b/src/lcrcontainer.h
+@@ -284,6 +284,7 @@ struct lcr_exec_request {
+     const char **console_fifos;
+ 
+     const char *user;
++    const char *add_gids;
+ 
+     const char **env;
+     size_t env_len;
+diff --git a/src/lcrcontainer_execute.c b/src/lcrcontainer_execute.c
+index 118f26c..9f4e951 100644
+--- a/src/lcrcontainer_execute.c
++++ b/src/lcrcontainer_execute.c
+@@ -870,6 +870,9 @@ static void execute_lxc_attach(const char *name, const char *path, const struct
+         add_array_elem(params, args_len, &i, "-u");
+         add_array_elem(params, args_len, &i, request->user);
+     }
++    if (request->add_gids != NULL) {
++        add_array_kv(params, args_len, &i, "--add-gids", request->add_gids);
++    }
+ 
+     add_array_kv(params, args_len, &i, "--suffix", request->suffix);
+ 
+-- 
+2.25.1
+
