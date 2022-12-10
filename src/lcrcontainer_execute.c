@@ -41,6 +41,8 @@
 #include "oci_runtime_spec.h"
 #include "lcrcontainer_extend.h"
 
+#define NUM_STR_LEN 128
+
 // Cgroup v1 Item Definition
 #define CGROUP_BLKIO_WEIGHT "blkio.weight"
 #define CGROUP_CPU_SHARES "cpu.shares"
@@ -164,7 +166,7 @@ static int update_resources_cpuset_mems_v2(struct lxc_container *c, const struct
 static int update_resources_cpu_shares(struct lxc_container *c, const struct lcr_cgroup_resources *cr)
 {
     int ret = 0;
-    char numstr[128] = {0}; /* max buffer */
+    char numstr[NUM_STR_LEN] = {0}; /* max buffer */
 
     if (cr->cpu_shares != 0) {
         int num = snprintf(numstr, sizeof(numstr), "%llu", (unsigned long long)(cr->cpu_shares));
@@ -186,7 +188,7 @@ out:
 
 static int update_resources_cpu_weight_v2(struct lxc_container *c, const struct lcr_cgroup_resources *cr)
 {
-    char numstr[128] = {0}; /* max buffer */
+    char numstr[NUM_STR_LEN] = {0}; /* max buffer */
 
     if (cr->cpu_shares == 0) {
         return 0;
@@ -215,7 +217,7 @@ static int update_resources_cpu_weight_v2(struct lxc_container *c, const struct 
 static int update_resources_cpu_period(struct lxc_container *c, const struct lcr_cgroup_resources *cr)
 {
     int ret = 0;
-    char numstr[128] = {0}; /* max buffer */
+    char numstr[NUM_STR_LEN] = {0}; /* max buffer */
 
     if (cr->cpu_period != 0) {
         int num = snprintf(numstr, sizeof(numstr), "%llu", (unsigned long long)(cr->cpu_period));
@@ -240,7 +242,7 @@ static int update_resources_cpu_max_v2(struct lxc_container *c, const struct lcr
     int num = 0;
     uint64_t period = cr->cpu_period;
     int64_t quota = cr->cpu_quota;
-    char numstr[128] = {0}; /* max buffer */
+    char numstr[NUM_STR_LEN] = {0}; /* max buffer */
 
     if (quota == 0 && period == 0) {
         return 0;
@@ -318,7 +320,7 @@ out:
 static int update_resources_cpu_quota(struct lxc_container *c, const struct lcr_cgroup_resources *cr)
 {
     int ret = 0;
-    char numstr[128] = {0}; /* max buffer */
+    char numstr[NUM_STR_LEN] = {0}; /* max buffer */
 
     if (cr->cpu_quota != 0) {
         int num = snprintf(numstr, sizeof(numstr), "%lld", (long long int)cr->cpu_quota);
@@ -398,7 +400,7 @@ static int update_resources_cpu_v2(struct lxc_container *c, const struct lcr_cgr
 static int update_resources_memory_limit(struct lxc_container *c, const struct lcr_cgroup_resources *cr)
 {
     int ret = 0;
-    char numstr[128] = {0}; /* max buffer */
+    char numstr[NUM_STR_LEN] = {0}; /* max buffer */
 
     if (cr->memory_limit != 0) {
         int num = snprintf(numstr, sizeof(numstr), "%llu", (unsigned long long)(cr->memory_limit));
@@ -436,7 +438,7 @@ static int trans_int64_to_numstr_with_max(int64_t value, char *numstr, size_t si
 
 static int update_resources_memory_limit_v2(struct lxc_container *c, const struct lcr_cgroup_resources *cr)
 {
-    char numstr[128] = {0}; /* max buffer */
+    char numstr[NUM_STR_LEN] = {0}; /* max buffer */
 
     if (cr->memory_limit == 0) {
         return 0;
@@ -457,7 +459,7 @@ static int update_resources_memory_limit_v2(struct lxc_container *c, const struc
 static int update_resources_memory_swap(struct lxc_container *c, const struct lcr_cgroup_resources *cr)
 {
     int ret = 0;
-    char numstr[128] = {0}; /* max buffer */
+    char numstr[NUM_STR_LEN] = {0}; /* max buffer */
 
     if (cr->memory_swap != 0) {
         int num = snprintf(numstr, sizeof(numstr), "%llu", (unsigned long long)(cr->memory_swap));
@@ -479,7 +481,7 @@ out:
 
 static int update_resources_memory_swap_v2(struct lxc_container *c, const struct lcr_cgroup_resources *cr)
 {
-    char numstr[128] = {0}; /* max buffer */
+    char numstr[NUM_STR_LEN] = {0}; /* max buffer */
     int64_t swap = 0;
 
     if (cr->memory_swap == 0) {
@@ -505,7 +507,7 @@ static int update_resources_memory_swap_v2(struct lxc_container *c, const struct
 static int update_resources_memory_reservation(struct lxc_container *c, const struct lcr_cgroup_resources *cr)
 {
     int ret = 0;
-    char numstr[128] = {0}; /* max buffer */
+    char numstr[NUM_STR_LEN] = {0}; /* max buffer */
 
     if (cr->memory_reservation != 0) {
         int num = snprintf(numstr, sizeof(numstr), "%llu", (unsigned long long)(cr->memory_reservation));
@@ -527,7 +529,7 @@ out:
 
 static int update_resources_memory_reservation_v2(struct lxc_container *c, const struct lcr_cgroup_resources *cr)
 {
-    char numstr[128] = {0}; /* max buffer */
+    char numstr[NUM_STR_LEN] = {0}; /* max buffer */
 
     if (cr->memory_reservation == 0) {
         return 0;
@@ -610,7 +612,7 @@ static int update_resources_mem_v2(struct lxc_container *c, struct lcr_cgroup_re
 static int update_resources_blkio_weight_v1(struct lxc_container *c, const struct lcr_cgroup_resources *cr)
 {
     int ret = 0;
-    char numstr[128] = {0}; /* max buffer */
+    char numstr[NUM_STR_LEN] = {0}; /* max buffer */
 
     if (cr->blkio_weight != 0) {
         int num = snprintf(numstr, sizeof(numstr), "%llu", (unsigned long long)(cr->blkio_weight));
@@ -633,7 +635,7 @@ out:
 static int update_resources_io_weight_v2(struct lxc_container *c, const struct lcr_cgroup_resources *cr)
 {
     uint64_t weight = 0;
-    char numstr[128] = {0}; /* max buffer */
+    char numstr[NUM_STR_LEN] = {0}; /* max buffer */
 
     if (cr->blkio_weight == 0) {
         return 0;
@@ -666,7 +668,7 @@ static int update_resources_io_weight_v2(struct lxc_container *c, const struct l
 static int update_resources_io_bfq_weight_v2(struct lxc_container *c, const struct lcr_cgroup_resources *cr)
 {
     uint64_t weight = 0;
-    char numstr[128] = {0}; /* max buffer */
+    char numstr[NUM_STR_LEN] = {0}; /* max buffer */
 
     if (cr->blkio_weight == 0) {
         return 0;

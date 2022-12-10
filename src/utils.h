@@ -198,6 +198,7 @@ int lcr_util_recursive_rmdir(const char *dirpath, int recursive_depth);
 char *lcr_util_string_replace(const char *needle, const char *replacement, const char *haystack);
 int lcr_util_open(const char *filename, int flags, mode_t mode);
 
+void *lcr_util_smart_calloc_s(size_t unit_size, size_t count);
 void *lcr_util_common_calloc_s(size_t size);
 int lcr_util_safe_int(const char *numstr, int *converted);
 int lcr_util_check_inherited(bool closeall, int fd_to_ignore);
