@@ -180,34 +180,21 @@ int lcr_list_all_containers(const char *lcrpath, struct lcr_container_info **inf
 
 static int create_partial(const struct lxc_container *c)
 {
-    size_t len = 0;
     int fd = 0;
     int ret = 0;
     struct flock lk;
+    char path[PATH_MAX] = { 0 };
 
-    if (strlen(c->name) > ((SIZE_MAX - strlen(c->config_path)) - 10)) {
-        return -1;
-    }
-
-    // $lxcpath + '/' + $name + '/partial' + \0
-    len = strlen(c->config_path) + strlen(c->name) + 10;
-
-    char *path = lcr_util_common_calloc_s(len);
-    if (path == NULL) {
-        ERROR("Out of memory in create_partial");
-        return -1;
-    }
-
-    ret = snprintf(path, len, "%s/%s/partial", c->config_path, c->name);
-    if (ret < 0 || (size_t)ret >= len) {
+    ret = snprintf(path, PATH_MAX, "%s/%s/partial", c->config_path, c->name);
+    if (ret < 0 || (size_t)ret >= PATH_MAX) {
         ERROR("Error writing partial pathname");
-        goto out_free;
+        return -1;
     }
 
     fd = lcr_util_open(path, O_RDWR | O_CREAT | O_EXCL, DEFAULT_SECURE_FILE_MODE);
     if (fd < 0) {
         SYSERROR("Error creating partial file: %s", path);
-        goto out_free;
+        return -1;
     }
     lk.l_type = F_WRLCK;
     lk.l_whence = SEEK_SET;
@@ -216,15 +203,10 @@ static int create_partial(const struct lxc_container *c)
     if (fcntl(fd, F_SETLKW, &lk) < 0) {
         SYSERROR("Error locking partial file %s", path);
         close(fd);
-        goto out_free;
+        return -1;
     }
 
-    free(path);
     return fd;
-
-out_free:
-    free(path);
-    return -1;
 }
 
 static void remove_partial(const struct lxc_container *c)
@@ -751,6 +733,10 @@ out_put:
 
 void lcr_container_state_free(struct lcr_container_state *lcs)
 {
+    if (lcs == NULL) {
+        return;
+    }
+
     free(lcs->name);
     lcs->name = NULL;
     free(lcs->state);
@@ -1042,6 +1028,10 @@ out:
 
 void lcr_free_console_config(struct lcr_console_config *config)
 {
+    if (config == NULL) {
+        return;
+    }
+
     free(config->log_path);
     config->log_path = NULL;
     free(config->log_file_size);

@@ -42,6 +42,7 @@
 #define SUB_UID_PATH "/etc/subuid"
 #define SUB_GID_PATH "/etc/subgid"
 #define ID_MAP_LEN 100
+#define DEFAULT_BUF_LEN 300
 
 /* files limit checker for cgroup v1 */
 static int files_limit_checker_v1(const char *value)
@@ -401,7 +402,7 @@ static char *capabilities_join(const char *sep, const char **parts, size_t len)
         result_len += strlen(parts[iter]) - 4;
     }
 
-    result = calloc(result_len + 1, 1);
+    result = lcr_util_smart_calloc_s(sizeof(char), result_len + 1);
     if (result == NULL) {
         return NULL;
     }
@@ -1018,7 +1019,7 @@ static struct lcr_list *trans_mount_auto_to_lxc(const defs_mount *mount)
     }
 
     buf_len = strlen(type) + strlen(options) + 2;
-    buf = calloc(buf_len, 1);
+    buf = lcr_util_smart_calloc_s(sizeof(char), buf_len);
     if (buf == NULL) {
         DEBUG("Out of memory");
         goto out_free;
@@ -1066,7 +1067,7 @@ static struct lcr_list *trans_mount_entry_to_lxc(const defs_mount *mount)
     }
 
     buf_len = strlen(replaced_dest) + strlen(mount->type) + strlen(replaced_source) + strlen(options) + 8;
-    buf = calloc(buf_len, 1);
+    buf = lcr_util_smart_calloc_s(sizeof(char), buf_len);
     if (buf == NULL) {
         ERROR("Out of memory");
         goto out_free;
@@ -1202,7 +1203,7 @@ static int trans_one_oci_id_mapping(struct lcr_list *conf, const char *typ, cons
 {
     int nret;
     struct lcr_list *node = NULL;
-    char buf_value[300] = { 0 };
+    char buf_value[DEFAULT_BUF_LEN] = { 0 };
     char subid[ID_MAP_LEN] = { 0 };
 
     nret = snprintf(buf_value, sizeof(buf_value), "%s %u %u %u", typ, id->container_id, id->host_id, id->size);
@@ -1289,7 +1290,7 @@ out_free:
 static int trans_conf_int(struct lcr_list *conf, const char *lxc_key, int val)
 {
     struct lcr_list *node = NULL;
-    char buf_value[300] = { 0 };
+    char buf_value[DEFAULT_BUF_LEN] = { 0 };
     int nret;
 
     nret = snprintf(buf_value, sizeof(buf_value), "%d", val);
@@ -1307,7 +1308,7 @@ static int trans_conf_int(struct lcr_list *conf, const char *lxc_key, int val)
 static int trans_conf_uint32(struct lcr_list *conf, const char *lxc_key, uint32_t val)
 {
     struct lcr_list *node = NULL;
-    char buf_value[300] = { 0 };
+    char buf_value[DEFAULT_BUF_LEN] = { 0 };
     int nret;
 
     nret = snprintf(buf_value, sizeof(buf_value), "%u", (unsigned int)val);
@@ -1325,7 +1326,7 @@ static int trans_conf_uint32(struct lcr_list *conf, const char *lxc_key, uint32_
 static int trans_conf_int64(struct lcr_list *conf, const char *lxc_key, int64_t val)
 {
     struct lcr_list *node = NULL;
-    char buf_value[300] = { 0 };
+    char buf_value[DEFAULT_BUF_LEN] = { 0 };
     int nret;
 
     nret = snprintf(buf_value, sizeof(buf_value), "%lld", (long long)val);
@@ -1343,7 +1344,7 @@ static int trans_conf_int64(struct lcr_list *conf, const char *lxc_key, int64_t 
 static int trans_conf_uint64(struct lcr_list *conf, const char *lxc_key, uint64_t val)
 {
     struct lcr_list *node = NULL;
-    char buf_value[300] = { 0 };
+    char buf_value[DEFAULT_BUF_LEN] = { 0 };
     int nret;
 
     nret = snprintf(buf_value, sizeof(buf_value), "%llu", (unsigned long long)val);
@@ -1564,7 +1565,7 @@ static int trans_resources_devices_v1(const defs_resources *res, struct lcr_list
 {
     int ret = -1;
     size_t i = 0;
-    char buf_value[300] = { 0 };
+    char buf_value[DEFAULT_BUF_LEN] = { 0 };
 
     for (i = 0; i < res->devices_len; i++) {
         defs_device_cgroup *lrd = res->devices[i];
@@ -1716,7 +1717,7 @@ static int trans_blkio_wdevice_v1(const defs_resources_block_io *block_io, struc
     struct lcr_list *node = NULL;
     int ret = -1;
     size_t i = 0;
-    char buf_value[300] = { 0 };
+    char buf_value[DEFAULT_BUF_LEN] = { 0 };
 
     for (i = 0; i < block_io->weight_device_len; i++) {
         int nret;
@@ -1768,7 +1769,7 @@ static int trans_blkio_throttle_v1(defs_block_io_device_throttle **throttle, siz
     for (i = 0; i < len; i++) {
         if (throttle[i] && throttle[i]->rate != INVALID_INT) {
             int nret;
-            char buf_value[300] = { 0x00 };
+            char buf_value[DEFAULT_BUF_LEN] = { 0x00 };
             nret = snprintf(buf_value, sizeof(buf_value), "%lld:%lld %llu", (long long)throttle[i]->major,
                             (long long)(throttle[i]->minor), (unsigned long long)(throttle[i]->rate));
             if (nret < 0 || (size_t)nret >= sizeof(buf_value)) {
@@ -1834,7 +1835,7 @@ static int trans_resources_hugetlb_v1(const defs_resources *res, struct lcr_list
 {
     int ret = -1;
     size_t i = 0;
-    char buf_key[300] = { 0 };
+    char buf_key[DEFAULT_BUF_LEN] = { 0 };
 
     for (i = 0; i < res->hugepage_limits_len; i++) {
         defs_resources_hugepage_limits_element *lrhl = res->hugepage_limits[i];
@@ -1860,7 +1861,7 @@ static int trans_resources_network_v1(const defs_resources *res, struct lcr_list
 {
     int ret = -1;
     size_t i = 0;
-    char buf_value[300] = { 0 };
+    char buf_value[DEFAULT_BUF_LEN] = { 0 };
 
     if (!res->network) {
         return 0;
@@ -1897,7 +1898,7 @@ out:
 static int trans_resources_pids_v1(const defs_resources *res, struct lcr_list *conf)
 {
     int ret = -1;
-    char buf_value[300] = { 0 };
+    char buf_value[DEFAULT_BUF_LEN] = { 0 };
 
     if (res->pids == NULL) {
         return 0;
@@ -2000,7 +2001,7 @@ static int trans_resources_devices_v2(const defs_resources *res, struct lcr_list
 {
     int ret = -1;
     size_t i = 0;
-    char buf_value[300] = { 0 };
+    char buf_value[DEFAULT_BUF_LEN] = { 0 };
 
     for (i = 0; i < res->devices_len; i++) {
         defs_device_cgroup *lrd = res->devices[i];
@@ -2095,7 +2096,7 @@ static int trans_resources_cpu_weight_v2(const defs_resources *res, struct lcr_l
 /* trans resources cpu max of cgroup v2, it's called quota/period in cgroup v1 */
 static int trans_resources_cpu_max_v2(const defs_resources *res, struct lcr_list *conf)
 {
-    char buf_value[300] = {0};
+    char buf_value[DEFAULT_BUF_LEN] = {0};
     uint64_t period = res->cpu->period;
     int nret = 0;
 
@@ -2194,7 +2195,7 @@ static int trans_io_weight_v2(const defs_resources_block_io *block_io, struct lc
     for (i = 0; i < len; i++) {
         if (weight_device[i] && weight_device[i]->weight != INVALID_INT) {
             int nret = 0;
-            char buf_value[300] = { 0x00 };
+            char buf_value[DEFAULT_BUF_LEN] = { 0x00 };
 
             weight = lcr_util_trans_blkio_weight_to_io_weight(weight_device[i]->weight);
             if (weight < CGROUP2_WEIGHT_MIN || weight > CGROUP2_WEIGHT_MAX) {
@@ -2245,7 +2246,7 @@ static int trans_io_bfq_weight_v2(const defs_resources_block_io *block_io, struc
     for (i = 0; i < len; i++) {
         if (weight_device[i] && weight_device[i]->weight != INVALID_INT) {
             int nret = 0;
-            char buf_value[300] = { 0x00 };
+            char buf_value[DEFAULT_BUF_LEN] = { 0x00 };
 
             weight = lcr_util_trans_blkio_weight_to_io_weight(weight_device[i]->weight);
             if (weight < CGROUP2_BFQ_WEIGHT_MIN || weight > CGROUP2_BFQ_WEIGHT_MAX) {
@@ -2283,7 +2284,7 @@ static int trans_io_throttle_v2(defs_block_io_device_throttle **throttle, size_t
     for (i = 0; i < len; i++) {
         if (throttle[i] && throttle[i]->rate != INVALID_INT) {
             int nret = 0;
-            char buf_value[300] = { 0x00 };
+            char buf_value[DEFAULT_BUF_LEN] = { 0x00 };
             nret = snprintf(buf_value, sizeof(buf_value), "%lld:%lld %s=%llu", (long long)throttle[i]->major,
                             (long long)(throttle[i]->minor), rate_key, (unsigned long long)(throttle[i]->rate));
             if (nret < 0 || (size_t)nret >= sizeof(buf_value)) {
@@ -2343,7 +2344,7 @@ static int trans_resources_blkio_v2(const defs_resources_block_io *block_io, str
 static int trans_resources_hugetlb_v2(const defs_resources *res, struct lcr_list *conf)
 {
     size_t i = 0;
-    char buf_key[300] = { 0 };
+    char buf_key[DEFAULT_BUF_LEN] = { 0 };
 
     for (i = 0; i < res->hugepage_limits_len; i++) {
         defs_resources_hugepage_limits_element *lrhl = res->hugepage_limits[i];

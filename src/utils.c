@@ -39,6 +39,14 @@
 #include "utils.h"
 #include "log.h"
 
+#if __WORDSIZE == 64
+// current max user memory for 64-machine is 2^47 B
+#define MAX_MEMORY_SIZE ((size_t)1 << 47)
+#else
+// current max user memory for 32-machine is 2^31 B
+#define MAX_MEMORY_SIZE ((size_t)1 << 31)
+#endif
+
 #define ISSLASH(C) ((C) == '/')
 #define IS_ABSOLUTE_FILE_NAME(F) (ISSLASH((F)[0]))
 #define IS_RELATIVE_FILE_NAME(F) (!IS_ABSOLUTE_FILE_NAME(F))
@@ -380,14 +388,27 @@ size_t lcr_array_len(void **orig_array)
     return length;
 }
 
-/* util common malloc s */
-void *lcr_util_common_calloc_s(size_t size)
+void *lcr_util_smart_calloc_s(size_t unit_size, size_t count)
 {
-    if (size == 0) {
+    if (unit_size == 0) {
         return NULL;
     }
 
-    return calloc(1, size);
+    if (count > (MAX_MEMORY_SIZE / unit_size)) {
+        return NULL;
+    }
+
+    return calloc(count, unit_size);
+}
+
+/* util common malloc s */
+void *lcr_util_common_calloc_s(size_t size)
+{
+    if (size == 0 || size > MAX_MEMORY_SIZE) {
+        return NULL;
+    }
+
+    return calloc((size_t)1, size);
 }
 
 int lcr_mem_realloc(void **newptr, size_t newsize, void *oldptr, size_t oldsize)
