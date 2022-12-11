@@ -37,6 +37,9 @@
         },
         "incompelte": {
             "type": "boolean"
+        },
+        "writable": {
+            "type": "boolean"
         }
     }
 }
