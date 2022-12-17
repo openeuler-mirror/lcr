@@ -1,7 +1,7 @@
 From 6422cb8a639f125cecfdf0829dd713d84ab3a9aa Mon Sep 17 00:00:00 2001
 From: zhangxiaoyu <zhangxiaoyu58@huawei.com>
 Date: Tue, 15 Nov 2022 20:54:23 +0800
-Subject: [PATCH 6/7] add macro to adapt musl libc
+Subject: [PATCH 6/9] add macro to adapt musl libc
 
 Signed-off-by: zhangxiaoyu <zhangxiaoyu58@huawei.com>
 ---
@@ -10,7 +10,7 @@ Signed-off-by: zhangxiaoyu <zhangxiaoyu58@huawei.com>
  2 files changed, 21 insertions(+), 2 deletions(-)
 
 diff --git a/cmake/set_build_flags.cmake b/cmake/set_build_flags.cmake
-index 2b9249d..3b6842a 100644
+index 2b9249d9..3b6842a8 100644
 --- a/cmake/set_build_flags.cmake
 +++ b/cmake/set_build_flags.cmake
 @@ -21,11 +21,11 @@
@@ -42,7 +42,7 @@ index 2b9249d..3b6842a 100644
 +    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Werror")
 +endif()
 diff --git a/third_party/libocispec/common_h.py b/third_party/libocispec/common_h.py
-index 4ce7bda..02c689d 100644
+index 4ce7bda6..02c689dc 100644
 --- a/third_party/libocispec/common_h.py
 +++ b/third_party/libocispec/common_h.py
 @@ -60,6 +60,15 @@ extern "C" {

@@ -1,7 +1,7 @@
 From 42ed1c3fe60330c1ce98df1f6668bb8b4b2ded76 Mon Sep 17 00:00:00 2001
 From: "Neil.wrz" <wangrunze13@huawei.com>
 Date: Thu, 8 Sep 2022 01:00:49 -0700
-Subject: [PATCH 5/5] refactor handle warnings
+Subject: [PATCH 5/9] refactor handle warnings
 
 Signed-off-by: Neil.wrz <wangrunze13@huawei.com>
 ---
@@ -16,7 +16,7 @@ Signed-off-by: Neil.wrz <wangrunze13@huawei.com>
  8 files changed, 44 insertions(+), 26 deletions(-)
 
 diff --git a/src/conf.c b/src/conf.c
-index f2569b3..4f644d9 100644
+index f2569b3b..4f644d98 100644
 --- a/src/conf.c
 +++ b/src/conf.c
 @@ -1391,7 +1391,8 @@ static int trans_resources_mem_swap_v1(const defs_resources *res, struct lcr_lis
@@ -58,7 +58,7 @@ index f2569b3..4f644d9 100644
          }
      }
 diff --git a/src/lcrcontainer.c b/src/lcrcontainer.c
-index 5746b09..14cc6c4 100644
+index 5746b092..14cc6c43 100644
 --- a/src/lcrcontainer.c
 +++ b/src/lcrcontainer.c
 @@ -498,11 +498,11 @@ bool lcr_kill(const char *name, const char *lcrpath, uint32_t signal)
@@ -94,7 +94,7 @@ index 5746b09..14cc6c4 100644
          cret = NULL;
      }
 diff --git a/src/lcrcontainer_execute.c b/src/lcrcontainer_execute.c
-index 042ad2f..118f26c 100644
+index 042ad2fd..118f26c2 100644
 --- a/src/lcrcontainer_execute.c
 +++ b/src/lcrcontainer_execute.c
 @@ -199,7 +199,7 @@ static int update_resources_cpu_weight_v2(struct lxc_container *c, const struct
@@ -181,7 +181,7 @@ index 042ad2f..118f26c 100644
      if (weight < CGROUP2_BFQ_WEIGHT_MIN || weight > CGROUP2_BFQ_WEIGHT_MAX) {
          ERROR("invalid io weight cased by invalid blockio weight %llu", (unsigned long long) cr->blkio_weight);
 diff --git a/src/lcrcontainer_extend.c b/src/lcrcontainer_extend.c
-index 717d13b..e03c212 100644
+index 717d13b4..e03c212a 100644
 --- a/src/lcrcontainer_extend.c
 +++ b/src/lcrcontainer_extend.c
 @@ -818,6 +818,7 @@ static int lcr_spec_write_config(int fd, const struct lcr_list *lcr_conf)
@@ -207,7 +207,7 @@ index 717d13b..e03c212 100644
                  goto cleanup;
              }
 diff --git a/src/utils.c b/src/utils.c
-index 7ee9ba8..16719f6 100644
+index 7ee9ba81..16719f67 100644
 --- a/src/utils.c
 +++ b/src/utils.c
 @@ -888,7 +888,7 @@ restart:
@@ -233,7 +233,7 @@ index 7ee9ba8..16719f6 100644
  
  int lcr_util_get_cgroup_version()
 diff --git a/src/utils.h b/src/utils.h
-index 5aae95d..865b899 100644
+index 5aae95da..865b899a 100644
 --- a/src/utils.h
 +++ b/src/utils.h
 @@ -219,7 +219,7 @@ int lcr_util_atomic_write_file(const char *filepath, const char *content);
@@ -246,7 +246,7 @@ index 5aae95d..865b899 100644
  
  #ifdef __cplusplus
 diff --git a/third_party/libocispec/read_file.c b/third_party/libocispec/read_file.c
-index 42b83b2..29dbec3 100644
+index 42b83b20..29dbec33 100644
 --- a/third_party/libocispec/read_file.c
 +++ b/third_party/libocispec/read_file.c
 @@ -29,7 +29,6 @@
@@ -258,7 +258,7 @@ index 42b83b2..29dbec3 100644
  static int do_check_fread_args(const FILE *stream, const size_t *length)
  {
 diff --git a/third_party/log.c b/third_party/log.c
-index 2fcb014..c3c1981 100644
+index 2fcb014d..c3c19815 100644
 --- a/third_party/log.c
 +++ b/third_party/log.c
 @@ -25,7 +25,6 @@
