@@ -1,3 +1,18 @@
+2022-12-17 joi release 2.0.9
+    - !210 add writable field to layer schema * !207 add writable field to layer
+    - !209 handle security warning * handle security warning
+    - !205 add add-gids option for exec
+    - !202 add macro to adapt musl libc
+    - !199 handle security warning
+    - !197 remove unused daemon config args
+    - !194 fix cpu-quota out of range when update to -1
+    - !188 add HAVE_ISULAD definition for lxc header
+    - !184 feat Add json spec for rest resize api Merge pull request !184 from wangfengtu/resize
+
+    dev stats:
+      - 16 files changed, 183 insertions(+), 96 deletions(-)
+      - contributors: zhangxiaoyu, Neil.wrz, DriedYellowPeach
+
 2022-07-04 czrz release 2.0.8
     - !180 support set groups Merge pull request !180 from wangfengtu/sup-groups
     - !178 fix misuse of BUFSIZ From: @wangfengtu Reviewed-by: @duguhaotian Signed-off-by: @duguhaotian
