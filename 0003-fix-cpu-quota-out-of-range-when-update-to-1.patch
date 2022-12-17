@@ -1,7 +1,7 @@
 From cb0e052e96dfce0992132020eb5fba61c323cfc2 Mon Sep 17 00:00:00 2001
 From: "Neil.wrz" <wangrunze13@huawei.com>
 Date: Tue, 26 Jul 2022 02:17:47 -0700
-Subject: [PATCH 3/5] fix cpu-quota out of range when update to -1
+Subject: [PATCH 3/9] fix cpu-quota out of range when update to -1
 
 Signed-off-by: Neil.wrz <wangrunze13@huawei.com>
 ---
@@ -10,7 +10,7 @@ Signed-off-by: Neil.wrz <wangrunze13@huawei.com>
  2 files changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/src/lcrcontainer.h b/src/lcrcontainer.h
-index 062d681..a051097 100644
+index 062d6810..a0510979 100644
 --- a/src/lcrcontainer.h
 +++ b/src/lcrcontainer.h
 @@ -118,7 +118,7 @@ struct lcr_cgroup_resources {
@@ -23,7 +23,7 @@ index 062d681..a051097 100644
      char *cpuset_mems;
      uint64_t memory_limit;
 diff --git a/src/lcrcontainer_execute.c b/src/lcrcontainer_execute.c
-index 0aa9cff..042ad2f 100644
+index 0aa9cff7..042ad2fd 100644
 --- a/src/lcrcontainer_execute.c
 +++ b/src/lcrcontainer_execute.c
 @@ -321,7 +321,7 @@ static int update_resources_cpu_quota(struct lxc_container *c, const struct lcr_
