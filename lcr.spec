@@ -1,5 +1,5 @@
 %global _version 2.0.8
-%global _release 9
+%global _release 10
 %global _inner_name isula_libutils
 
 Name:      lcr
@@ -20,6 +20,8 @@ Patch0004: 0004-remove-unused-daemon-config-args.patch
 Patch0005: 0005-refactor-handle-warnings.patch
 Patch0006: 0006-add-macro-to-adapt-musl-libc.patch
 Patch0007: 0007-add-add-gids-option-for-exec.patch
+Patch0008: 0008-handle-security-warning.patch
+Patch0009: 0009-add-writable-field-to-layer-schema.patch 
 
 %define lxcver_lower 4.0.3-2022102400
 %define lxcver_upper 4.0.3-2022102500
@@ -109,6 +111,12 @@ rm -rf %{buildroot}
 %{_includedir}/%{_inner_name}/*.h
 
 %changelog
+* Sat Dec 17 2022 wangrunze<wangrunze13@huawei.com> - 2.0.8-10
+- Type:enhancement
+- CVE:NA
+- SUG:NA
+- DESC:handle security warning and modify schema
+
 * Tue Dec 06 2022 zhangxiaoyu<zhangxiaoyu58@huawei.com> - 2.0.8-9
 - Type:enhancement
 - CVE:NA
