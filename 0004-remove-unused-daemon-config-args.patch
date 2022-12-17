@@ -1,7 +1,7 @@
 From 0faebe9d8ff1ddcd3982b7bbd9f8d2078c3e5a29 Mon Sep 17 00:00:00 2001
 From: zhangxiaoyu <zhangxiaoyu58@huawei.com>
 Date: Tue, 6 Sep 2022 18:48:28 +0800
-Subject: [PATCH 4/5] remove unused daemon config args
+Subject: [PATCH 4/9] remove unused daemon config args
 
 Signed-off-by: zhangxiaoyu <zhangxiaoyu58@huawei.com>
 ---
@@ -9,7 +9,7 @@ Signed-off-by: zhangxiaoyu <zhangxiaoyu58@huawei.com>
  1 file changed, 6 deletions(-)
 
 diff --git a/src/json/schema/isulad-daemon-configs.json b/src/json/schema/isulad-daemon-configs.json
-index 1329ab0..1332a73 100644
+index 1329ab07..1332a73f 100644
 --- a/src/json/schema/isulad-daemon-configs.json
 +++ b/src/json/schema/isulad-daemon-configs.json
 @@ -85,12 +85,6 @@
