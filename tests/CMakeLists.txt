@@ -69,6 +69,7 @@ endif()
 _DEFINE_NEW_TEST(log_ut log_testcase)
 _DEFINE_NEW_TEST(libocispec_ut libocispec_testcase)
 _DEFINE_NEW_TEST(go_crc64_ut go_crc64_testcase)
+_DEFINE_NEW_TEST(auto_cleanup_ut autocleanup_testcase)
 
 
 # mock test for run lcov to generate html
