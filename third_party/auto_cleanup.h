@@ -45,13 +45,12 @@ extern "C" {
 #define __isula_auto_close auto_cleanup_tag(auto_close)
 #define __isula_auto_pm_unlock auto_cleanup_tag(auto_pm_unlock)
 
-static inline void free_pointer_cb(void **ptr)
+static inline void free_pointer_cb(void *ptr)
 {
-    void *real = *ptr;
-    if (real == NULL) {
-        return;
+    void *real = *(void **)ptr;
+    if (real != NULL) {
+        free(real);
     }
-    free(real);
 }
 
 static inline void close_file_cb(FILE **p)
@@ -93,11 +92,9 @@ static inline void auto_close_cb(int *p)
 
 static inline void auto_pm_unlock_cb(pthread_mutex_t **p)
 {
-    if (*p == NULL) {
-        return;
+    if (*p != NULL) {
+        (void)pthread_mutex_unlock(*p);
     }
-
-    (void)pthread_mutex_unlock(*p);
 }
 
 #ifdef __cplusplus
