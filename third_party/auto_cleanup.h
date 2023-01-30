@@ -27,6 +27,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
+#include <pthread.h>
 #include <errno.h>
 #include <dirent.h>
 #include <sys/types.h>
@@ -42,6 +43,7 @@ extern "C" {
 #define __isula_auto_file auto_cleanup_tag(close_file)
 #define __isula_auto_dir auto_cleanup_tag(close_dir)
 #define __isula_auto_close auto_cleanup_tag(auto_close)
+#define __isula_auto_pm_unlock auto_cleanup_tag(auto_pm_unlock)
 
 static inline void free_pointer_cb(void **ptr)
 {
@@ -87,6 +89,15 @@ static inline void auto_close_cb(int *p)
     while (close(fd) < 0 && errno == EINTR) {
         // if interupt by signal, just retry it
     }
+}
+
+static inline void auto_pm_unlock_cb(pthread_mutex_t **p)
+{
+    if (*p == NULL) {
+        return;
+    }
+
+    (void)pthread_mutex_unlock(*p);
 }
 
 #ifdef __cplusplus

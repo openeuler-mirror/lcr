@@ -20,10 +20,11 @@
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  ********************************************************************************/
+#include "go_crc64.h"
 
 #include <pthread.h>
 
-#include "go_crc64.h"
+#include "auto_cleanup.h"
 
 pthread_mutex_t g_crc_lock = PTHREAD_MUTEX_INITIALIZER;
 isula_crc_table_t g_iso_crc_table;
@@ -63,7 +64,10 @@ static void make_crc_table(isula_crc_table_t *tab)
 const isula_crc_table_t* new_isula_crc_table(uint64_t poly)
 {
     isula_crc_table_t *ret = NULL;
-    if (pthread_mutex_lock(&g_crc_lock) != 0) {
+    __isula_auto_pm_unlock pthread_mutex_t *local_mutex = &g_crc_lock;
+    if (pthread_mutex_lock(local_mutex) != 0) {
+        // if lock failed, do not do auto unlock
+        local_mutex = NULL;
         return ret;
     }
 
@@ -72,18 +76,16 @@ const isula_crc_table_t* new_isula_crc_table(uint64_t poly)
             ret = &g_iso_crc_table;
             break;
         default:
-            goto out;
+            return ret;
     }
     // ret must be non-null
     if (ret->inited) {
-        goto out;
+        return ret;
     }
     ret->inited = true;
     make_table(ret, poly);
     make_crc_table(ret);
 
-out:
-    (void)pthread_mutex_unlock(&g_crc_lock);
     return ret;
 }
 
