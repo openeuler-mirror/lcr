@@ -33,6 +33,36 @@
 
 #include "auto_cleanup.h"
 
+pthread_mutex_t g_test_lock = PTHREAD_MUTEX_INITIALIZER;
+
+int do_auto_unlock()
+{
+    __isula_auto_pm_unlock pthread_mutex_t *local_mutex = nullptr;
+    if (pthread_mutex_lock(&g_test_lock) != 0) {
+        // if lock failed, do not do auto unlock
+        return -1;
+    }
+
+    local_mutex = &g_test_lock;
+    return 0;
+}
+
+TEST(autocleanup_testcase, test__isula_auto_pm_unlock)
+{
+    int ret;
+
+    ret = do_auto_unlock();
+    if (ret == -1) {
+        return;
+    }
+
+    ret = pthread_mutex_lock(&g_test_lock);
+    if (ret != 0) {
+        ASSERT_NE(EBUSY, errno);
+    }
+    (void)pthread_mutex_unlock(&g_test_lock);
+}
+
 size_t do_auto_free()
 {
     __isula_auto_free void *test = nullptr;
