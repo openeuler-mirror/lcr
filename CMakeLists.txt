@@ -116,6 +116,7 @@ install(FILES src/lcrcontainer.h
 	DESTINATION include/lcr)
 
 install(FILES third_party/log.h DESTINATION include/isula_libutils)
+install(FILES third_party/auto_cleanup.h DESTINATION include/isula_libutils)
 install(FILES third_party/go_crc64.h DESTINATION include/isula_libutils)
 install(FILES src/json/oci_runtime_hooks.h DESTINATION include/isula_libutils)
 install(FILES src/json/parse_common.h DESTINATION include/isula_libutils)

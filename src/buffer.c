@@ -29,6 +29,7 @@
 #include "buffer.h"
 #include "log.h"
 #include "utils.h"
+#include "auto_cleanup.h"
 
 /* buffer allocate */
 Buffer *buffer_alloc(size_t initial_size)
@@ -161,15 +162,13 @@ static int buffer_append(Buffer *buf, const char *append, size_t length)
     desired_length = length + 1;
     if (!buffer_has_space(buf, desired_length)) {
         if (buffer_grow(buf, desired_length) != 0) {
-            goto error;
+            return -1;
         }
     }
 
     buffer_cat(buf, append, length);
 
     return 0;
-error:
-    return -1;
 }
 
 /* buffer nappendf */
@@ -177,7 +176,7 @@ int buffer_nappendf(Buffer *buf, size_t length, const char *format, ...)
 {
     int status = 0;
     size_t printf_length = 0;
-    char *tmp = NULL;
+    __isula_auto_free char *tmp = NULL;
     va_list argp;
 
     if (buf == NULL) {
@@ -197,19 +196,15 @@ int buffer_nappendf(Buffer *buf, size_t length, const char *format, ...)
     status = vsnprintf(tmp, length, format, argp);
     va_end(argp);
     if (status < 0) {
-        goto error;
+        return -1;
     }
 
     status = buffer_append(buf, tmp, length);
     if (status != 0) {
-        goto error;
+        return -1;
     }
 
-    free(tmp);
     return 0;
-error:
-    free(tmp);
-    return -1;
 }
 
 /* buffer to string */
