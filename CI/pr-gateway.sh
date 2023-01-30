@@ -14,7 +14,7 @@
 ##- @Create: 2021-12-20
 #######################################################################
 
-dnf install -y gtest-devel gmock-devel gtest gmock diffutils cmake gcc-c++ yajl-devel patch make libtool git chrpath zlib-devel
+dnf install -y gtest-devel gmock-devel diffutils cmake gcc-c++ yajl-devel patch make libtool libevent-devel libevhtp-devel grpc grpc-plugins grpc-devel protobuf-devel libcurl libcurl-devel sqlite-devel libarchive-devel device-mapper-devel http-parser-devel libseccomp-devel libcap-devel libselinux-devel libwebsockets libwebsockets-devel systemd-devel git chrpath
 
 cd ~
 
@@ -38,6 +38,34 @@ pushd build
 cmake -DDEBUG=ON -DCMAKE_SKIP_RPATH=TRUE -DENABLE_UT=ON ../ || exit 1
 make -j $(nproc) || exit 1
 make install || exit 1
+popd
+popd
+
+# build iSulad with grpc
+ldconfig
+rm -rf iSulad
+git clone https://gitee.com/openeuler/iSulad.git
+pushd iSulad
+mkdir -p build
+pushd build
+cmake -DDEBUG=ON -DCMAKE_INSTALL_PREFIX=/usr -DENABLE_UT=ON -DENABLE_SHIM_V2=OFF ../ || exit 1
+make -j $(nproc) || exit 1
+popd
+popd
+
+# build iSulad with restful
+ldconfig
+pushd iSulad
+rm -rf build
+mkdir build
+pushd build
+cmake -DDEBUG=ON -DCMAKE_INSTALL_PREFIX=/usr -DEANBLE_IMAGE_LIBARAY=OFF -DENABLE_SHIM_V2=OFF -DENABLE_GRPC=OFF  ../ || exit 1
+make -j $(nproc) || exit 1
+popd
+popd
+
+pushd lcr
+pushd build
 ctest -V || exit 1
 popd
 popd
