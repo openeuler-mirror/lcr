@@ -80,14 +80,17 @@ static inline void close_dir_cb(DIR **p)
 static inline void auto_close_cb(int *p)
 {
     int fd = *p;
+    int _save_err = errno;
 
-    if (fd <= 0) {
+    if (fd < 0) {
         return;
     }
 
     while (close(fd) < 0 && errno == EINTR) {
         // if interupt by signal, just retry it
     }
+
+    errno = _save_err;
 }
 
 static inline void auto_pm_unlock_cb(pthread_mutex_t **p)

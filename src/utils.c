@@ -38,6 +38,7 @@
 #include "constants.h"
 #include "utils.h"
 #include "log.h"
+#include "auto_cleanup.h"
 
 #if __WORDSIZE == 64
 // current max user memory for 64-machine is 2^47 B
@@ -129,16 +130,16 @@ static char *cleanpath(const char *path, char *realpath, size_t realpath_len)
         if (!getcwd(respath, PATH_MAX)) {
             ERROR("Failed to getcwd");
             respath[0] = '\0';
-            goto error;
+            return NULL;
         }
         dest = strchr(respath, '\0');
         if (dest == NULL) {
             ERROR("Failed to get the end of respath");
-            goto error;
+            return NULL;
         }
         if (strlen(path) >= (PATH_MAX - 1) - strlen(respath)) {
             ERROR("%s path too long", path);
-            goto error;
+            return NULL;
         }
         (void)strcat(respath, path);
         stpos = path;
@@ -149,7 +150,7 @@ static char *cleanpath(const char *path, char *realpath, size_t realpath_len)
     }
 
     if (do_clean_path(respath, limit_respath, stpos, &dest)) {
-        goto error;
+        return NULL;
     }
 
     if (dest > respath + 1 && ISSLASH(dest[-1])) {
@@ -158,9 +159,6 @@ static char *cleanpath(const char *path, char *realpath, size_t realpath_len)
     *dest = '\0';
 
     return respath;
-
-error:
-    return NULL;
 }
 
 /* wait for pid */
@@ -277,7 +275,7 @@ static char **lcr_shrink_array(char **orig_array, size_t new_size)
 char **lcr_string_split_and_trim(const char *orig_str, char _sep)
 {
     char *token = NULL;
-    char *str = NULL;
+    __isula_auto_free char *str = NULL;
     char *reserve_ptr = NULL;
     char deli[2] = { _sep, '\0' };
     char **res_array = NULL;
@@ -309,14 +307,12 @@ char **lcr_string_split_and_trim(const char *orig_str, char _sep)
         count++;
         token = strtok_r(NULL, deli, &reserve_ptr);
     }
-    free(str);
 
     return lcr_shrink_array(res_array, count + 1);
 
 error_out:
     tmp_errno = errno;
     lcr_free_array((void **)res_array);
-    free(str);
     errno = tmp_errno;
     return NULL;
 }
@@ -420,12 +416,12 @@ int lcr_mem_realloc(void **newptr, size_t newsize, void *oldptr, size_t oldsize)
     }
 
     if (oldsize >= newsize || newsize == 0) {
-        goto err_out;
+        return -1;
     }
 
     addr = lcr_util_common_calloc_s(newsize);
     if (addr == NULL) {
-        goto err_out;
+        return -1;
     }
 
     if (oldptr != NULL) {
@@ -435,11 +431,7 @@ int lcr_mem_realloc(void **newptr, size_t newsize, void *oldptr, size_t oldsize)
 
     *newptr = addr;
     return 0;
-
-err_out:
-    return -1;
 }
-
 
 static inline bool is_invalid_error_str(const char *err_str, const char *numstr)
 {
@@ -623,8 +615,7 @@ int lcr_parse_byte_size_string(const char *s, int64_t *converted)
  */
 int lcr_util_ensure_path(char **confpath, const char *path)
 {
-    int err = -1;
-    int fd;
+    __isula_auto_close int fd = -1;
     char real_path[PATH_MAX + 1] = { 0 };
 
     if (confpath == NULL || path == NULL) {
@@ -634,23 +625,16 @@ int lcr_util_ensure_path(char **confpath, const char *path)
     fd = lcr_util_open(path, O_WRONLY | O_CREAT | O_TRUNC | O_EXCL, DEFAULT_SECURE_FILE_MODE);
     if (fd < 0 && errno != EEXIST) {
         ERROR("failed to open '%s'", path);
-        goto err;
-    }
-    if (fd >= 0) {
-        close(fd);
+        return -1;
     }
 
     if (strlen(path) > PATH_MAX || realpath(path, real_path) == NULL) {
         ERROR("Failed to get real path: %s", path);
-        goto err;
+        return -1;
     }
 
     *confpath = lcr_util_strdup_s(real_path);
-
-    err = EXIT_SUCCESS;
-
-err:
-    return err;
+    return EXIT_SUCCESS;
 }
 
 /* util dir exists */
@@ -696,25 +680,25 @@ static void util_rmdir_one(const char *dirpath, const struct dirent *pdirent, in
     nret = snprintf(fname, PATH_MAX, "%s/%s", dirpath, pdirent->d_name);
     if (nret < 0 || nret >= PATH_MAX) {
         ERROR("Pathname too long");
-        *failure = 1;
+        *failure = -1;
         return;
     }
 
     nret = lstat(fname, &fstat);
     if (nret) {
         ERROR("Failed to stat %s", fname);
-        *failure = 1;
+        *failure = -1;
         return;
     }
 
     if (S_ISDIR(fstat.st_mode)) {
         if (lcr_util_recursive_rmdir(fname, (recursive_depth + 1)) < 0) {
-            *failure = 1;
+            *failure = -1;
         }
     } else {
         if (unlink(fname) < 0) {
             ERROR("Failed to delete %s", fname);
-            *failure = 1;
+            *failure = -1;
         }
     }
 }
@@ -723,46 +707,36 @@ static void util_rmdir_one(const char *dirpath, const struct dirent *pdirent, in
 int lcr_util_recursive_rmdir(const char *dirpath, int recursive_depth)
 {
     struct dirent *pdirent = NULL;
-    DIR *directory = NULL;
-    int nret;
-    int failure = 0;
+    __isula_auto_dir DIR *directory = NULL;
+    int ret = 0;
 
     if ((recursive_depth + 1) > MAX_PATH_DEPTH) {
         ERROR("Reach max path depth: %s", dirpath);
-        failure = 1;
-        goto err_out;
+        return -1;
     }
 
-    if (!lcr_util_dir_exists(dirpath)) { /* dir not exists */
-        goto err_out;
+    if (!lcr_util_dir_exists(dirpath)) { /* dir not exists, just ignore */
+        return 0;
     }
 
     directory = opendir(dirpath);
     if (directory == NULL) {
         ERROR("Failed to open %s", dirpath);
-        failure = 1;
-        goto err_out;
+        return -1;
     }
 
     pdirent = readdir(directory);
     while (pdirent != NULL) {
-        util_rmdir_one(dirpath, pdirent, recursive_depth, &failure);
+        util_rmdir_one(dirpath, pdirent, recursive_depth, &ret);
         pdirent = readdir(directory);
     }
 
     if (rmdir(dirpath) < 0) {
         ERROR("Failed to delete %s", dirpath);
-        failure = 1;
+        ret = -1;
     }
 
-    nret = closedir(directory);
-    if (nret) {
-        ERROR("Failed to close directory %s", dirpath);
-        failure = 1;
-    }
-
-err_out:
-    return failure ? -1 : 0;
+    return ret;
 }
 
 /* util string replace one */
@@ -1198,17 +1172,16 @@ static void util_trim_newline(char *s)
 
 static int append_new_content_to_file(FILE *fp, const char *content)
 {
-    int ret = 0;
     size_t length = 0;
     size_t content_len = 0;
-    char *line = NULL;
-    char *tmp_str = NULL;
+    __isula_auto_free char *line = NULL;
+    __isula_auto_free char *tmp_str = NULL;
     bool need_append = true;
+
     while (getline(&line, &length, fp) != -1) {
         if (line == NULL) {
             ERROR("Failed to read content from file ptr");
-            ret = -1;
-            goto out;
+            return -1;
         }
         util_trim_newline(line);
         if (!strcmp(content, line)) {
@@ -1216,40 +1189,36 @@ static int append_new_content_to_file(FILE *fp, const char *content)
             break;
         }
     }
-    if (need_append) {
-        if (strlen(content) > ((SIZE_MAX - strlen("\n")) - 1)) {
-            ret = -1;
-            goto out;
-        }
-        content_len = strlen(content) + strlen("\n") + 1;
-        tmp_str = lcr_util_common_calloc_s(content_len);
-        if (tmp_str == NULL) {
-            ERROR("Out of memory");
-            ret = -1;
-            goto out;
-        }
-        int num = snprintf(tmp_str, content_len, "%s\n", content);
-        if (num < 0 || (size_t)num >= content_len) {
-            ERROR("Failed to print string");
-            ret = -1;
-            goto out;
-        }
-        if (fwrite(tmp_str, 1, strlen(tmp_str), fp) == 0) {
-            ERROR("Failed to write content: '%s'", content);
-            ret = -1;
-            goto out;
-        }
+
+    if (!need_append) {
+        return 0;
     }
 
-out:
-    free(tmp_str);
-    free(line);
-    return ret;
+    if (strlen(content) > ((SIZE_MAX - strlen("\n")) - 1)) {
+        return -1;
+    }
+    content_len = strlen(content) + strlen("\n") + 1;
+    tmp_str = lcr_util_common_calloc_s(content_len);
+    if (tmp_str == NULL) {
+        ERROR("Out of memory");
+        return -1;
+    }
+    int num = snprintf(tmp_str, content_len, "%s\n", content);
+    if (num < 0 || (size_t)num >= content_len) {
+        ERROR("Failed to print string");
+        return -1;
+    }
+    if (fwrite(tmp_str, 1, strlen(tmp_str), fp) == 0) {
+        ERROR("Failed to write content: '%s'", content);
+        return -1;
+    }
+
+    return 0;
 }
 
 int lcr_util_atomic_write_file(const char *filepath, const char *content)
 {
-    int fd;
+    __isula_auto_close int fd = -1;
     int ret = 0;
     FILE *fp = NULL;
     struct flock lk;
@@ -1270,16 +1239,12 @@ int lcr_util_atomic_write_file(const char *filepath, const char *content)
         fp = fdopen(fd, "a+");
         if (fp == NULL) {
             ERROR("Failed to open fd: %d", fd);
-            ret = -1;
-            goto out;
+            return -1;
         }
         ret = append_new_content_to_file(fp, content);
-    }
-out:
-    if (fp != NULL) {
         fclose(fp);
     }
-    close(fd);
+
     return ret;
 }
 
