@@ -143,12 +143,23 @@ int do_auto_close()
 TEST(autocleanup_testcase, test__isula_auto_close)
 {
     int openfd, ret;
+    size_t i;
     struct stat sbuf = { 0 };
 
     openfd = do_auto_close();
 
     ret = fstat(openfd, &sbuf);
-
     ASSERT_NE(0, ret);
     ASSERT_EQ(EBADF, errno);
+
+    // test auto cleanup in for-loop
+    for (i = 0; i < 10; i++) {
+        ret = fstat(openfd, &sbuf);
+        ASSERT_NE(0, ret);
+        ASSERT_EQ(EBADF, errno);
+
+        __isula_auto_close int inner_fd = -1;
+        inner_fd = open("/proc/self/cmdline", 0444);
+        openfd = inner_fd;
+    }
 }
