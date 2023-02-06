@@ -1,3 +1,39 @@
+2023-02-06 root release 2.1.1
+    - !219 add ut test for for loop auto cleanup Merge pull request !219 from haozi007/master
+    - !218 use auto cleanup in utils Merge pull request !218 from haozi007/master
+    - !216 remove goto from buffer and improve auto free tag Merge pull request !216 from haozi007/master
+    - !215 build iSulad in ci gateway to ensure changes of lcr do not affect iSulad Merge pull request !215 from haozi007/master
+    - !214 add auto unlock cleanup for pthread_mutex Merge pull request !214 from haozi007/master
+    - !213 add auto cleanup mechanism for isula Merge pull request !213 from haozi007/master
+    - !208 handle lcr security warning * handle security warning
+    - !207 add writable field to layer * add writable field to layer
+    - !206 fix layer size type as int64 * fix layer size type as int64
+    - !204 add add-gids option for exec
+    - !203 add macro to adapt musl libc
+    - !201 Add search request and response
+    - !196 modify the format of writing lxc configuration file
+    - !198 remove unused daemon config args
+    - !195 refactor: remove unneccessary includes
+    - !193 fix convert cpu_quota for snprintf
+    - !191 support cgroupns
+    - !192 fix cpu-quota out of range when update to -1
+    - !187 add HAVE_ISULAD definition for lxc header
+    - !183 添加rest resize接口的json定义文件
+    - !179 support set groups From: @wangfengtu Reviewed-by: @duguhaotian Signed-off-by: @duguhaotian
+    - !177 fix misuse of BUFSIZ From: @wangfengtu Reviewed-by: @duguhaotian Signed-off-by: @duguhaotian
+    - !175 use vsnprintf to replace vsprintf From: @duguhaotian Reviewed-by: @jingwoo Signed-off-by: @jingwoo
+    - !174 增加riscv64的seccomp信息 From: @chenhongji Reviewed-by: @jingwoo, @duguhaotian Signed-off-by: @duguhaotian
+    - !171 Add restful interface isula pull. From: @firstadream Reviewed-by: @duguhaotian Signed-off-by: @duguhaotian
+    - !170 add rename json schema for rename subcommand in restful mode From: @duguhaotian Reviewed-by: @wangfengtu, @jingwoo, @jingxiaolu Signed-off-by: @jingxiaolu
+    - !165 add debug message for execve Merge pull request !165 from haozi007/master
+    - !162 support -DENABLE_LIBLCR=OFF to build isula_libutils only Merge pull request !162 from wangfengtu/enable_liblcr
+    - !161 refactor lcr build system Merge pull request !161 from haozi007/master
+    - !159 remove network settings in config v2 Merge pull request !159 from zhangxiaoyu/master
+
+    dev stats:
+      - 43 files changed, 853 insertions(+), 291 deletions(-)
+      - contributors: haozi007, zhangxiaoyu, DriedYellowPeach, Neil.wrz, WangFengTu, zhongtao, ChenHongJi, Mig Yang, yanshui.li
+
 2021-12-17 root release 2.1.0
     - network: add network activation flag, which means attach network finish
     - add update network setting callback

@@ -1,5 +1,5 @@
-%global _version 2.1.0
-%global _release 2
+%global _version 2.1.1
+%global _release 1
 %global _inner_name isula_libutils
 
 Name:      lcr
