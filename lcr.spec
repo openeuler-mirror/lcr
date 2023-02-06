@@ -1,4 +1,4 @@
-%global _version 2.0.9
+%global _version 2.1.1
 %global _release 1
 %global _inner_name isula_libutils
 
@@ -102,6 +102,12 @@ rm -rf %{buildroot}
 %{_includedir}/%{_inner_name}/*.h
 
 %changelog
+* Mon Feb 06 2023 zhangxiaoyu<zhangxiaoyu58@huawei.com> - 2.1.1-1
+- Type:enhancement
+- CVE:NA
+- SUG:NA
+- DESC:update version to v2.1.1
+
 * Sat Dec 17 2022 wangrunze<wangrunze13@huawei.com> - 2.0.9-1
 - Type:enhancement
 - CVE:NA
