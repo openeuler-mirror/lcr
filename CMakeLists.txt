@@ -75,6 +75,11 @@ configure_file(
 	"${CMAKE_BINARY_DIR}/conf/lcr.pc"
 )
 
+configure_file(
+	"${CMAKE_CURRENT_SOURCE_DIR}/libisula.pc.in"
+	"${CMAKE_BINARY_DIR}/conf/libisula.pc"
+)
+
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/third_party)
 
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/src)
@@ -111,6 +116,8 @@ endif()
 
 # install all files
 install(FILES ${CMAKE_BINARY_DIR}/conf/lcr.pc
+	DESTINATION ${LIB_INSTALL_DIR_DEFAULT}/pkgconfig PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ GROUP_WRITE WORLD_READ WORLD_EXECUTE)
+install(FILES ${CMAKE_BINARY_DIR}/conf/libisula.pc
 	DESTINATION ${LIB_INSTALL_DIR_DEFAULT}/pkgconfig PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ GROUP_WRITE WORLD_READ WORLD_EXECUTE)
 install(FILES src/lcrcontainer.h
 	DESTINATION include/lcr)
