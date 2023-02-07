@@ -1,5 +1,5 @@
 %global _version 2.1.1
-%global _release 1
+%global _release 2
 %global _inner_name isula_libutils
 
 Name:      lcr
@@ -12,7 +12,7 @@ Group:     Applications/System
 License:   LGPLv2.1+
 BuildRoot: %{_tmppath}/lcr-%{version}
 
-
+Patch0001:	0001-add-libisula.pc.patch
 
 %define lxcver_lower 4.0.3-2022102400
 %define lxcver_upper 4.0.3-2022102500
@@ -43,14 +43,30 @@ This package provides the lightweight container tools and library to control
 lxc-based containers.
 
 %package devel
-Summary: Huawei container runtime, json and log C Library
+Summary: Huawei container runtime headers for developing programs
 Group:   Libraries
 ExclusiveArch:  x86_64 aarch64 sw_64
 Requires:       %{name} = %{version}-%{release}
 
-%description devel
-the %{name}-libs package contains libraries for running iSula applications.
+%package -n libisula
+Summary: Huawei container json, log and utils C Library
+Group:   Libraries
+ExclusiveArch:  x86_64 aarch64 sw_64
 
+%package -n libisula-devel
+Summary: Huawei container json, log and utils C headers
+Group:   Libraries
+ExclusiveArch:  x86_64 aarch64 sw_64
+Requires:       libisula = %{version}-%{release}
+
+%description devel
+the %{name}-devel package contains runtime headers for developing programs.
+
+%description -n libisula
+the libisula package contains json, log and utils libraries for running iSula applications.
+
+%description -n libisula-devel
+the libisula-devel package contains json, log and utils headers for developing programs.
 
 %prep
 %autosetup -n lcr-v%{_version} -Sgit -p1
@@ -71,11 +87,11 @@ install -m 0644 ../src/lcrcontainer.h  %{buildroot}/%{_includedir}/lcr/lcrcontai
 chmod +x %{buildroot}/%{_libdir}/liblcr.so
 
 install -m 0644 ./src/libisula_libutils.so        %{buildroot}/%{_libdir}/libisula_libutils.so
+install -m 0644 ./conf/libisula.pc          %{buildroot}/%{_libdir}/pkgconfig/libisula.pc
 install -d $RPM_BUILD_ROOT/%{_includedir}/%{_inner_name}
 install -m 0644 ../build/json/*.h  %{buildroot}/%{_includedir}/%{_inner_name}/
 install -m 0644 ../src/json/*.h  %{buildroot}/%{_includedir}/%{_inner_name}/
-install -m 0644 ../third_party/log.h  %{buildroot}/%{_includedir}/%{_inner_name}/log.h
-install -m 0644 ../third_party/go_crc64.h  %{buildroot}/%{_includedir}/%{_inner_name}/go_crc64.h
+install -m 0644 ../third_party/*.h  %{buildroot}/%{_includedir}/%{_inner_name}/
 chmod +x %{buildroot}/%{_libdir}/libisula_libutils.so
 
 find %{buildroot} -type f -name '*.la' -exec rm -f {} ';'
@@ -93,15 +109,29 @@ rm -rf %{buildroot}
 
 %files
 %defattr(-,root,root,-)
-%{_libdir}/*
+%{_libdir}/liblcr.so
 %{_libdir}/pkgconfig/lcr.pc
 
 %files devel
 %defattr(-,root,root,-)
 %{_includedir}/lcr/lcrcontainer.h
+
+%files -n libisula
+%defattr(-,root,root,-)
+%{_libdir}/libisula_libutils.so
+%{_libdir}/pkgconfig/libisula.pc
+
+%files -n libisula-devel
+%defattr(-,root,root,-)
 %{_includedir}/%{_inner_name}/*.h
 
 %changelog
+* Tue Feb 07 2023 zhangxiaoyu<zhangxiaoyu58@huawei.com> - 2.1.1-2
+- Type:enhancement
+- CVE:NA
+- SUG:NA
+- DESC:split libisula package from lcr
+
 * Mon Feb 06 2023 zhangxiaoyu<zhangxiaoyu58@huawei.com> - 2.1.1-1
 - Type:enhancement
 - CVE:NA

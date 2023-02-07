@@ -1,0 +1,71 @@
+From 83b3f2f2b114915c250bdc4500138a8531750192 Mon Sep 17 00:00:00 2001
+From: zhangxiaoyu <zhangxiaoyu58@huawei.com>
+Date: Mon, 6 Feb 2023 20:36:17 +0800
+Subject: [PATCH] add libisula.pc
+
+Signed-off-by: zhangxiaoyu <zhangxiaoyu58@huawei.com>
+---
+ CMakeLists.txt |  7 +++++++
+ lcr.pc.in      |  2 +-
+ libisula.pc.in | 12 ++++++++++++
+ 3 files changed, 20 insertions(+), 1 deletion(-)
+ create mode 100644 libisula.pc.in
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index c1acbab..8ee67c1 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -75,6 +75,11 @@ configure_file(
+ 	"${CMAKE_BINARY_DIR}/conf/lcr.pc"
+ )
+ 
++configure_file(
++	"${CMAKE_CURRENT_SOURCE_DIR}/libisula.pc.in"
++	"${CMAKE_BINARY_DIR}/conf/libisula.pc"
++)
++
+ add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/third_party)
+ 
+ add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/src)
+@@ -112,6 +117,8 @@ endif()
+ # install all files
+ install(FILES ${CMAKE_BINARY_DIR}/conf/lcr.pc
+ 	DESTINATION ${LIB_INSTALL_DIR_DEFAULT}/pkgconfig PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ GROUP_WRITE WORLD_READ WORLD_EXECUTE)
++install(FILES ${CMAKE_BINARY_DIR}/conf/libisula.pc
++	DESTINATION ${LIB_INSTALL_DIR_DEFAULT}/pkgconfig PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ GROUP_WRITE WORLD_READ WORLD_EXECUTE)
+ install(FILES src/lcrcontainer.h
+ 	DESTINATION include/lcr)
+ 
+diff --git a/lcr.pc.in b/lcr.pc.in
+index e102dbb..419e187 100644
+--- a/lcr.pc.in
++++ b/lcr.pc.in
+@@ -7,6 +7,6 @@ Name: liblcr
+ Description: light-weighted container runtime library
+ Version: @LCR_VERSION@
+ URL: liblcr
+-Libs: -L@CMAKE_INSTALL_PREFIX@/lib -llcr -lisula_libutils
++Libs: -L@CMAKE_INSTALL_PREFIX@/lib -llcr
+ Cflags: -I@CMAKE_INSTALL_PREFIX@/include
+ 
+diff --git a/libisula.pc.in b/libisula.pc.in
+new file mode 100644
+index 0000000..2738dd3
+--- /dev/null
++++ b/libisula.pc.in
+@@ -0,0 +1,12 @@
++prefix=@CMAKE_INSTALL_PREFIX@
++libdir=@CMAKE_INSTALL_PREFIX@/lib
++localstatedir=@CMAKE_INSTALL_PREFIX@/var
++includedir=@CMAKE_INSTALL_PREFIX@/include
++
++Name: libisula
++Description: light-weighted container json and log libraries
++Version: @LCR_VERSION@
++URL: libisula
++Libs: -L@CMAKE_INSTALL_PREFIX@/lib -lisula_libutils
++Cflags: -I@CMAKE_INSTALL_PREFIX@/include
++
+-- 
+2.25.1
+
