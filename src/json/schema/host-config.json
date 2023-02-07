@@ -139,8 +139,14 @@
         "Memory": {
             "type": "int64"
         },
+        "Unified": {
+            "$ref": "defs.json#/definitions/mapStringString"
+        },
         "OomScoreAdj": {
             "type": "integer"
+        },
+        "MemorySwapLimitInBytes":{
+            "type": "int64"
         },
         "BlkioWeight": {
             "type": "uint16"
