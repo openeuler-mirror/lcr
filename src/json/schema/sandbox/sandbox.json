@@ -1,0 +1,53 @@
+{
+	"$schema": "http://json-schema.org/draft-04/schema#",
+	"type": "object",
+	"properties": {
+		"id": {
+		    "type": "string"
+		},
+		"name": {
+			"type": "string"
+		},
+		"uid": {
+			"type": "string"
+		},
+		"sandbox_namespace": {
+			"type": "string"
+		},
+		"attempt": {
+			"type": "uint32"
+		},
+		"ready": {
+		    "type": "boolean"
+		},
+		"create_at": {
+			"type": "uint64"
+		},
+		"network_settings": {
+			"type": "string"
+		},
+		"networks": {
+			"type": "object",
+			"properties": {
+				"ip": {
+					"type": "array",
+					"items": {
+						"type": "string"
+					}
+				}
+			}
+		},
+		"labels": {
+			"$ref": "../defs.json#/definitions/mapStringString"
+		},
+		"annotations": {
+			"$ref": "../defs.json#/definitions/mapStringString"
+		},
+		"runtime": {
+			"type": "string"
+		},
+		"errmsg": {
+			"type": "string"
+		}
+	}
+}

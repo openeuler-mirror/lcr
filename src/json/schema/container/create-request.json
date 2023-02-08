@@ -5,6 +5,9 @@
 		"id": {
 			"type": "string"
 		},
+		"sandbox_id": {
+			"type": "string"
+		},
 		"rootfs": {
 			"type": "string"
 		},

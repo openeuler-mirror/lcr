@@ -1,0 +1,59 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "type": "object",
+    "properties": {
+        "Sandbox": {
+            "$ref": "sandbox.json"
+        },
+        "User": {
+            "type": "string"
+        },
+        "checkpoint": {
+            "type": "string"
+        },
+        "Hostname": {
+            "type": "string"
+        },
+        "HostnamePath": {
+            "type": "string"
+        },
+        "HostsPath": {
+            "type": "string"
+        },
+        "ResolvConfPath":{
+            "type": "string"
+        },
+        "ShmPath": {
+            "type": "string"
+        },
+        "LogDirectory": {
+            "type": "string"
+        },
+        "Network": {
+            "type": "object",
+            "properties": {
+                "Dns": {
+                    "type": "string"
+                },
+                "PortMapping":{
+                    "type": "string"
+                }
+            }
+        },
+        "cgroup_parent": {
+            "type": "string"
+        },
+        "security_context": {
+            "type": "string"
+        },
+        "overheads": {
+            "type": "string"
+        },
+        "resources": {
+            "type": "string"
+        },
+        "sysctls": {
+            "$ref": "../defs.json#/definitions/mapStringString"
+        }
+    }
+}
