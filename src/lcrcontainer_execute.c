@@ -360,13 +360,14 @@ static bool update_resources_cpu_v1(struct lxc_container *c, const struct lcr_cg
         goto err_out;
     }
 
-    if (update_resources_cpu_rt_period(c, cr) != 0) {
-        goto err_out;
-    }
     if (update_resources_cpu_rt_runtime(c, cr) != 0) {
         goto err_out;
     }
 
+    if (update_resources_cpu_rt_period(c, cr) != 0) {
+        goto err_out;
+    }
+    
     ret = true;
 err_out:
     return ret;
