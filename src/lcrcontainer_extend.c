@@ -841,7 +841,6 @@ static int lcr_spec_write_config(FILE *fp, const struct lcr_list *lcr_conf)
             }
 
             nret = snprintf(line, len, "%s = %s", item->name, item->value);
-
             if (nret < 0 || (size_t)nret >= len) {
                 ERROR("Sprintf failed");
                 goto cleanup;
@@ -853,11 +852,10 @@ static int lcr_spec_write_config(FILE *fp, const struct lcr_list *lcr_conf)
                 goto cleanup;
             }
 
-            nret = strlen(line_encode);
+            len = strlen(line_encode);
+            line_encode[len] = '\n';
 
-            line_encode[nret] = '\n';
-
-            if (fwrite(line_encode, 1, len, fp) != len) {
+            if (fwrite(line_encode, 1, len + 1, fp) != len + 1) {
                 ERROR("Write file failed: %s", strerror(errno));
                 goto cleanup;
             }
