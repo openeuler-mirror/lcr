@@ -1,4 +1,5 @@
 {
+    "_comment": "third party depend: runc",
     "description": "process state info",
     "type": "object",
     "required": [
