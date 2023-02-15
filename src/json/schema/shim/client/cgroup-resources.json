@@ -1,0 +1,58 @@
+{
+    "_comment": "third party depend: runc",
+    "description": "cgroup resources",
+    "type": "object",
+    "properties": {
+        "blockIO": {
+            "type": "object",
+            "properties": {
+                "weight": {
+                    "$ref": "../../defs.json#/definitions/uint64"
+                }
+            }
+        },
+        "cpu": {
+            "type": "object",
+            "properties": {
+                "shares": {
+                    "$ref": "../../defs.json#/definitions/uint64"
+                },
+                "period": {
+                    "$ref": "../../defs.json#/definitions/uint64"
+                },
+                "quota": {
+                    "$ref": "../../defs.json#/definitions/int64"
+                },
+                "realtimeRuntime": {
+                    "$ref": "../../defs.json#/definitions/int64"
+                },
+                "realtimePeriod": {
+                    "$ref": "../../defs.json#/definitions/int64"
+                },
+                "cpus": {
+                    "type": "string"
+                },
+                "mems": {
+                    "type": "string"
+                }
+            }
+        },
+        "memory": {
+            "type": "object",
+            "properties": {
+                "limit": {
+                    "$ref": "../../defs.json#/definitions/uint64"
+                },
+                "swap": {
+                    "$ref": "../../defs.json#/definitions/uint64"
+                },
+                "reservation": {
+                    "$ref": "../../defs.json#/definitions/uint64"
+                },
+                "kernel": {
+                    "$ref": "../../defs.json#/definitions/uint64"
+                }
+            }
+        }
+    }
+}
