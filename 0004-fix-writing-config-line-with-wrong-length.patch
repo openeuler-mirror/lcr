@@ -1,0 +1,40 @@
+From 4df2c0f530bfa62b98e22ea87a01fa567cf01ef3 Mon Sep 17 00:00:00 2001
+From: zhangxiaoyu <zhangxiaoyu58@huawei.com>
+Date: Thu, 9 Feb 2023 10:18:01 +0800
+Subject: [PATCH 4/4] fix writing config line with wrong length
+
+Signed-off-by: zhangxiaoyu <zhangxiaoyu58@huawei.com>
+---
+ src/lcrcontainer_extend.c | 8 +++-----
+ 1 file changed, 3 insertions(+), 5 deletions(-)
+
+diff --git a/src/lcrcontainer_extend.c b/src/lcrcontainer_extend.c
+index f6d1465..fb43b22 100644
+--- a/src/lcrcontainer_extend.c
++++ b/src/lcrcontainer_extend.c
+@@ -841,7 +841,6 @@ static int lcr_spec_write_config(FILE *fp, const struct lcr_list *lcr_conf)
+             }
+ 
+             nret = snprintf(line, len, "%s = %s", item->name, item->value);
+-
+             if (nret < 0 || (size_t)nret >= len) {
+                 ERROR("Sprintf failed");
+                 goto cleanup;
+@@ -853,11 +852,10 @@ static int lcr_spec_write_config(FILE *fp, const struct lcr_list *lcr_conf)
+                 goto cleanup;
+             }
+ 
+-            nret = strlen(line_encode);
+-
+-            line_encode[nret] = '\n';
++            len = strlen(line_encode);
++            line_encode[len] = '\n';
+ 
+-            if (fwrite(line_encode, 1, len, fp) != len) {
++            if (fwrite(line_encode, 1, len + 1, fp) != len + 1) {
+                 ERROR("Write file failed: %s", strerror(errno));
+                 goto cleanup;
+             }
+-- 
+2.25.1
+
