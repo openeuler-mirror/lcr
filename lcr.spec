@@ -1,5 +1,5 @@
 %global _version 2.1.1
-%global _release 3
+%global _release 4
 %global _inner_name isula_libutils
 
 Name:      lcr
@@ -36,6 +36,11 @@ Provides:       liblcr.so()(64bit)
 Provides:       libisula_libutils.so()(64bit)
 %endif
 
+%ifarch loongarch64
+Provides:       liblcr.so()(64bit)
+Provides:       libisula_libutils.so()(64bit)
+%endif
+
 %description
 Containers are insulated areas inside a system, which have their own namespace
 for filesystem, network, PID, IPC, CPU and memory allocation and which can be
@@ -48,18 +53,18 @@ lxc-based containers.
 %package devel
 Summary: Huawei container runtime headers for developing programs
 Group:   Libraries
-ExclusiveArch:  x86_64 aarch64 sw_64
+ExclusiveArch:  x86_64 aarch64 sw_64 loongarch64
 Requires:       %{name} = %{version}-%{release}
 
 %package -n libisula
 Summary: Huawei container json, log and utils C Library
 Group:   Libraries
-ExclusiveArch:  x86_64 aarch64 sw_64
+ExclusiveArch:  x86_64 aarch64 sw_64 loongarch64
 
 %package -n libisula-devel
 Summary: Huawei container json, log and utils C headers
 Group:   Libraries
-ExclusiveArch:  x86_64 aarch64 sw_64
+ExclusiveArch:  x86_64 aarch64 sw_64 loongarch64
 Requires:       libisula = %{version}-%{release}
 
 %description devel
@@ -129,6 +134,12 @@ rm -rf %{buildroot}
 %{_includedir}/%{_inner_name}/*.h
 
 %changelog
+* Tue Feb 21 2023 Wenlong Zhang<zhangwenlong@loongson.cn> - 2.1.1-4
+- Type:enhancement
+- CVE:NA
+- SUG:NA
+- DESC:Add loongarch64 support
+
 * Tue Feb 21 2023 zhangxiaoyu<zhangxiaoyu58@huawei.com> - 2.1.1-3
 - Type:enhancement
 - CVE:NA
