@@ -1,5 +1,5 @@
 %global _version 2.0.9
-%global _release 2
+%global _release 3
 %global _inner_name isula_libutils
 
 Name:      lcr
@@ -12,7 +12,8 @@ Group:     Applications/System
 License:   LGPLv2.1+
 BuildRoot: %{_tmppath}/lcr-%{version}
 
-
+Patch0001:	0001-fix-update-cpu-rt-period-failed.patch
+Patch0002:	0002-fix-layer-size-type-as-int64.patch
 
 %define lxcver_lower 4.0.3-2022102400
 %define lxcver_upper 4.0.3-2022102500
@@ -108,6 +109,12 @@ rm -rf %{buildroot}
 %{_includedir}/%{_inner_name}/*.h
 
 %changelog
+* Tue Feb 21 2023 zhangxiaoyu<zhangxiaoyu58@huawei.com> - 2.0.9-3
+- Type:bugfix
+- CVE:NA
+- SUG:NA
+- DESC:fix update cpu-rt period failed and fix layer size type as int64
+
 * Thu Feb 16 2023 Wenlong Zhang<zhangwenlong@loongson.cn> - 2.0.9-2
 - Type:enhancement
 - CVE:NA
