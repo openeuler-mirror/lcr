@@ -1,0 +1,26 @@
+From 9e9fbc213ce485a53b8dee07ad923369096ae899 Mon Sep 17 00:00:00 2001
+From: "Neil.wrz" <wangrunze13@huawei.com>
+Date: Mon, 20 Feb 2023 22:24:30 -0800
+Subject: [PATCH 2/2] fix layer size type as int64
+
+Signed-off-by: Neil.wrz <wangrunze13@huawei.com>
+---
+ src/json/schema/registry/manifest_schema2.json | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/json/schema/registry/manifest_schema2.json b/src/json/schema/registry/manifest_schema2.json
+index 44f31db..78cc68c 100644
+--- a/src/json/schema/registry/manifest_schema2.json
++++ b/src/json/schema/registry/manifest_schema2.json
+@@ -44,7 +44,7 @@
+             "type": "string"
+           },
+           "size": {
+-            "type": "integer"
++            "type": "int64"
+           },
+           "digest": {
+             "$ref": "../defs.json#/definitions/digest"
+-- 
+2.25.1
+
