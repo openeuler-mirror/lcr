@@ -1,0 +1,35 @@
+From d332dbb9050510f91445625b56952fd533ec530a Mon Sep 17 00:00:00 2001
+From: songbuhuang <544824346@qq.com>
+Date: Wed, 8 Feb 2023 10:53:25 +0800
+Subject: [PATCH 3/4] fix update cpu-rt period failed
+
+Signed-off-by: songbuhuang <544824346@qq.com>
+---
+ src/lcrcontainer_execute.c | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/src/lcrcontainer_execute.c b/src/lcrcontainer_execute.c
+index 3f5860f..ff4685b 100644
+--- a/src/lcrcontainer_execute.c
++++ b/src/lcrcontainer_execute.c
+@@ -360,13 +360,14 @@ static bool update_resources_cpu_v1(struct lxc_container *c, const struct lcr_cg
+         goto err_out;
+     }
+ 
+-    if (update_resources_cpu_rt_period(c, cr) != 0) {
+-        goto err_out;
+-    }
+     if (update_resources_cpu_rt_runtime(c, cr) != 0) {
+         goto err_out;
+     }
+ 
++    if (update_resources_cpu_rt_period(c, cr) != 0) {
++        goto err_out;
++    }
++    
+     ret = true;
+ err_out:
+     return ret;
+-- 
+2.25.1
+
