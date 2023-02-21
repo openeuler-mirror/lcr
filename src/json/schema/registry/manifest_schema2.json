@@ -44,7 +44,7 @@
             "type": "string"
           },
           "size": {
-            "type": "integer"
+            "type": "int64"
           },
           "digest": {
             "$ref": "../defs.json#/definitions/digest"
