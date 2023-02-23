@@ -17,6 +17,21 @@
     "cpu_use_user": {
       "type": "uint64"
     },
+    "avaliable_bytes": {
+      "type": "uint64"
+    },
+    "usage_bytes": {
+      "type": "uint64"
+    },
+    "rss_bytes": {
+      "type": "uint64"
+    },
+    "page_faults": {
+      "type": "uint64"
+    },
+    "major_page_faults": {
+      "type": "uint64"
+    },
     "cpu_use_kernel": {
       "type": "uint64"
     },
