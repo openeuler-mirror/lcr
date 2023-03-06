@@ -14,7 +14,15 @@
 ##- @Create: 2022-02-22
 #######################################################################
 
+sed -i "s#http://repo.openeuler.org#https://repo.huaweicloud.com/openeuler#g" /etc/yum.repos.d/openEuler.repo
+
+dnf update -y
+
 dnf install -y gtest-devel gmock-devel gtest gmock diffutils cmake gcc-c++ yajl-devel patch make libtool git chrpath zlib-devel
+if [ $? -ne 0 ]; then
+    echo "install dependences failed"
+    exit 1
+fi
 
 cd ~
 
