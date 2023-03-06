@@ -46,6 +46,9 @@
         "storage-opts": {
             "type": "ArrayOfStrings"
         },
+        "storage-enable-remote-layer": {
+            "type": "boolean" 
+        },
         "pidfile": {
             "type": "string"
         },
