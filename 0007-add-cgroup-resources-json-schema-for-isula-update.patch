@@ -1,0 +1,100 @@
+From 6ca6e250fc0cc10290c6e495168b29e09e2a70e9 Mon Sep 17 00:00:00 2001
+From: zhongtao <zhongtao17@huawei.com>
+Date: Wed, 15 Feb 2023 16:05:39 +0800
+Subject: [PATCH 7/8] add cgroup resources json schema for isula update
+
+Signed-off-by: zhongtao <zhongtao17@huawei.com>
+---
+ .../schema/shim/client/cgroup-resources.json  | 58 +++++++++++++++++++
+ .../schema/shim/client/process-state.json     |  1 +
+ .../schema/shim/client/runtime-stats.json     |  1 +
+ 3 files changed, 60 insertions(+)
+ create mode 100644 src/json/schema/shim/client/cgroup-resources.json
+
+diff --git a/src/json/schema/shim/client/cgroup-resources.json b/src/json/schema/shim/client/cgroup-resources.json
+new file mode 100644
+index 00000000..10310710
+--- /dev/null
++++ b/src/json/schema/shim/client/cgroup-resources.json
+@@ -0,0 +1,58 @@
++{
++    "_comment": "third party depend: runc",
++    "description": "cgroup resources",
++    "type": "object",
++    "properties": {
++        "blockIO": {
++            "type": "object",
++            "properties": {
++                "weight": {
++                    "$ref": "../../defs.json#/definitions/uint64"
++                }
++            }
++        },
++        "cpu": {
++            "type": "object",
++            "properties": {
++                "shares": {
++                    "$ref": "../../defs.json#/definitions/uint64"
++                },
++                "period": {
++                    "$ref": "../../defs.json#/definitions/uint64"
++                },
++                "quota": {
++                    "$ref": "../../defs.json#/definitions/int64"
++                },
++                "realtimeRuntime": {
++                    "$ref": "../../defs.json#/definitions/int64"
++                },
++                "realtimePeriod": {
++                    "$ref": "../../defs.json#/definitions/int64"
++                },
++                "cpus": {
++                    "type": "string"
++                },
++                "mems": {
++                    "type": "string"
++                }
++            }
++        },
++        "memory": {
++            "type": "object",
++            "properties": {
++                "limit": {
++                    "$ref": "../../defs.json#/definitions/uint64"
++                },
++                "swap": {
++                    "$ref": "../../defs.json#/definitions/uint64"
++                },
++                "reservation": {
++                    "$ref": "../../defs.json#/definitions/uint64"
++                },
++                "kernel": {
++                    "$ref": "../../defs.json#/definitions/uint64"
++                }
++            }
++        }
++    }
++}
+diff --git a/src/json/schema/shim/client/process-state.json b/src/json/schema/shim/client/process-state.json
+index 05f55fc5..f07d14f1 100644
+--- a/src/json/schema/shim/client/process-state.json
++++ b/src/json/schema/shim/client/process-state.json
+@@ -1,4 +1,5 @@
+ {
++    "_comment": "third party depend: runc",
+     "description": "process state info",
+     "type": "object",
+     "required": [
+diff --git a/src/json/schema/shim/client/runtime-stats.json b/src/json/schema/shim/client/runtime-stats.json
+index 6ed9473d..ae77e9db 100644
+--- a/src/json/schema/shim/client/runtime-stats.json
++++ b/src/json/schema/shim/client/runtime-stats.json
+@@ -1,4 +1,5 @@
+ {
++    "_comment": "third party depend: runc",
+     "description": "runtime stats",
+     "type": "object",
+     "properties": {
+-- 
+2.25.1
+
