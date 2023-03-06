@@ -1,0 +1,27 @@
+From 825554c1318b94edd29d4f22a9c5cbc3270cf277 Mon Sep 17 00:00:00 2001
+From: "Neil.wrz" <wangrunze13@huawei.com>
+Date: Wed, 15 Feb 2023 19:11:45 -0800
+Subject: [PATCH 8/8] add field for isulad daemon configs
+
+Signed-off-by: Neil.wrz <wangrunze13@huawei.com>
+---
+ src/json/schema/isulad-daemon-configs.json | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/src/json/schema/isulad-daemon-configs.json b/src/json/schema/isulad-daemon-configs.json
+index b1f60cf1..9ac8ee04 100644
+--- a/src/json/schema/isulad-daemon-configs.json
++++ b/src/json/schema/isulad-daemon-configs.json
+@@ -46,6 +46,9 @@
+         "storage-opts": {
+             "type": "ArrayOfStrings"
+         },
++        "storage-enable-remote-layer": {
++            "type": "boolean" 
++        },
+         "pidfile": {
+             "type": "string"
+         },
+-- 
+2.25.1
+

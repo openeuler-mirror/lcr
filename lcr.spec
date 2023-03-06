@@ -1,5 +1,5 @@
 %global _version 2.1.1
-%global _release 4
+%global _release 5
 %global _inner_name isula_libutils
 
 Name:      lcr
@@ -16,6 +16,10 @@ Patch0001:	0001-add-libisula.pc.patch
 Patch0002:	0002-add-unified-and-memory_swap_limit_in_bytes-into-host.patch
 Patch0003:	0003-fix-update-cpu-rt-period-failed.patch
 Patch0004:	0004-fix-writing-config-line-with-wrong-length.patch
+Patch0005:	0005-Add-memory-related-fields.patch
+Patch0006:	0006-mod-headers.patch
+Patch0007:	0007-add-cgroup-resources-json-schema-for-isula-update.patch
+Patch0008:	0008-add-field-for-isulad-daemon-configs.patch
 
 %define lxcver_lower 4.0.3-2022102400
 %define lxcver_upper 4.0.3-2022102500
@@ -134,6 +138,12 @@ rm -rf %{buildroot}
 %{_includedir}/%{_inner_name}/*.h
 
 %changelog
+* Tue Feb 21 2023 wangrunze <wangrunze13@loongson.cn> - 2.1.1-5
+- Type:bugfix
+- CVE:NA
+- SUG:NA
+- DESC:update from upstream to include feature remote ro
+
 * Tue Feb 21 2023 Wenlong Zhang<zhangwenlong@loongson.cn> - 2.1.1-4
 - Type:enhancement
 - CVE:NA

@@ -1,0 +1,28 @@
+From aa7af4993648e2d1fe002fabf2c103ae728d5888 Mon Sep 17 00:00:00 2001
+From: "ilya.kuksenok" <ilya.kuksenok@huawei.com>
+Date: Tue, 14 Feb 2023 14:01:46 +0300
+Subject: [PATCH 6/8] mod headers
+
+---
+ src/lcrcontainer.h | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/src/lcrcontainer.h b/src/lcrcontainer.h
+index 5134b59d..a222ac97 100644
+--- a/src/lcrcontainer.h
++++ b/src/lcrcontainer.h
+@@ -90,6 +90,11 @@ struct lcr_container_state {
+     /* Memory usage */
+     uint64_t mem_used;
+     uint64_t mem_limit;
++    uint64_t avaliable_bytes;
++    uint64_t usage_bytes;
++    uint64_t rss_bytes;
++    uint64_t page_faults;
++    uint64_t major_page_faults;
+     /* Kernel Memory usage */
+     uint64_t kmem_used;
+     uint64_t kmem_limit;
+-- 
+2.25.1
+

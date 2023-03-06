@@ -1,0 +1,38 @@
+From 3acca1f09f56d871fe38c741917822b96636b540 Mon Sep 17 00:00:00 2001
+From: "ilya.kuksenok" <ilya.kuksenok@huawei.com>
+Date: Wed, 8 Feb 2023 15:59:18 +0300
+Subject: [PATCH 5/8] Add memory related fields
+
+---
+ src/json/schema/container/info.json | 15 +++++++++++++++
+ 1 file changed, 15 insertions(+)
+
+diff --git a/src/json/schema/container/info.json b/src/json/schema/container/info.json
+index 8ce10af5..1db0ccf4 100644
+--- a/src/json/schema/container/info.json
++++ b/src/json/schema/container/info.json
+@@ -17,6 +17,21 @@
+     "cpu_use_user": {
+       "type": "uint64"
+     },
++    "avaliable_bytes": {
++      "type": "uint64"
++    },
++    "usage_bytes": {
++      "type": "uint64"
++    },
++    "rss_bytes": {
++      "type": "uint64"
++    },
++    "page_faults": {
++      "type": "uint64"
++    },
++    "major_page_faults": {
++      "type": "uint64"
++    },
+     "cpu_use_kernel": {
+       "type": "uint64"
+     },
+-- 
+2.25.1
+
