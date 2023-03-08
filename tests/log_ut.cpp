@@ -166,6 +166,8 @@ TEST(log_testcases, test_isula_libutils_log_enable)
     DEBUG("debug log");
     check_log(fd, false, false, "debug log");
     isula_libutils_log_disable();
+
+    unlink(fname);
 }
 
 TEST(log_testcases, test_isula_libutils_log_prefix)
@@ -202,5 +204,43 @@ TEST(log_testcases, test_isula_libutils_log_prefix)
     isula_libutils_set_log_prefix("");
     INFO("fake log");
     check_log(fd, true, true, default_prefix);
+
+    isula_libutils_log_disable();
+    unlink(fname);
 }
 
+static int do_sleep(int time)
+{
+    sleep(time);
+    return 1;
+}
+
+TEST(log_testcases, test_call_check_timeout)
+{
+    struct isula_libutils_log_config tconf = {0};
+    const char *default_prefix = "iSula";
+    const char *prio = "INFO";
+    const char *fname = "/tmp/fake.fifo";
+    int fd = -1;
+    int nret;
+
+    tconf.driver = ISULA_LOG_DRIVER_FIFO;
+    tconf.priority = prio;
+    tconf.file = fname;
+    isula_libutils_log_enable(&tconf);
+
+    fd = isula_libutils_get_log_fd();
+    ASSERT_GE(fd, 0);
+
+    // not timeout, will no log
+    CALL_CHECK_TIMEOUT(2, do_sleep(1));
+    check_log(fd, false, false, default_prefix);
+
+    // timeout, should have log
+    CALL_CHECK_TIMEOUT(1, nret = do_sleep(2));
+    check_log(fd, true, true, "use 1 sec, timeout!!");
+    ASSERT_EQ(nret, 1);
+
+    isula_libutils_log_disable();
+    unlink(fname);
+}
