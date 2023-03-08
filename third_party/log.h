@@ -452,6 +452,17 @@ void isula_libutils_log_disable();
 
 int isula_libutils_get_log_fd(void);
 
+#define CALL_CHECK_TIMEOUT(timeout, caller)                            \
+    do {                                                               \
+        struct timespec tbeg, tend;                                    \
+        (void)clock_gettime(CLOCK_REALTIME, &tbeg);                    \
+        caller;                                                        \
+        (void)clock_gettime(CLOCK_REALTIME, &tend);                    \
+        if (tend.tv_sec - tbeg.tv_sec >= (timeout)) {                  \
+            ERROR("Call: "#caller" use %d sec, timeout!!", timeout);   \
+        }                                                              \
+    } while (0)
+
 #ifdef __cplusplus
 }
 #endif
