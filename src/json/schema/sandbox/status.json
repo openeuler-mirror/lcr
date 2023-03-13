@@ -1,0 +1,24 @@
+{
+	"$schema": "http://json-schema.org/draft-04/schema#",
+	"type": "object",
+	"properties": {
+		"id": {
+			"type": "string"
+		},
+		"pid": {
+			"type": "uint32"
+		},
+		"state":{
+			"type": "string"
+		},
+		"version":{
+			"type": "string"
+		},
+		"extra":{
+			"$ref": "../defs.json#/definitions/mapStringString"
+		},
+		"errmsg": {
+			"type": "string"
+		}
+	}
+}

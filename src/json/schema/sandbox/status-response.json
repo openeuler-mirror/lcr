@@ -6,7 +6,7 @@
 			"type": "string"
 		},
 		"status": {
-		    "$ref": "sandbox.json"
+		    	"type": "string"
 		}
 	}
 }
