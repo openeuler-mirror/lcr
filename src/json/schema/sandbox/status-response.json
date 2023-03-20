@@ -6,7 +6,7 @@
 			"type": "string"
 		},
 		"status": {
-		    	"type": "string"
+		    "$ref": "status.json"
 		}
 	}
 }

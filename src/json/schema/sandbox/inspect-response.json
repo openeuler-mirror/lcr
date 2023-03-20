@@ -6,14 +6,13 @@
 			"type": "string"
 		},
 		"sandbox": {
-			"$ref": "config.json"},
-
+			"$ref": "config.json"
+		},
 		"host_config": {
-
-                      "type": "array",
-                        "items": {
-                                "$ref": "../host-config.json"
-                        }
+            "$ref": "../host-config.json"
+		},
+		"cc": {
+			"type": "uint32"
 		},
 		"errmsg": {
 			"type": "string"
