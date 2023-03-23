@@ -2,11 +2,17 @@
 	"$schema": "http://json-schema.org/draft-04/schema#",
 	"type": "object",
 	"properties": {
-		"podsandbox": {
+		"sandboxes": {
 			"type": "array",
 			"items": {
 				"$ref": "sandbox.json"
 			}
+		},
+		"cc": {
+			"type": "uint32"
+		},
+		"errmsg": {
+			"type": "string"
 		}
 	}
 }

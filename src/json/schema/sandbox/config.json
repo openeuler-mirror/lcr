@@ -2,9 +2,24 @@
     "$schema": "http://json-schema.org/draft-04/schema#",
     "type": "object",
     "properties": {
-        "Sandbox": {
-            "$ref": "sandbox.json"
-        },
+        "Id": {
+		    "type": "string"
+		},
+		"Name": {
+			"type": "string"
+		},
+		"Uid": {
+			"type": "string"
+		},
+		"SandboxNamespace": {
+			"type": "string"
+		},
+        "Attempt": {
+			"type": "uint32"
+		},
+        "NetworkSettings": {
+			"type": "string"
+		},
         "User": {
             "type": "string"
         },
@@ -54,6 +69,12 @@
         },
         "sysctls": {
             "$ref": "../defs.json#/definitions/mapStringString"
-        }
+        },
+        "labels": {
+			"$ref": "../defs.json#/definitions/mapStringString"
+		},
+		"annotations": {
+			"$ref": "../defs.json#/definitions/mapStringString"
+		}
     }
 }
