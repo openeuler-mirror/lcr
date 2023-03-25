@@ -17,6 +17,9 @@
 		"extra":{
 			"$ref": "../defs.json#/definitions/mapStringString"
 		},
+		"created_at": {
+			"type": "uint64"
+		},
 		"errmsg": {
 			"type": "string"
 		}

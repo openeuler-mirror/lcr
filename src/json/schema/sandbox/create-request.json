@@ -5,7 +5,19 @@
 		"name": {
 			"type": "string"
 		},
+		"id": {
+			"type": "string"
+		},
 		"runtime": {
+			"type": "string"
+		},
+		"pod_config_option": {
+			"type": "string"
+		},
+		"isulad_host_config": {
+			"type": "string"
+		},
+		"isulad_sandbox_config": {
 			"type": "string"
 		}
 	}

@@ -2,10 +2,7 @@
 	"$schema": "http://json-schema.org/draft-04/schema#",
 	"type": "object",
 	"properties": {
-		"cc": {
-			"type": "uint32"
-		},
-		"errmsg": {
+		"name": {
 			"type": "string"
 		}
 	}

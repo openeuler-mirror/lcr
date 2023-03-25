@@ -4,12 +4,6 @@
 	"properties": {
 		"id": {
 			"type": "string"
-		},
-		"hostconfig": {
-			"type": "string"
-		},
-		"sandboxconfig": {
-			"type": "string"
 		}
 	}
 }

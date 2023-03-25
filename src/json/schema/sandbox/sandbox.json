@@ -5,16 +5,16 @@
 		"id": {
 		    "type": "string"
 		},
-		"name": {
+		"metadata_name": {
 			"type": "string"
 		},
-		"uid": {
+		"metadata_uid": {
 			"type": "string"
 		},
-		"sandbox_namespace": {
+		"metadata_namespace": {
 			"type": "string"
 		},
-		"attempt": {
+		"metadata_attempt": {
 			"type": "uint32"
 		},
 		"ready": {

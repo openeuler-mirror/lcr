@@ -5,10 +5,10 @@
 		"id": {
 			"type": "string"
 		},
-		"sandbox": {
+		"isulad_sandbox_config": {
 			"$ref": "config.json"
 		},
-		"host_config": {
+		"isulad_host_config": {
             "$ref": "../host-config.json"
 		},
 		"cc": {

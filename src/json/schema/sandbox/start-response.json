@@ -2,10 +2,10 @@
 	"$schema": "http://json-schema.org/draft-04/schema#",
 	"type": "object",
 	"properties": {
-		"sandbox_id": {
-			"type": "string"
+		"cc": {
+			"type": "uint32"
 		},
-		"container_id": {
+		"errmsg": {
 			"type": "string"
 		}
 	}
