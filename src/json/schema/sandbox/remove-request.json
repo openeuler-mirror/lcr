@@ -4,6 +4,9 @@
 	"properties": {
 		"id": {
 			"type": "string"
+		},
+		"force": {
+			"type": "boolean"
 		}
 	}
 }
