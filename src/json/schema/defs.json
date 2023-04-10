@@ -989,6 +989,19 @@
                         "limit"
                     ]
                 },
+                "files": {
+                    "id": "https://opencontainers.org/schema/bundle/linux/resources/files",
+                    "type": "object",
+                    "properties": {
+                        "limit": {
+                            "id": "https://opencontainers.org/schema/bundle/linux/resources/files/limit",
+                            "$ref": "#/definitions/int64"
+                        }
+                    },
+                    "required": [
+                        "limit"
+                    ]
+                },
                 "blockIO": {
                     "id": "https://opencontainers.org/schema/bundle/linux/resources/blockIO",
                     "type": "object",
