@@ -5,25 +5,22 @@
 		"id": {
 			"type": "string"
 		},
-		"sandbox_id": {
+		"pid": {
+			"type": "uint32"
+		},
+		"state":{
 			"type": "string"
 		},
-		"rootfs": {
+		"version":{
 			"type": "string"
 		},
-		"image": {
-			"type": "string"
+		"extra":{
+			"$ref": "../defs.json#/definitions/mapStringString"
 		},
-		"runtime": {
-			"type": "string"
+		"created_at": {
+			"type": "uint64"
 		},
-		"restart": {
-			"type": "string"
-		},
-		"hostconfig": {
-			"type": "string"
-		},
-		"customconfig": {
+		"errmsg": {
 			"type": "string"
 		}
 	}

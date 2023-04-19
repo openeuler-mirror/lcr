@@ -292,6 +292,25 @@
                 }
             }
         },
+        "mapStringObjectSandboxers": {
+            "type": "object",
+            "patternProperties": {
+                ".{1,}": {
+                    "type": "object",
+                    "properties": {
+                        "address": {
+                            "type": "string"
+                        },
+                        "controller": {
+                            "type": "string"
+                        },
+                        "protocol": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
         "mapStringObjectNetworks": {
             "type": "object",
             "patternProperties": {

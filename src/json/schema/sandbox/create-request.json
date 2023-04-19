@@ -2,28 +2,22 @@
 	"$schema": "http://json-schema.org/draft-04/schema#",
 	"type": "object",
 	"properties": {
+		"name": {
+			"type": "string"
+		},
 		"id": {
-			"type": "string"
-		},
-		"sandbox_id": {
-			"type": "string"
-		},
-		"rootfs": {
-			"type": "string"
-		},
-		"image": {
 			"type": "string"
 		},
 		"runtime": {
 			"type": "string"
 		},
-		"restart": {
+		"pod_config_option": {
 			"type": "string"
 		},
-		"hostconfig": {
+		"isulad_host_config": {
 			"type": "string"
 		},
-		"customconfig": {
+		"isulad_sandbox_config": {
 			"type": "string"
 		}
 	}

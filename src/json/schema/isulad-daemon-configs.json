@@ -8,6 +8,9 @@
         "default-runtime": {
             "type": "string"
         },
+        "default-sandboxer": {
+            "type": "string"
+        },
         "group": {
             "type": "string"
         },
@@ -161,6 +164,9 @@
         },
         "runtimes": {
             "$ref": "defs.json#/definitions/mapStringObjectRuntimes"
+        },
+        "sandboxers": {
+            "$ref": "defs.json#/definitions/mapStringObjectSandboxers"
         },
         "selinux-enabled": {
             "type": "boolean"

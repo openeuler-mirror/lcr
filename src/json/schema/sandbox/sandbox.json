@@ -1,0 +1,39 @@
+{
+	"$schema": "http://json-schema.org/draft-04/schema#",
+	"type": "object",
+	"properties": {
+		"id": {
+		    "type": "string"
+		},
+		"metadata_name": {
+			"type": "string"
+		},
+		"metadata_uid": {
+			"type": "string"
+		},
+		"metadata_namespace": {
+			"type": "string"
+		},
+		"metadata_attempt": {
+			"type": "uint32"
+		},
+		"ready": {
+		    "type": "boolean"
+		},
+		"created_at": {
+			"type": "uint64"
+		},
+		"runtime": {
+			"type": "string"
+		},
+		"labels": {
+			"$ref": "../defs.json#/definitions/mapStringString"
+		},
+		"annotations": {
+			"$ref": "../defs.json#/definitions/mapStringString"
+		},
+		"errmsg": {
+			"type": "string"
+		}
+	}
+}
