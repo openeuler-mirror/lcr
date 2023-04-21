@@ -789,6 +789,9 @@ void do_lcr_state(struct lxc_container *c, struct lcr_container_state *lcs)
     lcs->mem_limit = lxc_metrics.mem_limit;
     lcs->kmem_used = lxc_metrics.kmem_used;
     lcs->kmem_limit = lxc_metrics.kmem_limit;
+    lcs->rss_bytes = lxc_metrics.rss_bytes;
+    lcs->page_faults = lxc_metrics.page_faults;
+    lcs->major_page_faults = lxc_metrics.major_page_faults;
 
     lcs->cache = lxc_metrics.cache;
     lcs->cache_total = lxc_metrics.cache_total;
