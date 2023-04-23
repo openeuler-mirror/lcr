@@ -20,7 +20,7 @@
     "avaliable_bytes": {
       "type": "uint64"
     },
-    "usage_bytes": {
+    "workingset_bytes": {
       "type": "uint64"
     },
     "rss_bytes": {

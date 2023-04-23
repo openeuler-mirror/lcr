@@ -52,6 +52,15 @@
                             "properties": {
                                 "total_inactive_file": {
                                     "$ref": "../../defs.json#/definitions/uint64"
+                                },
+                                "rss": {
+                                    "$ref": "../../defs.json#/definitions/uint64"
+                                },
+                                "pgfault": {
+                                    "$ref": "../../defs.json#/definitions/uint64"
+                                },
+                                "pgmajfault": {
+                                    "$ref": "../../defs.json#/definitions/uint64"
                                 }
                             }
                         }
