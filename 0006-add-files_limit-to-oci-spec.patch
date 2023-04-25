@@ -1,0 +1,37 @@
+From fe5de86ac3df1ba26f50f0eacdfb525e52f33573 Mon Sep 17 00:00:00 2001
+From: zhongtao <zhongtao17@huawei.com>
+Date: Sat, 8 Apr 2023 11:38:50 +0800
+Subject: [PATCH 6/6] add files_limit to oci spec
+
+Signed-off-by: zhongtao <zhongtao17@huawei.com>
+---
+ src/json/schema/defs.json | 13 +++++++++++++
+ 1 file changed, 13 insertions(+)
+
+diff --git a/src/json/schema/defs.json b/src/json/schema/defs.json
+index 317cab4..27b2de2 100644
+--- a/src/json/schema/defs.json
++++ b/src/json/schema/defs.json
+@@ -920,6 +920,19 @@
+                         "limit"
+                     ]
+                 },
++                "files": {
++                    "id": "https://opencontainers.org/schema/bundle/linux/resources/files",
++                    "type": "object",
++                    "properties": {
++                        "limit": {
++                            "id": "https://opencontainers.org/schema/bundle/linux/resources/files/limit",
++                            "$ref": "#/definitions/int64"
++                        }
++                    },
++                    "required": [
++                        "limit"
++                    ]
++                },
+                 "blockIO": {
+                     "id": "https://opencontainers.org/schema/bundle/linux/resources/blockIO",
+                     "type": "object",
+-- 
+2.25.1
+
