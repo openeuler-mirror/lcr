@@ -1,0 +1,33 @@
+From 2e6991000d0e1e42db9f054400949543a1a44520 Mon Sep 17 00:00:00 2001
+From: zhongtao <zhongtao17@huawei.com>
+Date: Mon, 6 Mar 2023 15:24:59 +0800
+Subject: [PATCH 3/6] adapt to repo of openeuler url changed
+
+Signed-off-by: zhongtao <zhongtao17@huawei.com>
+---
+ CI/pr-gateway.sh | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+diff --git a/CI/pr-gateway.sh b/CI/pr-gateway.sh
+index ae1e8ef..1a15461 100755
+--- a/CI/pr-gateway.sh
++++ b/CI/pr-gateway.sh
+@@ -14,7 +14,15 @@
+ ##- @Create: 2022-02-22
+ #######################################################################
+ 
++sed -i "s#http://repo.openeuler.org#https://repo.huaweicloud.com/openeuler#g" /etc/yum.repos.d/openEuler.repo
++
++dnf update -y
++
+ dnf install -y gtest-devel gmock-devel gtest gmock diffutils cmake gcc-c++ yajl-devel patch make libtool git chrpath zlib-devel
++if [ $? -ne 0 ]; then
++    echo "install dependences failed"
++    exit 1
++fi
+ 
+ cd ~
+ 
+-- 
+2.25.1
+

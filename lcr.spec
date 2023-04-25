@@ -1,5 +1,5 @@
 %global _version 2.0.9
-%global _release 3
+%global _release 4
 %global _inner_name isula_libutils
 
 Name:      lcr
@@ -14,6 +14,10 @@ BuildRoot: %{_tmppath}/lcr-%{version}
 
 Patch0001:	0001-fix-update-cpu-rt-period-failed.patch
 Patch0002:	0002-fix-layer-size-type-as-int64.patch
+Patch0003:	0003-adapt-to-repo-of-openeuler-url-changed.patch
+Patch0004:	0004-add-cgroup-resources-json-schema-for-isula-update.patch
+Patch0005:	0005-add-field-for-isulad-daemon-configs.patch
+Patch0006:	0006-add-files_limit-to-oci-spec.patch
 
 %define lxcver_lower 4.0.3-2022102400
 %define lxcver_upper 4.0.3-2022102500
@@ -109,6 +113,12 @@ rm -rf %{buildroot}
 %{_includedir}/%{_inner_name}/*.h
 
 %changelog
+* Mon Apr 24 2023 zhangxiaoyu<zhangxiaoyu58@huawei.com> - 2.0.9-4
+- Type:bugfix
+- CVE:NA
+- SUG:NA
+- DESC:support update resources, remote-layer and files limit
+
 * Tue Feb 21 2023 zhangxiaoyu<zhangxiaoyu58@huawei.com> - 2.0.9-3
 - Type:bugfix
 - CVE:NA
