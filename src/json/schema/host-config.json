@@ -145,9 +145,6 @@
         "OomScoreAdj": {
             "type": "integer"
         },
-        "MemorySwapLimitInBytes":{
-            "type": "int64"
-        },
         "BlkioWeight": {
             "type": "uint16"
         },
