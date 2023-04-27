@@ -54,6 +54,43 @@
                 }
             }
         },
+        "Resources": {
+            "type": "object",
+            "properties": {
+                "CPUPeriod": {
+                    "type": "int64"
+                },
+                "CPUQuota": {
+                    "type": "int64"
+                },
+                "CPUShares": {
+                    "type": "int64"
+                },
+                "Memory": {
+                    "type": "int64"
+                },
+                "MemorySwap": {
+                    "type": "int64"
+                },
+                "Hugetlbs": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "PageSize": {
+                                "type": "string"
+                            },
+                            "Limit": {
+                                "type": "uint64"
+                            }
+                        }
+                    }
+                },
+                "unified": {
+                    "$ref": "../defs.json#/definitions/mapStringString"
+                }
+            }
+        },
         "Image": {
             "type": "string"
         },
