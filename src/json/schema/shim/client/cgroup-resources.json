@@ -53,6 +53,9 @@
                     "$ref": "../../defs.json#/definitions/uint64"
                 }
             }
+        },
+        "unified": {
+            "$ref": "../../defs.json#/definitions/mapStringString"
         }
     }
 }
