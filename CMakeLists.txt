@@ -123,6 +123,7 @@ install(FILES src/runtime/lcrcontainer.h
 install(FILES src/third_party/log.h DESTINATION include/isula_libutils)
 install(FILES src/third_party/go_crc64.h DESTINATION include/isula_libutils)
 install(FILES src/json/oci_runtime_hooks.h DESTINATION include/isula_libutils)
+install(FILES src/json/defs_process.h DESTINATION include/isula_libutils)
 install(FILES src/json/parse_common.h DESTINATION include/isula_libutils)
 install(DIRECTORY ${CMAKE_BINARY_DIR}/json/ DESTINATION include/isula_libutils
         FILES_MATCHING PATTERN "*.h")
