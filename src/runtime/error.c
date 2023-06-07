@@ -20,11 +20,13 @@
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  ********************************************************************************/
-
-#include "utils.h"
 #include "error.h"
+
 #include <stdarg.h>
 #include <stdlib.h>
+
+#include "utils.h"
+#include "constants.h"
 
 // record the lcr error
 __thread engine_error_t g_lcr_error = {
@@ -63,12 +65,12 @@ void clear_error_message(engine_error_t *error)
 void lcr_set_error_message(lcr_errno_t errcode, const char *format, ...)
 {
     int ret = 0;
-    char errbuf[BUFSIZ + 1] = { 0 };
+    char errbuf[ISULA_PAGE_BUFSIZE + 1] = { 0 };
 
     va_list argp;
     va_start(argp, format);
 
-    ret = vsnprintf(errbuf, BUFSIZ, format, argp);
+    ret = vsnprintf(errbuf, ISULA_PAGE_BUFSIZE, format, argp);
     va_end(argp);
     clear_error_message(&g_lcr_error);
     if (ret < 0) {
@@ -82,14 +84,14 @@ void lcr_set_error_message(lcr_errno_t errcode, const char *format, ...)
 void lcr_try_set_error_message(lcr_errno_t errcode, const char *format, ...)
 {
     int ret = 0;
-    char errbuf[BUFSIZ + 1] = { 0 };
+    char errbuf[ISULA_PAGE_BUFSIZE + 1] = { 0 };
     va_list argp;
 
     if (g_lcr_error.errmsg != NULL || g_lcr_error.errcode != LCR_SUCCESS) {
         return;
     }
     va_start(argp, format);
-    ret = vsnprintf(errbuf, BUFSIZ, format, argp);
+    ret = vsnprintf(errbuf, ISULA_PAGE_BUFSIZE, format, argp);
     va_end(argp);
     clear_error_message(&g_lcr_error);
     if (ret < 0) {
@@ -103,13 +105,13 @@ void lcr_try_set_error_message(lcr_errno_t errcode, const char *format, ...)
 void lcr_append_error_message(lcr_errno_t errcode, const char *format, ...)
 {
     int ret = 0;
-    char errbuf[BUFSIZ + 1] = { 0 };
+    char errbuf[ISULA_PAGE_BUFSIZE + 1] = { 0 };
     char *result = NULL;
 
     va_list argp;
     va_start(argp, format);
 
-    ret = vsnprintf(errbuf, BUFSIZ, format, argp);
+    ret = vsnprintf(errbuf, ISULA_PAGE_BUFSIZE, format, argp);
     va_end(argp);
     if (ret < 0) {
         g_lcr_error.errcode = LCR_ERR_FORMAT;

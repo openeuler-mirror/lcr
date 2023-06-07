@@ -19,6 +19,12 @@
 #include <stdlib.h>
 #include <string.h>
 #include <limits.h>
+#include <stdio.h>
+
+#ifndef BUFSIZ
+// default use BUFSIZ from stdio.h
+#define BUFSIZ 8096
+#endif
 
 char *
 fread_file (FILE *stream, size_t *length)

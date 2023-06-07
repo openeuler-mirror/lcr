@@ -21,36 +21,24 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  ********************************************************************************/
 
-#ifndef _ISULA_UTILS_CONSTANTS_H
-#define _ISULA_UTILS_CONSTANTS_H
+#ifndef _ISULA_UTILS_UTILS_H
+#define _ISULA_UTILS_UTILS_H
 
-/* mode of file and directory */
+#include "utils_memory.h"
+#include "utils_convert.h"
+#include "utils_cgroup.h"
+#include "utils_array.h"
+#include "utils_file.h"
 
-#define DEFAULT_SECURE_FILE_MODE 0640
-
-#define DEFAULT_SECURE_DIRECTORY_MODE 0750
-
-#define ROOTFS_MNT_DIRECTORY_MODE 0640
-
-#define CONFIG_DIRECTORY_MODE 0750
-
-#define CONFIG_FILE_MODE 0640
-
-#define NETWORK_MOUNT_FILE_MODE 0644
-
-#define ARCH_LOG_FILE_MODE 0440
-
-#define WORKING_LOG_FILE_MODE 0640
-
-#define LOG_DIRECTORY_MODE 0750
-
-#define TEMP_DIRECTORY_MODE 0750
-
-#define DEBUG_FILE_MODE 0640
-
-#define DEBUG_DIRECTORY_MODE 0750
-
-/* buffer constants defined here */
-#define ISULA_PAGE_BUFSIZE 4096
-
+#ifdef __cplusplus
+extern "C" {
 #endif
+
+int lcr_wait_for_pid(pid_t pid);
+int lcr_wait_for_pid_status(pid_t pid);
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif /* _ISULA_UTILS_UTILS_H */

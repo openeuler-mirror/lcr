@@ -20,37 +20,50 @@
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  ********************************************************************************/
+#include "utils.h"
 
-#ifndef _ISULA_UTILS_CONSTANTS_H
-#define _ISULA_UTILS_CONSTANTS_H
+#include <sys/wait.h>
+#include <errno.h>
 
-/* mode of file and directory */
+/* wait for pid */
+int lcr_wait_for_pid(pid_t pid)
+{
+    int st;
+    int nret = 0;
 
-#define DEFAULT_SECURE_FILE_MODE 0640
+again:
+    nret = waitpid(pid, &st, 0);
+    if (nret == -1) {
+        if (errno == EINTR) {
+            goto again;
+        }
+        return -1;
+    }
+    if (nret != pid) {
+        goto again;
+    }
+    if (!WIFEXITED(st) || WEXITSTATUS(st) != 0) {
+        return -1;
+    }
+    return 0;
+}
 
-#define DEFAULT_SECURE_DIRECTORY_MODE 0750
+/* wait for pid status */
+int lcr_wait_for_pid_status(pid_t pid)
+{
+    int st;
+    int nret = 0;
+rep:
+    nret = waitpid(pid, &st, 0);
+    if (nret == -1) {
+        if (errno == EINTR) {
+            goto rep;
+        }
+        return -1;
+    }
 
-#define ROOTFS_MNT_DIRECTORY_MODE 0640
-
-#define CONFIG_DIRECTORY_MODE 0750
-
-#define CONFIG_FILE_MODE 0640
-
-#define NETWORK_MOUNT_FILE_MODE 0644
-
-#define ARCH_LOG_FILE_MODE 0440
-
-#define WORKING_LOG_FILE_MODE 0640
-
-#define LOG_DIRECTORY_MODE 0750
-
-#define TEMP_DIRECTORY_MODE 0750
-
-#define DEBUG_FILE_MODE 0640
-
-#define DEBUG_DIRECTORY_MODE 0750
-
-/* buffer constants defined here */
-#define ISULA_PAGE_BUFSIZE 4096
-
-#endif
+    if (nret != pid) {
+        goto rep;
+    }
+    return st;
+}

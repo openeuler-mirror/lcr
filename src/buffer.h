@@ -21,8 +21,8 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  ********************************************************************************/
 
-#ifndef LCR_BUFFER_H
-#define LCR_BUFFER_H
+#ifndef _ISULA_UTILS_BUFFER_H
+#define _ISULA_UTILS_BUFFER_H
 
 #include <stdlib.h>
 

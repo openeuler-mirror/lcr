@@ -38,11 +38,14 @@
 
 #include "buffer.h"
 #include "lcr_list.h"
+#include "constants.h"
 
 #define SUB_UID_PATH "/etc/subuid"
 #define SUB_GID_PATH "/etc/subgid"
 #define ID_MAP_LEN 100
 #define DEFAULT_BUF_LEN 300
+
+#define SPACE_MAGIC_STR "[#)"
 
 /* files limit checker for cgroup v1 */
 static int files_limit_checker_v1(const char *value)
@@ -475,16 +478,17 @@ out:
 /* additional groups for init command */
 static int trans_oci_process_init_groups(const defs_process *proc, struct lcr_list *conf)
 {
+#define MAX_USER_GID_LEN 21
     struct lcr_list *node = NULL;
     int nret;
     size_t i = 0;
     int ret = -1;
     if (proc->user != NULL && proc->user->additional_gids != NULL && proc->user->additional_gids_len > 0) {
-        if (proc->user->additional_gids_len > (SIZE_MAX / (LCR_NUMSTRLEN64 + 1))) {
+        if (proc->user->additional_gids_len > (SIZE_MAX / (MAX_USER_GID_LEN + 1))) {
             goto out;
         }
 
-        size_t total_len = (LCR_NUMSTRLEN64 + 1) * proc->user->additional_gids_len;
+        size_t total_len = (MAX_USER_GID_LEN + 1) * proc->user->additional_gids_len;
         char *gids = lcr_util_common_calloc_s(total_len);
         if (gids == NULL) {
             goto out;
@@ -2880,7 +2884,7 @@ static struct lcr_list *trans_oci_linux_sysctl(const json_map_string_string *sys
     lcr_list_init(conf);
 
     for (i = 0; i < sysctl->len; i++) {
-        char sysk[BUFSIZ] = { 0 };
+        char sysk[ISULA_PAGE_BUFSIZE] = { 0 };
         int nret = snprintf(sysk, sizeof(sysk), "lxc.sysctl.%s", sysctl->keys[i]);
         if (nret < 0 || (size_t)nret >= sizeof(sysk)) {
             ERROR("Failed to print string");

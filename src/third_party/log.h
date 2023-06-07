@@ -29,8 +29,8 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdbool.h>
-#include <strings.h>
 #include <time.h>
+#include <string.h>
 
 #ifdef __cplusplus
 extern "C" {

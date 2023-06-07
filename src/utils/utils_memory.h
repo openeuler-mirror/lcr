@@ -1,7 +1,7 @@
 /******************************************************************************
- * lcr: utils library for iSula
+ * isula: memory utils
  *
- * Copyright (c) Huawei Technologies Co., Ltd. 2020. All rights reserved.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2023. All rights reserved.
  *
  * Authors:
  * Haozi007 <liuhao27@huawei.com>
@@ -20,37 +20,25 @@
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  ********************************************************************************/
+#ifndef _ISULA_UTILS_UTILS_MEMORY_H
+#define _ISULA_UTILS_UTILS_MEMORY_H
 
-#ifndef _ISULA_UTILS_CONSTANTS_H
-#define _ISULA_UTILS_CONSTANTS_H
+#include <stdbool.h>
+#include <stdint.h>
+#include <sys/types.h>
 
-/* mode of file and directory */
-
-#define DEFAULT_SECURE_FILE_MODE 0640
-
-#define DEFAULT_SECURE_DIRECTORY_MODE 0750
-
-#define ROOTFS_MNT_DIRECTORY_MODE 0640
-
-#define CONFIG_DIRECTORY_MODE 0750
-
-#define CONFIG_FILE_MODE 0640
-
-#define NETWORK_MOUNT_FILE_MODE 0644
-
-#define ARCH_LOG_FILE_MODE 0440
-
-#define WORKING_LOG_FILE_MODE 0640
-
-#define LOG_DIRECTORY_MODE 0750
-
-#define TEMP_DIRECTORY_MODE 0750
-
-#define DEBUG_FILE_MODE 0640
-
-#define DEBUG_DIRECTORY_MODE 0750
-
-/* buffer constants defined here */
-#define ISULA_PAGE_BUFSIZE 4096
-
+#ifdef __cplusplus
+extern "C" {
 #endif
+
+void *lcr_util_smart_calloc_s(size_t unit_size, size_t count);
+void *lcr_util_common_calloc_s(size_t size);
+int lcr_mem_realloc(void **newptr, size_t newsize, void *oldptr, size_t oldsize);
+
+char *lcr_util_strdup_s(const char *src);
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif /* _ISULA_UTILS_UTILS_MEMORY_H */

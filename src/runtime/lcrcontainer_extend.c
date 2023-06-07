@@ -1036,6 +1036,7 @@ out_free:
     return ret;
 }
 
+#define OCIHOOKSFILE "ocihooks.json"
 static bool lcr_save_ocihooks(const char *name, const char *lcrpath, const oci_runtime_spec_hooks *hooks)
 {
     const char *path = lcrpath ? lcrpath : LCRPATH;

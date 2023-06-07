@@ -1,7 +1,7 @@
 /******************************************************************************
- * lcr: utils library for iSula
+ * isula: signal utils
  *
- * Copyright (c) Huawei Technologies Co., Ltd. 2020. All rights reserved.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2023. All rights reserved.
  *
  * Authors:
  * Haozi007 <liuhao27@huawei.com>
@@ -20,59 +20,12 @@
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  ********************************************************************************/
-
-#ifndef __LCR_UTILS_H
-#define __LCR_UTILS_H
-
-#include <stdbool.h>
-#include <stdint.h>
-#include <sys/types.h>
-#include <stdio.h>
+#ifndef _ISULA_UTILS_CONSTANTS_SIGNAL_H
+#define _ISULA_UTILS_CONSTANTS_SIGNAL_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#define CGROUP2_WEIGHT_MIN 1
-#define CGROUP2_WEIGHT_MAX 10000
-#define CGROUP2_BFQ_WEIGHT_MIN 1
-#define CGROUP2_BFQ_WEIGHT_MAX 1000
-
-#define DEFAULT_CPU_PERIOD 100000
-#define CGROUP_MOUNTPOINT "/sys/fs/cgroup"
-
-#ifndef CGROUP2_SUPER_MAGIC
-#define CGROUP2_SUPER_MAGIC 0x63677270
-#endif
-
-#ifndef CGROUP_SUPER_MAGIC
-#define CGROUP_SUPER_MAGIC 0x27e0eb
-#endif
-
-#define CGROUP_VERSION_1 1
-#define CGROUP_VERSION_2 2
-
-#ifndef O_CLOEXEC
-#define O_CLOEXEC 02000000
-#endif
-
-#define ECOMMON 1
-#define EINVALIDARGS 125
-#define ECMDNOTFOUND 127
-
-#define LCR_NUMSTRLEN64 21
-
-#define SPACE_MAGIC_STR "[#)"
-
-#define MAX_PATH_DEPTH 1024
-
-#define SIZE_KB 1024LL
-#define SIZE_MB (1024LL * SIZE_KB)
-#define SIZE_GB (1024LL * SIZE_MB)
-#define SIZE_TB (1024LL * SIZE_GB)
-#define SIZE_PB (1024LL * SIZE_TB)
-
-#define BUFSIZE 4096
 
 #ifndef SIGTRAP
 #define SIGTRAP 5
@@ -181,50 +134,9 @@ extern "C" {
         { SIGRTMAX - 1, "RTMAX-1" }, { SIGRTMAX, "RTMAX" },                                                    \
     }
 
-int lcr_wait_for_pid(pid_t pid);
-int lcr_wait_for_pid_status(pid_t pid);
-char *lcr_util_string_join(const char *sep, const char **parts, size_t len);
-char **lcr_string_split_and_trim(const char *str, char _sep);
-void lcr_free_array(void **array);
-int lcr_grow_array(void ***array, size_t *capacity, size_t new_size, size_t capacity_increment);
-size_t lcr_array_len(void **array);
-int lcr_mem_realloc(void **newptr, size_t newsize, void *oldptr, size_t oldsize);
-int lcr_util_safe_strtod(const char *numstr, double *converted);
-int lcr_util_safe_uint(const char *numstr, unsigned int *converted);
-int lcr_parse_byte_size_string(const char *s, int64_t *converted);
-bool lcr_util_dir_exists(const char *path);
-int lcr_util_ensure_path(char **confpath, const char *path);
-int lcr_util_recursive_rmdir(const char *dirpath, int recursive_depth);
-char *lcr_util_string_replace(const char *needle, const char *replacement, const char *haystack);
-int lcr_util_open(const char *filename, int flags, mode_t mode);
-
-void *lcr_util_smart_calloc_s(size_t unit_size, size_t count);
-void *lcr_util_common_calloc_s(size_t size);
-int lcr_util_safe_int(const char *numstr, int *converted);
-int lcr_util_check_inherited(bool closeall, int fd_to_ignore);
-char *lcr_util_string_append(const char *post, const char *pre);
-char *lcr_util_string_split_prefix(size_t prefix_len, const char *file);
-
-int lcr_util_build_dir(const char *name);
-ssize_t lcr_util_write_nointr(int fd, const void *buf, size_t count);
-ssize_t lcr_util_read_nointr(int fd, void *buf, size_t count);
-
-size_t lcr_util_array_len(char **array);
-
-int lcr_util_safe_llong(const char *numstr, long long *converted);
-char *lcr_util_strdup_s(const char *src);
-int lcr_util_null_stdfds(void);
-
-int lcr_util_atomic_write_file(const char *filepath, const char *content);
-
-int lcr_util_get_real_swap(int64_t memory, int64_t memory_swap, int64_t *swap);
-int lcr_util_trans_cpushare_to_cpuweight(int64_t cpu_share);
-uint64_t lcr_util_trans_blkio_weight_to_io_weight(int weight);
-uint64_t lcr_util_trans_blkio_weight_to_io_bfq_weight(int weight);
-int lcr_util_get_cgroup_version();
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* __LCR_UTILS_H */
+#endif /* _ISULA_UTILS_CONSTANTS_SIGNAL_H */

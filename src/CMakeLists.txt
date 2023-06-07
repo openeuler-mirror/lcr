@@ -44,6 +44,12 @@ list(REMOVE_DUPLICATES check_isula_utils_incs)
 # generate .c and .h files for json
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/json)
 
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/third_party)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/utils)
+
+# all lcr runtime code files in runtime dir
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/runtime)
+
 # get json source files
 aux_source_directory(${CMAKE_BINARY_DIR}/json generatesrcs)
 
@@ -51,15 +57,15 @@ aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR}/json topjsonsrcs)
 
 # get top source files
 aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR} topsrcs)
-list(REMOVE_ITEM topsrcs "${CMAKE_CURRENT_SOURCE_DIR}/utils.c")
 message("--  Get top srcs: " ${topsrcs})
 
 set(isula_libutils_srcs
-    ${CMAKE_CURRENT_SOURCE_DIR}/utils.c
+    ${topsrcs}
     ${THIRD_PARTY_SRCS}
     ${generatesrcs}
     ${commonjsonsrcs}
     ${topjsonsrcs}
+    ${UTILS_SRCS}
     )
 
 set(isula_libutils_incs
@@ -69,6 +75,7 @@ set(isula_libutils_incs
     ${CMAKE_BINARY_DIR}/json
     ${THIRD_PARTY_INCS}
     ${check_isula_utils_incs}
+    ${UTILS_INCS}
     )
 
 # set libisula_libutils library
@@ -98,13 +105,14 @@ set_target_properties(isula_libutils_s PROPERTIES OUTPUT_NAME isula_libutils)
 
 if (ENABLE_LIBLCR)
 # set liblcr library
-add_library(liblcr SHARED ${topsrcs})
+add_library(liblcr SHARED ${RUNTIME_SRCS})
 
 set(liblcr_incs
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${CMAKE_BINARY_DIR}/conf
     ${CMAKE_CURRENT_SOURCE_DIR}/json/schema/src
     ${CMAKE_CURRENT_SOURCE_DIR}/json
+    ${RUNTIME_INCS}
     ${check_incs}
 )
 
@@ -123,7 +131,7 @@ if (CMAKE_TOOLCHAIN_FILE)
 endif()
 
 
-add_library(liblcr_s STATIC ${topsrcs})
+add_library(liblcr_s STATIC ${RUNTIME_SRCS})
 target_include_directories(liblcr_s
     PUBLIC ${liblcr_incs}
     )

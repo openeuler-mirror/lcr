@@ -1,7 +1,7 @@
 /******************************************************************************
- * lcr: utils library for iSula
+ * isula: array utils
  *
- * Copyright (c) Huawei Technologies Co., Ltd. 2020. All rights reserved.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2023. All rights reserved.
  *
  * Authors:
  * Haozi007 <liuhao27@huawei.com>
@@ -20,37 +20,30 @@
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  ********************************************************************************/
+#ifndef _ISULA_UTILS_UTILS_ARRAY_H
+#define _ISULA_UTILS_UTILS_ARRAY_H
 
-#ifndef _ISULA_UTILS_CONSTANTS_H
-#define _ISULA_UTILS_CONSTANTS_H
+#include <sys/types.h>
+#include <stdint.h>
 
-/* mode of file and directory */
-
-#define DEFAULT_SECURE_FILE_MODE 0640
-
-#define DEFAULT_SECURE_DIRECTORY_MODE 0750
-
-#define ROOTFS_MNT_DIRECTORY_MODE 0640
-
-#define CONFIG_DIRECTORY_MODE 0750
-
-#define CONFIG_FILE_MODE 0640
-
-#define NETWORK_MOUNT_FILE_MODE 0644
-
-#define ARCH_LOG_FILE_MODE 0440
-
-#define WORKING_LOG_FILE_MODE 0640
-
-#define LOG_DIRECTORY_MODE 0750
-
-#define TEMP_DIRECTORY_MODE 0750
-
-#define DEBUG_FILE_MODE 0640
-
-#define DEBUG_DIRECTORY_MODE 0750
-
-/* buffer constants defined here */
-#define ISULA_PAGE_BUFSIZE 4096
-
+#ifdef __cplusplus
+extern "C" {
 #endif
+
+void lcr_free_array(void **array);
+int lcr_grow_array(void ***array, size_t *capacity, size_t new_size, size_t capacity_increment);
+size_t lcr_array_len(void **array);
+size_t lcr_util_array_len(char **array);
+
+char *lcr_util_string_join(const char *sep, const char **parts, size_t len);
+char **lcr_string_split_and_trim(const char *str, char _sep);
+char *lcr_util_string_replace(const char *needle, const char *replacement, const char *haystack);
+char *lcr_util_string_append(const char *post, const char *pre);
+char *lcr_util_string_split_prefix(size_t prefix_len, const char *file);
+
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif /* _ISULA_UTILS_UTILS_ARRAY_H */

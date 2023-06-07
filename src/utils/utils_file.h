@@ -1,7 +1,7 @@
 /******************************************************************************
- * lcr: utils library for iSula
+ * isula: file utils
  *
- * Copyright (c) Huawei Technologies Co., Ltd. 2020. All rights reserved.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2023. All rights reserved.
  *
  * Authors:
  * Haozi007 <liuhao27@huawei.com>
@@ -20,37 +20,38 @@
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  ********************************************************************************/
+#ifndef _ISULA_UTILS_UTILS_FILE_H
+#define _ISULA_UTILS_UTILS_FILE_H
 
-#ifndef _ISULA_UTILS_CONSTANTS_H
-#define _ISULA_UTILS_CONSTANTS_H
+#include <stdbool.h>
+#include <sys/types.h>
 
-/* mode of file and directory */
-
-#define DEFAULT_SECURE_FILE_MODE 0640
-
-#define DEFAULT_SECURE_DIRECTORY_MODE 0750
-
-#define ROOTFS_MNT_DIRECTORY_MODE 0640
-
-#define CONFIG_DIRECTORY_MODE 0750
-
-#define CONFIG_FILE_MODE 0640
-
-#define NETWORK_MOUNT_FILE_MODE 0644
-
-#define ARCH_LOG_FILE_MODE 0440
-
-#define WORKING_LOG_FILE_MODE 0640
-
-#define LOG_DIRECTORY_MODE 0750
-
-#define TEMP_DIRECTORY_MODE 0750
-
-#define DEBUG_FILE_MODE 0640
-
-#define DEBUG_DIRECTORY_MODE 0750
-
-/* buffer constants defined here */
-#define ISULA_PAGE_BUFSIZE 4096
-
+#ifdef __cplusplus
+extern "C" {
 #endif
+
+#ifndef O_CLOEXEC
+#define O_CLOEXEC 02000000
+#endif
+
+#define MAX_PATH_DEPTH 1024
+
+int lcr_util_build_dir(const char *name);
+bool lcr_util_dir_exists(const char *path);
+int lcr_util_ensure_path(char **confpath, const char *path);
+int lcr_util_recursive_rmdir(const char *dirpath, int recursive_depth);
+
+int lcr_util_open(const char *filename, int flags, mode_t mode);
+
+ssize_t lcr_util_write_nointr(int fd, const void *buf, size_t count);
+ssize_t lcr_util_read_nointr(int fd, void *buf, size_t count);
+int lcr_util_atomic_write_file(const char *filepath, const char *content);
+
+int lcr_util_check_inherited(bool closeall, int fd_to_ignore);
+int lcr_util_null_stdfds(void);
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif /* _ISULA_UTILS_UTILS_FILE_H */

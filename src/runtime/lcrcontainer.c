@@ -339,7 +339,7 @@ static bool wait_start_pid(pid_t pid, int rfd, const char *name, const char *pat
 {
     int ret;
     ssize_t size_read = 0;
-    char buffer[BUFSIZ] = { 0 };
+    char buffer[ISULA_PAGE_BUFSIZE] = { 0 };
 
     ret = lcr_wait_for_pid(pid);
     if (ret == 0) {

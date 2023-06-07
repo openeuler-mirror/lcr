@@ -1,6 +1,6 @@
-# iSula-libutils: utils library for iSula
+# iSula: lcr runtime codes
 #
-# Copyright (c) Huawei Technologies Co., Ltd. 2020. All rights reserved.
+# Copyright (c) Huawei Technologies Co., Ltd. 2023. All rights reserved.
 #
 # Authors:
 # Haozi007 <liuhao27@huawei.com>
@@ -20,17 +20,16 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #
 
-set(cmdpath python3)
-set(pysrcpath ${CMAKE_SOURCE_DIR}/src/third_party/libocispec/generate.py)
-set(schemapath ${CMAKE_CURRENT_SOURCE_DIR}/schema)
-set(outputpath ${CMAKE_BINARY_DIR}/json)
+# get current directory sources files
+aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR} local_utils_srcs)
 
-message("--  Generate .c and .h file into: " ${outputpath})
-
-execute_process(COMMAND ${cmdpath} ${pysrcpath} --gen-common --gen-ref -r --root=${schemapath} --out=${outputpath} ${schemapath}
-    ERROR_VARIABLE err
+set(RUNTIME_SRCS
+    ${local_utils_srcs}
+    PARENT_SCOPE
     )
 
-if (err)
-    message(FATAL_ERROR "ERROR: " ${err})
-endif()
+set(RUNTIME_INCS
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    PARENT_SCOPE
+    )
+

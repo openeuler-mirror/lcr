@@ -39,6 +39,10 @@
 
 #define NUM_STR_LEN 128
 
+#define LCR_NUMSTRLEN64 21
+
+#define PARAM_NUM 50
+
 // Cgroup v1 Item Definition
 #define CGROUP_BLKIO_WEIGHT "blkio.weight"
 #define CGROUP_CPU_SHARES "cpu.shares"
@@ -908,7 +912,7 @@ bool do_attach(const char *name, const char *path, const struct lcr_exec_request
     bool ret = false;
     pid_t pid = 0;
     ssize_t size_read = 0;
-    char buffer[BUFSIZ + 1] = {0};
+    char buffer[ISULA_PAGE_BUFSIZE + 1] = {0};
     int pipefd[2] = {-1, -1};
     int status = 0;
 
@@ -951,7 +955,7 @@ bool do_attach(const char *name, const char *path, const struct lcr_exec_request
     *exit_code = do_attach_get_exit_code(status);
 
     if (!WIFEXITED(status) || WEXITSTATUS(status) != 0) {
-        size_read = read(pipefd[0], buffer, BUFSIZ);
+        size_read = read(pipefd[0], buffer, ISULA_PAGE_BUFSIZE);
         /* if we read errmsg means the runtime failed to exec */
         if (size_read > 0) {
             ERROR("Runtime error: %s", buffer);

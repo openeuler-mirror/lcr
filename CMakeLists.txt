@@ -80,8 +80,6 @@ configure_file(
 	"${CMAKE_BINARY_DIR}/conf/libisula.pc"
 )
 
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/third_party)
-
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/src)
 
 # unit test and coverage
@@ -119,16 +117,17 @@ install(FILES ${CMAKE_BINARY_DIR}/conf/lcr.pc
 	DESTINATION ${LIB_INSTALL_DIR_DEFAULT}/pkgconfig PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ GROUP_WRITE WORLD_READ WORLD_EXECUTE)
 install(FILES ${CMAKE_BINARY_DIR}/conf/libisula.pc
 	DESTINATION ${LIB_INSTALL_DIR_DEFAULT}/pkgconfig PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ GROUP_WRITE WORLD_READ WORLD_EXECUTE)
-install(FILES src/lcrcontainer.h
+install(FILES src/runtime/lcrcontainer.h
 	DESTINATION include/lcr)
 
-install(FILES third_party/log.h DESTINATION include/isula_libutils)
-install(FILES third_party/auto_cleanup.h DESTINATION include/isula_libutils)
-install(FILES third_party/go_crc64.h DESTINATION include/isula_libutils)
+install(FILES src/third_party/log.h DESTINATION include/isula_libutils)
+install(FILES src/third_party/go_crc64.h DESTINATION include/isula_libutils)
 install(FILES src/json/oci_runtime_hooks.h DESTINATION include/isula_libutils)
 install(FILES src/json/parse_common.h DESTINATION include/isula_libutils)
 install(DIRECTORY ${CMAKE_BINARY_DIR}/json/ DESTINATION include/isula_libutils
         FILES_MATCHING PATTERN "*.h")
+install(FILES src/auto_cleanup.h DESTINATION include/isula_libutils)
+# donot export utils now
 
 # uninstall
 if(NOT TARGET uninstall)

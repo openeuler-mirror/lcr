@@ -43,7 +43,7 @@ macro(_DEFINE_NEW_TEST)
         ${GTEST_INCLUDE_DIR}
         PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}
         PUBLIC ${CMAKE_SOURCE_DIR}/src
-        PUBLIC ${CMAKE_SOURCE_DIR}/third_party
+        PUBLIC ${CMAKE_SOURCE_DIR}/src/third_party
         PUBLIC ${CMAKE_SOURCE_DIR}/src/json
         PUBLIC ${CMAKE_SOURCE_DIR}/src/json/schema/src
         PUBLIC ${CMAKE_BINARY_DIR}/json

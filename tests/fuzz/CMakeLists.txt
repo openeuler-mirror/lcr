@@ -31,8 +31,8 @@ add_executable(${EXE} log_fuzz.cc)
 
 target_include_directories(${EXE} PUBLIC
     ${GTEST_INCLUDE_DIR}
-    PUBLIC ${CMAKE_SOURCE_DIR}/third_party
-    PUBLIC ${CMAKE_SOURCE_DIR}/third_party/libocispec
+    PUBLIC ${CMAKE_SOURCE_DIR}/src/third_party
+    PUBLIC ${CMAKE_SOURCE_DIR}/src/third_party/libocispec
     )
 
 set_target_properties(${EXE} PROPERTIES LINKER_LANGUAGE CXX)
