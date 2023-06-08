@@ -54,9 +54,21 @@ ldconfig
 rm -rf iSulad
 git clone https://gitee.com/openeuler/iSulad.git
 pushd iSulad
+git checkout dev-sandbox
 mkdir -p build
 pushd build
 cmake -DDEBUG=ON -DCMAKE_INSTALL_PREFIX=/usr -DENABLE_UT=ON -DENABLE_SHIM_V2=OFF ../ || exit 1
+make -j $(nproc) || exit 1
+popd
+popd
+
+# build iSulad with sandbox api
+ldconfig
+pushd iSulad
+rm -rf build
+mkdir build
+pushd build
+cmake -DENABLE_SANDBOX=ON -DDEBUG=ON -DCMAKE_INSTALL_PREFIX=/usr -DENABLE_UT=ON -DENABLE_SHIM_V2=OFF ../ || exit 1
 make -j $(nproc) || exit 1
 popd
 popd

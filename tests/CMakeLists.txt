@@ -24,6 +24,7 @@ enable_testing()
 find_package(GTest REQUIRED)
 
 configure_file("data/ocihook.json" ${CMAKE_BINARY_DIR}/tests/ocihook.json COPYONLY)
+configure_file("data/process.json" ${CMAKE_BINARY_DIR}/tests/process.json COPYONLY)
 
 macro(_DEFINE_NEW_TEST)
     add_executable(${ARGV0}
@@ -68,6 +69,7 @@ endif()
 #   api testcase
 _DEFINE_NEW_TEST(log_ut log_testcase)
 _DEFINE_NEW_TEST(libocispec_ut libocispec_testcase)
+_DEFINE_NEW_TEST(defs_process_ut defs_process_testcase)
 _DEFINE_NEW_TEST(go_crc64_ut go_crc64_testcase)
 _DEFINE_NEW_TEST(auto_cleanup_ut autocleanup_testcase)
 
@@ -82,7 +84,7 @@ target_link_libraries(mock_ut
     ${GTEST_LIBRARY}
     pthread
     )
-add_dependencies(mock_ut log_ut libocispec_ut go_crc64_ut)
+add_dependencies(mock_ut log_ut libocispec_ut defs_process_ut go_crc64_ut)
 
 IF(ENABLE_GCOV)
     add_custom_target(coverage
