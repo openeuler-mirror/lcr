@@ -26,6 +26,9 @@
         "log-opts": {
             "$ref": "defs.json#/definitions/mapStringString"
         },
+        "cri-sandboxers": {
+            "$ref": "defs.json#/definitions/mapStringObjectSandboxer"
+        },
         "cri-runtimes": {
             "$ref": "defs.json#/definitions/mapStringString"
         },

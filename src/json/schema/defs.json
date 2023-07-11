@@ -273,6 +273,22 @@
                 }
             }
         },
+        "mapStringObjectSandboxer": {
+            "type": "object",
+            "patternProperties": {
+                ".{1,}": {
+                    "type": "object",
+                    "properties": {
+                        "name": {
+                            "type": "string"
+                        },
+                        "address": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
         "mapStringObjectRuntimes": {
             "type": "object",
             "patternProperties": {
