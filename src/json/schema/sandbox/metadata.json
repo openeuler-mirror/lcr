@@ -1,0 +1,44 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "type": "object",
+    "properties": {
+      "id": {
+        "type": "string"
+      },
+      "name": {
+        "type": "string"
+      },
+      "runtimeInfo": {
+        "type": "object",
+        "properties": {
+          "runtime": {
+              "type": "string"
+          },
+          "sandboxer": {
+            "type": "string"
+          },
+          "runtimeHandler": {
+            "type": "string"
+          }
+        }
+      },
+      "taskAddress": {
+        "type": "string"
+      },
+      "netMode": {
+        "type": "string"
+      },
+      "netNsPath": {
+        "type": "string"
+      },
+      "networkReady": {
+        "type": "boolean"
+      },
+      "containers": {
+        "type": "ArrayOfStrings"
+      },
+     "sandboxConfigJson": {
+        "type": "string"
+     }
+    }
+}

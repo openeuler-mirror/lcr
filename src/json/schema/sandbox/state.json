@@ -1,0 +1,24 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "type": "object",
+    "properties": {
+        "Pid": {
+            "type": "uint32"
+        },
+        "CreatedAt": {
+            "type": "uint64"
+        },
+        "UpdatedAt": {
+            "type": "uint64"
+        },
+        "ExitedAt": {
+            "type": "uint64"
+        },
+        "ExitStatus": {
+            "type": "uint32"
+        },
+        "Status": {
+            "type": "integer"
+        }
+    }
+}
