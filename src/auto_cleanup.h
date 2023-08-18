@@ -44,6 +44,7 @@ extern "C" {
 #define __isula_auto_dir auto_cleanup_tag(close_dir)
 #define __isula_auto_close auto_cleanup_tag(auto_close)
 #define __isula_auto_pm_unlock auto_cleanup_tag(auto_pm_unlock)
+#define __isula_auto_prw_unlock auto_cleanup_tag(auto_prw_unlock)
 
 static inline void free_pointer_cb(void *ptr)
 {
@@ -97,6 +98,13 @@ static inline void auto_pm_unlock_cb(pthread_mutex_t **p)
 {
     if (*p != NULL) {
         (void)pthread_mutex_unlock(*p);
+    }
+}
+
+static inline void auto_prw_unlock_cb(pthread_rwlock_t **p)
+{
+    if (*p != NULL) {
+        (void)pthread_rwlock_unlock(*p);
     }
 }
 

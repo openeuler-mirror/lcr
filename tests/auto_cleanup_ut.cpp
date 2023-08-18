@@ -35,6 +35,8 @@
 
 pthread_mutex_t g_test_lock = PTHREAD_MUTEX_INITIALIZER;
 
+pthread_rwlock_t g_test_rwlock = PTHREAD_RWLOCK_INITIALIZER;
+
 int do_auto_unlock()
 {
     __isula_auto_pm_unlock pthread_mutex_t *local_mutex = nullptr;
@@ -61,6 +63,43 @@ TEST(autocleanup_testcase, test__isula_auto_pm_unlock)
         ASSERT_NE(EBUSY, errno);
     }
     (void)pthread_mutex_unlock(&g_test_lock);
+}
+
+int do_prw_auto_unlock()
+{
+    __isula_auto_prw_unlock pthread_rwlock_t *local_rwlock = nullptr;
+    if (pthread_rwlock_wrlock(&g_test_rwlock) != 0) {
+        // if lock failed, do not do auto unlock
+        return -1;
+    }
+
+    local_rwlock = &g_test_rwlock;
+    return 0;
+}
+
+TEST(autocleanup_testcase, test__isula_auto_prw_unlock)
+{
+    int ret;
+
+    ret = do_prw_auto_unlock();
+    if (ret == -1) {
+        return;
+    }
+    ret = pthread_rwlock_wrlock(&g_test_rwlock);
+    if (ret != 0) {
+        ASSERT_NE(EBUSY, errno);
+    }
+    (void)pthread_rwlock_unlock(&g_test_rwlock);
+
+    ret = do_prw_auto_unlock();
+    if (ret == -1) {
+        return;
+    }
+    ret = pthread_rwlock_rdlock(&g_test_rwlock);
+    if (ret != 0) {
+        ASSERT_NE(EBUSY, errno);
+    }
+    (void)pthread_rwlock_unlock(&g_test_rwlock);
 }
 
 size_t do_auto_free()
