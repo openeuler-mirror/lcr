@@ -2,28 +2,31 @@
 	"$schema": "http://json-schema.org/draft-04/schema#",
 	"type": "object",
 	"properties": {
+		"sandboxer": {
+			"type": "string"
+		},
 		"id": {
 			"type": "string"
 		},
-		"rootfs": {
+		"pid": {
+			"type": "int32"
+		},
+		"taskAddress": {
 			"type": "string"
 		},
-		"image": {
+		"Hostname": {
 			"type": "string"
 		},
-		"runtime": {
+		"HostnamePath": {
 			"type": "string"
-		},
-		"restart": {
+        	},
+		"HostsPath": {
 			"type": "string"
-		},
-		"sandbox": {
-			"$ref": "sandbox-info.json"
-		},
-		"hostconfig": {
+        	},
+		"ResolvConfPath": {
 			"type": "string"
-		},
-		"customconfig": {
+        	},
+		"ShmPath": {
 			"type": "string"
 		}
 	}
