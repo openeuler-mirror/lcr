@@ -26,6 +26,10 @@
 #define BUFSIZ 8096
 #endif
 
+#ifndef JSON_MAX_SIZE
+#define JSON_MAX_SIZE (10LL * 1024LL * 1024LL)
+#endif
+
 char *
 fread_file (FILE *stream, size_t *length)
 {
@@ -53,6 +57,11 @@ fread_file (FILE *stream, size_t *length)
           *length = off + ret + 1;
           buf[*length - 1] = '\0';
           return buf;
+        }
+      if (off > JSON_MAX_SIZE)
+        {
+          free (buf);
+          return NULL;
         }
       off += BUFSIZ;
     }
