@@ -20,6 +20,9 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #
 
+include(CheckFunctionExists)
+include(CheckCSourceCompiles)
+
 # check depends library and headers
 find_package(PkgConfig REQUIRED)
 
@@ -91,3 +94,9 @@ if (ENABLE_GCOV)
     _CHECK(CMD_GENHTML "CMD_GENHTML-NOTFOUND" "genhtml")
 endif()
 
+check_function_exists(strerror_r HAVE_STRERROR_R)
+
+check_c_source_compiles(
+    "#define _GNU_SOURCE\n#include <string.h>\nint main() { char err_str[128]; char *ptr = strerror_r(-2, err_str, 128); return ptr != (void *)0L; }"
+    STRERROR_R_CHAR_P
+)
