@@ -89,6 +89,8 @@ extern "C" {
     return stat; \\
 }
 
+#define JSON_MAX_SIZE (10LL * 1024LL * 1024LL)
+
 typedef char *parser_error;
 
 struct parser_context {
@@ -107,6 +109,8 @@ bool json_gen_init(yajl_gen *g, const struct parser_context *ctx);
 yajl_val get_val(yajl_val tree, const char *name, yajl_type type);
 
 void *safe_malloc(size_t size);
+
+void *smart_safe_malloc(size_t count, size_t extra, size_t unit_size);
 
 int common_safe_double(const char *numstr, double *converted);
 

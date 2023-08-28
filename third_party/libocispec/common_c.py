@@ -42,6 +42,13 @@ CODE = '''// Auto generated file. Do not edit!
 
 # define MAX_NUM_STR_LEN 21
 
+#if __WORDSIZE == 64
+// current max user memory for 64-machine is 2^47 B
+#define MAX_MEMORY_SIZE ((size_t)1 << 47)
+#else
+// current max user memory for 32-machine is 2^31 B
+#define MAX_MEMORY_SIZE ((size_t)1 << 31)
+#endif
 
 static yajl_gen_status gen_yajl_val (yajl_val obj, yajl_gen g, parser_error *err);
 
@@ -199,6 +206,27 @@ void *safe_malloc(size_t size) {
         abort();
     }
     ret = calloc(1, size);
+    if (ret == NULL) {
+        abort();
+    }
+    return ret;
+}
+
+void *smart_safe_malloc(size_t count, size_t extra, size_t unit_size) {
+    void *ret = NULL;
+    if (unit_size == 0) {
+        abort();
+    }
+
+    if (extra > MAX_MEMORY_SIZE || count > MAX_MEMORY_SIZE - extra) {
+        abort();
+    }
+
+    if (count + extra == 0 || count + extra > (MAX_MEMORY_SIZE / unit_size)) {
+        abort();
+    }
+
+    ret = calloc(count + extra, unit_size);
     if (ret == NULL) {
         abort();
     }
@@ -557,8 +585,8 @@ json_map_int_int *make_json_map_int_int(yajl_val src, const struct parser_contex
         size_t len = YAJL_GET_OBJECT(src)->len;
         ret = safe_malloc(sizeof(*ret));
         ret->len = len;
-        ret->keys = safe_malloc((len + 1) * sizeof(int));
-        ret->values = safe_malloc((len + 1) * sizeof(int));
+        ret->keys = smart_safe_malloc(len, 1, sizeof(int));
+        ret->values = smart_safe_malloc(len, 1, sizeof(int));
         for (i = 0; i < len; i++) {
             const char *srckey = YAJL_GET_OBJECT(src)->keys[i];
             yajl_val srcval = YAJL_GET_OBJECT(src)->values[i];
@@ -695,8 +723,8 @@ json_map_int_bool *make_json_map_int_bool(yajl_val src, const struct parser_cont
         size_t len = YAJL_GET_OBJECT(src)->len;
         ret = safe_malloc(sizeof(*ret));
         ret->len = len;
-        ret->keys = safe_malloc((len + 1) * sizeof(int));
-        ret->values = safe_malloc((len + 1) * sizeof(bool));
+        ret->keys = smart_safe_malloc(len, 1, sizeof(int));
+        ret->values = smart_safe_malloc(len, 1, sizeof(bool));
         for (i = 0; i < len; i++) {
             const char *srckey = YAJL_GET_OBJECT(src)->keys[i];
             yajl_val srcval = YAJL_GET_OBJECT(src)->values[i];
@@ -829,8 +857,8 @@ json_map_int_string *make_json_map_int_string(yajl_val src, const struct parser_
         size_t len = YAJL_GET_OBJECT(src)->len;
         ret = safe_malloc(sizeof(*ret));
         ret->len = len;
-        ret->keys = safe_malloc((len + 1) * sizeof(int));
-        ret->values = safe_malloc((len + 1) * sizeof(char *));
+        ret->keys = smart_safe_malloc(len, 1, sizeof(int));
+        ret->values = smart_safe_malloc(len, 1, sizeof(char *));
         for (i = 0; i < len; i++) {
             const char *srckey = YAJL_GET_OBJECT(src)->keys[i];
             yajl_val srcval = YAJL_GET_OBJECT(src)->values[i];
@@ -951,8 +979,8 @@ json_map_string_int *make_json_map_string_int(yajl_val src, const struct parser_
         size_t len = YAJL_GET_OBJECT(src)->len;
         ret = safe_malloc(sizeof(*ret));
         ret->len = len;
-        ret->keys = safe_malloc((len + 1) * sizeof(char *));
-        ret->values = safe_malloc((len + 1) * sizeof(int));
+        ret->keys = smart_safe_malloc(len, 1, sizeof(char *));
+        ret->values = smart_safe_malloc(len, 1, sizeof(int));
         for (i = 0; i < len; i++) {
             const char *srckey = YAJL_GET_OBJECT(src)->keys[i];
             yajl_val srcval = YAJL_GET_OBJECT(src)->values[i];
@@ -1069,8 +1097,8 @@ json_map_string_int64 *make_json_map_string_int64(yajl_val src, const struct par
         size_t len = YAJL_GET_OBJECT(src)->len;
         ret = safe_malloc(sizeof(*ret));
         ret->len = len;
-        ret->keys = safe_malloc((len + 1) * sizeof(char *));
-        ret->values = safe_malloc((len + 1) * sizeof(int64_t));
+        ret->keys = smart_safe_malloc(len, 1, sizeof(char *));
+        ret->values = smart_safe_malloc(len, 1, sizeof(int64_t));
         for (i = 0; i < len; i++) {
             const char *srckey = YAJL_GET_OBJECT(src)->keys[i];
             yajl_val srcval = YAJL_GET_OBJECT(src)->values[i];
@@ -1188,8 +1216,8 @@ json_map_string_bool *make_json_map_string_bool(yajl_val src, const struct parse
         size_t len = YAJL_GET_OBJECT(src)->len;
         ret = safe_malloc(sizeof(*ret));
         ret->len = len;
-        ret->keys = safe_malloc((len + 1) * sizeof(char *));
-        ret->values = safe_malloc((len + 1) * sizeof(bool));
+        ret->keys = smart_safe_malloc(len, 1, sizeof(char *));
+        ret->values = smart_safe_malloc(len, 1, sizeof(bool));
         for (i = 0; i < len; i++) {
             const char *srckey = YAJL_GET_OBJECT(src)->keys[i];
             yajl_val srcval = YAJL_GET_OBJECT(src)->values[i];
@@ -1303,8 +1331,8 @@ json_map_string_string *make_json_map_string_string(yajl_val src, const struct p
         size_t len = YAJL_GET_OBJECT(src)->len;
         ret = safe_malloc(sizeof(*ret));
         ret->len = len;
-        ret->keys = safe_malloc((len + 1) * sizeof(char *));
-        ret->values = safe_malloc((len + 1) * sizeof(char *));
+        ret->keys = smart_safe_malloc(len, 1, sizeof(char *));
+        ret->values = smart_safe_malloc(len, 1, sizeof(char *));
         for (i = 0; i < len; i++) {
             const char *srckey = YAJL_GET_OBJECT(src)->keys[i];
             yajl_val srcval = YAJL_GET_OBJECT(src)->values[i];
@@ -1442,7 +1470,7 @@ char *json_marshal_string(const char *str, size_t strlen, const struct parser_co
         goto free_out;
     }
 
-    json_buf = safe_malloc(gen_len + 1);
+    json_buf = smart_safe_malloc(gen_len, 1, 1);
     (void)memcpy(json_buf, gen_buf, gen_len);
     json_buf[gen_len] = '\\0';
 

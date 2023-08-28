@@ -40,7 +40,6 @@ extern "C" void testLog(struct isula_libutils_log_config *conf)
 
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 {
-    const char *default_name = "iSula";
     struct isula_libutils_log_config tconf = {0};
     std::string testData(reinterpret_cast<const char *>(data), size);
     std::vector<std::string> ret_vec;
@@ -67,6 +66,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
             tconf.driver = ret_vec[4].c_str();
         }
     } else {
+        const char *default_name = "iSula";
         isula_libutils_default_log_config(default_name, &tconf);
     }
 
