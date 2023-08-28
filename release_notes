@@ -1,3 +1,30 @@
+2023-08-28 xuepengxu release 2.1.2
+    - !253 Add max size for reading json file * Fix unlimited reading issue
+    - !252 Add sandbox config Merge pull request !252 from jake/sandbox-config
+    - !251 add auto unlock cleanup for pthread_rwlock * add auto unlock cleanup for pthread_rwlock
+    - !250 add sandbox schema * add sandbox schema
+    - !244 增加isula image prune命令 * Add command isula image prune
+    - !249 Add support for sandboxer in isulad config * Add support for sandboxer in isulad config
+    - !248 [refactor] change struct of dirs and files * [refactor] change struct of dirs and files
+    - !243 Add timestamp and old container stats for cpu usage support Merge pull request !243 from xuxuepeng/cpu-usage
+    - !242 Add resources info to container inspection Merge pull request !242 from xuxuepeng/inspectp
+    - !241 add unified resources and remove useless MemorySwapLimitInBytes Merge pull request !241 from zhangxiaoyu/master
+    - !240 add memory info from runtime
+    - !238 add files_limit to oci spec Merge pull request !238 from zhongtao/fileslimit
+    - !235 add call timeout check macro Merge pull request !235 from haozi007/master
+    - !233 adapt to repo of openeuler url changed Merge pull request !233 from zhongtao/ci
+    - !230 add one field for isulad daemon json config Merge pull request !230 from DriedYellowPeach/remote_ro
+    - !228 add cgroup resources json schema Merge pull request !228 from zhongtao/update
+    - !225 Add Memory Info Merge pull request !225 from ilyakuksenok/add_memory_info
+    - !226 fix writing config line with wrong length Merge pull request !226 from zhangxiaoyu/master
+    - !223 fix update cpu-rt period failed
+    - !222 ContainerStats additions Merge pull request !222 from ilyakuksenok/CRI-1.25-container-stat
+    - !221 add libisula.pc Merge pull request !221 from zhangxiaoyu/master
+
+    dev stats:
+      - 75 files changed, 2722 insertions(+), 1469 deletions(-)
+      - contributors: zhongtao, xuxuepeng, zhangxiaoyu, ilya.kuksenok, haozi007, xuepeng, Neil.wrz, jikai, sailorvii, songbuhuang
+
 2023-02-06 root release 2.1.1
     - !219 add ut test for for loop auto cleanup Merge pull request !219 from haozi007/master
     - !218 use auto cleanup in utils Merge pull request !218 from haozi007/master
