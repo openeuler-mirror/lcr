@@ -749,6 +749,11 @@ bool do_update(struct lxc_container *c, const char *name, const char *lcrpath, s
 {
     bool bret = false;
 
+    if (c == NULL) {
+        ERROR("Invalid arg c");
+        return bret;
+    }
+
     // If container is not running, update config file is enough,
     // resources will be updated when the container is started again.
     // If container is running (including paused), we need to update configs
@@ -772,6 +777,16 @@ out_free:
 void do_lcr_state(struct lxc_container *c, struct lcr_container_state *lcs)
 {
     struct lxc_container_metrics lxc_metrics = { 0 };
+
+    if (c == NULL) {
+        ERROR("Invalid argument c");
+        return;
+    }
+
+    if (lcs == NULL) {
+        ERROR("Invalid argument lcs");
+        return;
+    }
 
     clear_error_message(&g_lcr_error);
     (void)memset(lcs, 0x00, sizeof(struct lcr_container_state));
@@ -925,6 +940,16 @@ bool do_attach(const char *name, const char *path, const struct lcr_exec_request
     int pipefd[2] = {-1, -1};
     int status = 0;
 
+    if (request == NULL) {
+        ERROR("Invalid request");
+        return false;
+    }
+
+    if (exit_code == NULL) {
+        ERROR("Invalid exit code");
+        return false;
+    }
+
     if (pipe(pipefd) != 0) {
         ERROR("Failed to create pipe\n");
         return false;
@@ -987,6 +1012,11 @@ void execute_lxc_start(const char *name, const char *path, const struct lcr_star
     char buf[PARAM_NUM] = { 0 };
     size_t i = 0;
     int nret = 0;
+
+    if (request == NULL) {
+        COMMAND_ERROR("Invalid request");
+        exit(EXIT_FAILURE);
+    }
 
     if (lcr_util_check_inherited(true, -1) != 0) {
         COMMAND_ERROR("Close inherited fds failed");

@@ -45,12 +45,6 @@ struct lcr_list;
     } while (0);
 
 /*
- * Get a complete list of active containers for a given lcrpath.
- * return Number of containers, or -1 on error.
- */
-int lcr_list_active_containers(const char *lcrpath, struct lcr_container_info **info_arr);
-
-/*
  * Delete a container
  * param name		: container name, required.
  * param lcrpath	: container path, set to NULL if you want use default lcrpath.
@@ -81,11 +75,6 @@ struct lcr_list *lcr_oci2lcr(const struct lxc_container *c, oci_runtime_spec *co
  * param seccomp_conf	: seccomp_conf will be wrote into seccomp file, set it to NULL if you don't need
  */
 bool lcr_save_spec(const char *name, const char *lcrpath, const struct lcr_list *lcr_conf, const char *seccomp_conf);
-
-int lcr_containers_info_get(const char *lcrpath, struct lcr_container_info **info, size_t *size, char **containers,
-                            int num);
-
-char *lcr_get_bundle(const char *lcrpath, const char *name);
 
 bool translate_spec(const struct lxc_container *c, oci_runtime_spec *container);
 

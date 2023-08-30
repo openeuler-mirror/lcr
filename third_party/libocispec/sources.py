@@ -59,10 +59,10 @@ def parse_map_string_obj(obj, c_file, prefix, obj_typename):
     c_file.write('    if (YAJL_GET_OBJECT(tree) != NULL && YAJL_GET_OBJECT(tree)->len > 0) {\n')
     c_file.write('        size_t i;\n')
     c_file.write('        ret->len = YAJL_GET_OBJECT(tree)->len;\n')
-    c_file.write('        ret->keys = safe_malloc((YAJL_GET_OBJECT(tree)->len + 1) ' \
-                 '* sizeof(*ret->keys));\n')
-    c_file.write('        ret->%s = safe_malloc((YAJL_GET_OBJECT(tree)->len + 1) ' \
-                 '* sizeof(*ret->%s));\n' % (child.fixname, child.fixname))
+    c_file.write('        ret->keys = smart_safe_malloc(YAJL_GET_OBJECT(tree)->len, 1, ' \
+                 'sizeof(*ret->keys));\n')
+    c_file.write('        ret->%s = smart_safe_malloc(YAJL_GET_OBJECT(tree)->len, 1, ' \
+                 'sizeof(*ret->%s));\n' % (child.fixname, child.fixname))
     c_file.write('        for (i = 0; i < YAJL_GET_OBJECT(tree)->len; i++) {\n')
     c_file.write('            const char *tmpkey = YAJL_GET_OBJECT(tree)->keys[i];\n')
     c_file.write('            ret->keys[i] = safe_strdup(tmpkey ? tmpkey : "");\n')
@@ -132,8 +132,8 @@ def parse_obj_type(obj, c_file, prefix, obj_typename):
                      ' YAJL_GET_ARRAY(tmp)->len > 0) {\n')
         c_file.write('            size_t i;\n')
         c_file.write('            ret->%s_len = YAJL_GET_ARRAY(tmp)->len;\n' % (obj.fixname))
-        c_file.write('            ret->%s = safe_malloc((YAJL_GET_ARRAY(tmp)->len + 1) ' \
-                     '* sizeof(*ret->%s));\n' % (obj.fixname, obj.fixname))
+        c_file.write('            ret->%s = smart_safe_malloc(YAJL_GET_ARRAY(tmp)->len, 1, ' \
+                     'sizeof(*ret->%s));\n' % (obj.fixname, obj.fixname))
         c_file.write('            for (i = 0; i < YAJL_GET_ARRAY(tmp)->len; i++) {\n')
         c_file.write('                yajl_val val = YAJL_GET_ARRAY(tmp)->values[i];\n')
         c_file.write('                ret->%s[i] = make_%s(val, ctx, err);\n' \
@@ -166,8 +166,8 @@ def parse_obj_type(obj, c_file, prefix, obj_typename):
         c_file.write('            size_t i;\n')
         c_file.write('            ret->%s_len = YAJL_GET_ARRAY(tmp)->len;\n' % (obj.fixname))
         c_file.write(
-            '            ret->%s = safe_malloc((YAJL_GET_ARRAY(tmp)->len + 1) *' \
-            ' sizeof(*ret->%s));\n' % (obj.fixname, obj.fixname))
+            '            ret->%s = smart_safe_malloc(YAJL_GET_ARRAY(tmp)->len, 1, ' \
+            'sizeof(*ret->%s));\n' % (obj.fixname, obj.fixname))
         c_file.write('            for (i = 0; i < YAJL_GET_ARRAY(tmp)->len; i++) {\n')
         read_val_generator(c_file, 4, 'YAJL_GET_ARRAY(tmp)->values[i]', \
                              "ret->%s[i]" % obj.fixname, obj.subtyp, obj.origname, obj_typename)
@@ -891,7 +891,7 @@ def get_c_epilog(c_file, prefix, typ):
     alen = YAJL_GET_ARRAY(tree)->len;
     if (alen == 0)
         return NULL;
-    ptr = safe_malloc((alen + 1) * sizeof(%s_element *));
+    ptr = smart_safe_malloc(alen, 1, sizeof(%s_element *));
     for (i = 0; i < alen; i++) {
         yajl_val val = YAJL_GET_ARRAY(tree)->values[i];
         ptr[i] = make_%s_element(val, ctx, err);
@@ -1001,6 +1001,12 @@ yajl_gen_status gen_%s(yajl_gen g, const %s_element **ptr, size_t len, const str
         return NULL;
 
     *err = NULL;
+    if (strlen(jsondata) >= JSON_MAX_SIZE) {
+        if (asprintf(err, "cannot parse the data with length exceeding %%llu", JSON_MAX_SIZE) < 0) {
+            *err = safe_strdup("error allocating memory");
+        }
+        return NULL;
+    }
     if (ctx == NULL) {
        ctx = (const struct parser_context *)(&tmp_ctx);
     }
@@ -1049,7 +1055,7 @@ yajl_gen_status gen_%s(yajl_gen g, const %s_element **ptr, size_t len, const str
         goto free_out;
     }
 
-    json_buf = safe_malloc(gen_len + 1);
+    json_buf = smart_safe_malloc(gen_len, 1, 1);
     (void)memcpy(json_buf, gen_buf, gen_len);
     json_buf[gen_len] = '\\0';
 
