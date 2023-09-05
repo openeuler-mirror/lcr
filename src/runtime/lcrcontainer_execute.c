@@ -71,8 +71,7 @@
     do                                                                                                \
     {                                                                                                 \
         SYSERROR("Error updating cgroup %s to %s", (item), (value));                                  \
-        lcr_set_error_message(LCR_ERR_RUNTIME, "Error updating cgroup %s to %s: %s", (item), (value), \
-                              strerror(errno));                                                       \
+        lcr_set_error_message(LCR_ERR_RUNTIME, "Error updating cgroup %s to %s.", (item), (value));   \
     } while (0)
 
 static inline void add_array_elem(char **array, size_t total, size_t *pos, const char *elem)
