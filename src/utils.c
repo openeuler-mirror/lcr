@@ -1344,7 +1344,7 @@ int lcr_util_get_cgroup_version()
     struct statfs fs = {0};
 
     if (statfs(CGROUP_MOUNTPOINT, &fs) != 0) {
-        ERROR("failed to statfs %s: %s", CGROUP_MOUNTPOINT, strerror(errno));
+        SYSERROR("failed to statfs %s.", CGROUP_MOUNTPOINT);
         return -1;
     }
 
