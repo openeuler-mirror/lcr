@@ -71,8 +71,7 @@
     do                                                                                                \
     {                                                                                                 \
         SYSERROR("Error updating cgroup %s to %s", (item), (value));                                  \
-        lcr_set_error_message(LCR_ERR_RUNTIME, "Error updating cgroup %s to %s: %s", (item), (value), \
-                              strerror(errno));                                                       \
+        lcr_set_error_message(LCR_ERR_RUNTIME, "Error updating cgroup %s to %s.", (item), (value));   \
     } while (0)
 
 static inline void add_array_elem(char **array, size_t total, size_t *pos, const char *elem)
@@ -908,7 +907,7 @@ static void execute_lxc_attach(const char *name, const char *path, const struct 
 
     execvp("lxc-attach", params);
 
-    COMMAND_ERROR("Failed to exec lxc-attach: %s", strerror(errno));
+    CMD_SYSERROR("Failed to exec lxc-attach");
     free(params);
     exit(EXIT_FAILURE);
 }
@@ -1067,6 +1066,6 @@ void execute_lxc_start(const char *name, const char *path, const struct lcr_star
 
     execvp("lxc-start", params);
 
-    COMMAND_ERROR("Failed to exec lxc-start: %s.", strerror(errno));
+    CMD_SYSERROR("Failed to exec lxc-start.");
     exit(EXIT_FAILURE);
 }

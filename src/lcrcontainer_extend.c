@@ -153,7 +153,7 @@ static int make_annotations(oci_runtime_spec *container, const struct lxc_contai
         goto out;
     }
     if (lcr_util_ensure_path(&realpath, anno->values[fpos])) {
-        ERROR("Invalid log path: %s, error: %s.", anno->values[fpos], strerror(errno));
+        SYSERROR("Invalid log path: %s.", anno->values[fpos]);
         goto out;
     }
     ret = 0;
@@ -376,7 +376,7 @@ static int lcr_spec_write_seccomp_line(int fd, const char *seccomp)
     }
     line[nret] = '\n';
     if (write(fd, line, len) == -1) {
-        SYSERROR("Write failed");
+        SYSERROR("Write file failed");
         goto cleanup;
     }
     ret = 0;
@@ -626,8 +626,8 @@ static int lcr_open_config_file(const char *bundle)
 
     fd = lcr_util_open(real_config, O_CREAT | O_TRUNC | O_CLOEXEC | O_WRONLY, CONFIG_FILE_MODE);
     if (fd == -1) {
-        ERROR("Create file %s failed, %s", real_config, strerror(errno));
-        lcr_set_error_message(LCR_ERR_RUNTIME, "Create file %s failed, %s", real_config, strerror(errno));
+        SYSERROR("Create file %s failed", real_config);
+        lcr_set_error_message(LCR_ERR_RUNTIME, "Create file %s failed", real_config);
         goto out;
     }
 out:
@@ -738,7 +738,7 @@ static int lcr_spec_write_config(int fd, const struct lcr_list *lcr_conf)
 
             line_encode[encode_len] = '\n';
             if (write(fd, line_encode, encode_len + 1) == -1) {
-                SYSERROR("Write failed");
+                SYSERROR("Write file failed");
                 goto cleanup;
             }
             free(line);
@@ -788,7 +788,7 @@ static char *lcr_get_bundle(const char *lcrpath, const char *name)
                 ERROR("Bundle %s does not exist", bundle);
                 break;
             default:
-                ERROR("Access %s failed: %s\n", bundle, strerror(errno));
+                SYSERROR("Access %s failed", bundle);
         }
         goto cleanup;
     }
@@ -880,7 +880,7 @@ static int lcr_write_file(const char *path, const char *data, size_t len)
     }
 
     if (write(fd, data, len) == -1) {
-        ERROR("write data to %s failed: %s", real_path, strerror(errno));
+        SYSERROR("write data to %s failed", real_path);
         goto out_free;
     }
 
@@ -908,7 +908,7 @@ static bool lcr_write_ocihooks(const char *path, const oci_runtime_spec_hooks *h
     }
 
     if (lcr_write_file(path, json_hooks, strlen(json_hooks)) == -1) {
-        ERROR("write json hooks failed: %s", strerror(errno));
+        SYSERROR("write json hooks failed");
         goto out_free;
     }
 
