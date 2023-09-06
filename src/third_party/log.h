@@ -417,13 +417,13 @@ lxc_log_priority_define(&g_lxc_log_category_lxc, FATAL);
 #define CMD_SYSERROR(format, ...)                                    \
 	do {                                                         \
 		lxc_log_strerror_r;                                  \
-		fprintf(stderr, "%s - " format, ptr, ##__VA_ARGS__); \
+		fprintf(stderr, "%s - " format "\n", ptr, ##__VA_ARGS__); \
 	} while (0)
 
 #define CMD_SYSINFO(format, ...)                            \
 	do {                                                \
 		lxc_log_strerror_r;                         \
-		printf("%s - " format, ptr, ##__VA_ARGS__); \
+		printf("%s - " format "\n", ptr, ##__VA_ARGS__); \
 	} while (0)
 
 #define COMMAND_ERROR(fmt, args...)              \
