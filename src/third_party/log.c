@@ -309,18 +309,18 @@ static int open_fifo(const char *fifo_path)
 
     nret = mknod(fifo_path, S_IFIFO | S_IRUSR | S_IWUSR, (dev_t)0);
     if (nret && errno != EEXIST) {
-        COMMAND_ERROR("Mknod failed: %s", strerror(errno));
+        CMD_SYSERROR("Mknod failed");
         return nret;
     }
 
     fifo_fd = lcr_util_open(fifo_path, O_RDWR | O_NONBLOCK, 0);
     if (fifo_fd == -1) {
-        COMMAND_ERROR("Open fifo %s failed: %s", fifo_path, strerror(errno));
+        CMD_SYSERROR("Open fifo %s failed", fifo_path);
         return -1;
     }
 
     if (fcntl(fifo_fd, F_SETPIPE_SZ, LOG_FIFO_SIZE) == -1) {
-        COMMAND_ERROR("Set fifo buffer size failed: %s", strerror(errno));
+        CMD_SYSERROR("Set fifo buffer size failed");
         close(fifo_fd);
         return -1;
     }
