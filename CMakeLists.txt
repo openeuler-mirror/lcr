@@ -117,8 +117,8 @@ install(FILES ${CMAKE_BINARY_DIR}/conf/lcr.pc
 	DESTINATION ${LIB_INSTALL_DIR_DEFAULT}/pkgconfig PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ GROUP_WRITE WORLD_READ WORLD_EXECUTE)
 install(FILES ${CMAKE_BINARY_DIR}/conf/libisula.pc
 	DESTINATION ${LIB_INSTALL_DIR_DEFAULT}/pkgconfig PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ GROUP_WRITE WORLD_READ WORLD_EXECUTE)
-install(FILES src/runtime/lcrcontainer.h
-	DESTINATION include/lcr)
+install(FILES src/runtime/lcrcontainer.h DESTINATION include/lcr)
+install(FILES src/utils/utils_compile.h DESTINATION include/lcr)
 
 install(FILES src/third_party/log.h DESTINATION include/isula_libutils)
 install(FILES src/third_party/go_crc64.h DESTINATION include/isula_libutils)
