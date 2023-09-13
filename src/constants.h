@@ -24,6 +24,10 @@
 #ifndef _ISULA_UTILS_CONSTANTS_H
 #define _ISULA_UTILS_CONSTANTS_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* mode of file and directory */
 
 #define DEFAULT_SECURE_FILE_MODE 0640
@@ -52,5 +56,9 @@
 
 /* buffer constants defined here */
 #define ISULA_PAGE_BUFSIZE 4096
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

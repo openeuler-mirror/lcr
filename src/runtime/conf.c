@@ -36,7 +36,7 @@
 #include "utils.h"
 #include "log.h"
 
-#include "buffer.h"
+#include "utils_buffer.h"
 #include "lcr_list.h"
 #include "constants.h"
 
@@ -2665,7 +2665,7 @@ static bool is_action_allow(const char *value)
 
 #define DEFAULT_ACTION_OFFSET 12
 /* seccomp append head info */
-static int seccomp_append_head_info(const char *action, Buffer *buffer)
+static int seccomp_append_head_info(const char *action, isula_buffer *buffer)
 {
     int ret = 0;
     char *default_action = NULL;
@@ -2681,9 +2681,9 @@ static int seccomp_append_head_info(const char *action, Buffer *buffer)
     }
 
     if (is_action_allow(default_action)) {
-        ret = buffer_nappendf(buffer, strlen(default_action) + DEFAULT_ACTION_OFFSET, "blacklist %s\n", default_action);
+        ret = buffer->nappend(buffer, strlen(default_action) + DEFAULT_ACTION_OFFSET, "blacklist %s\n", default_action);
     } else {
-        ret = buffer_nappendf(buffer, strlen(default_action) + DEFAULT_ACTION_OFFSET, "whitelist %s\n", default_action);
+        ret = buffer->nappend(buffer, strlen(default_action) + DEFAULT_ACTION_OFFSET, "whitelist %s\n", default_action);
     }
     if (ret != 0) {
         ERROR("Failed to append seccomp config head info\n");
@@ -2773,7 +2773,7 @@ static char *seccomp_trans_arch(const char *arch)
 }
 
 /* seccomp append arch */
-static int seccomp_append_arch(char *arch, Buffer *buffer)
+static int seccomp_append_arch(char *arch, isula_buffer *buffer)
 {
     int ret = 0;
     char *trans_arch = NULL;
@@ -2788,7 +2788,7 @@ static int seccomp_append_arch(char *arch, Buffer *buffer)
         return -1;
     }
 
-    if (buffer_nappendf(buffer, strlen(trans_arch) + 2, "%s\n", trans_arch)) {
+    if (buffer->nappend(buffer, strlen(trans_arch) + 2, "%s\n", trans_arch)) {
         ERROR("Failed to append seccomp config head info\n");
         ret = -1;
     }
@@ -2798,7 +2798,7 @@ static int seccomp_append_arch(char *arch, Buffer *buffer)
 }
 
 /* seccomp append rule */
-static int seccomp_append_rule(const defs_syscall *syscall, size_t i, Buffer *buffer, char *action)
+static int seccomp_append_rule(const defs_syscall *syscall, size_t i, isula_buffer *buffer, char *action)
 {
     int ret = 0;
     size_t j = 0;
@@ -2808,7 +2808,7 @@ static int seccomp_append_rule(const defs_syscall *syscall, size_t i, Buffer *bu
         ret = -1;
         goto out;
     }
-    if (buffer_nappendf(buffer, strlen(syscall->names[i]) + strlen(action) + 2, "%s %s", syscall->names[i], action)) {
+    if (buffer->nappend(buffer, strlen(syscall->names[i]) + strlen(action) + 2, "%s %s", syscall->names[i], action)) {
         ERROR("Failed to append syscall name and action\n");
         ret = -1;
         goto out;
@@ -2820,7 +2820,7 @@ static int seccomp_append_rule(const defs_syscall *syscall, size_t i, Buffer *bu
             ret = -1;
             goto out;
         }
-        if (buffer_nappendf(buffer, 20 * 3 + strlen(syscall->args[j]->op), " [%u,%llu,%s,%llu]",
+        if (buffer->nappend(buffer, 20 * 3 + strlen(syscall->args[j]->op), " [%u,%llu,%s,%llu]",
                             syscall->args[j]->index, syscall->args[j]->value, syscall->args[j]->op,
                             syscall->args[j]->value_two)) {
             ERROR("Failed to append syscall rules\n");
@@ -2829,7 +2829,7 @@ static int seccomp_append_rule(const defs_syscall *syscall, size_t i, Buffer *bu
         }
     }
 
-    if (buffer_nappendf(buffer, 2, "\n")) {
+    if (buffer->append(buffer, "\n")) {
         ERROR("Failed to append newline\n");
         ret = -1;
         goto out;
@@ -2839,7 +2839,7 @@ out:
 }
 
 /* seccomp append rules */
-static int seccomp_append_rules(const defs_syscall *syscall, Buffer *buffer)
+static int seccomp_append_rules(const defs_syscall *syscall, isula_buffer *buffer)
 {
     int ret = 0;
     size_t i = 0;
@@ -2905,7 +2905,7 @@ out_free:
     return NULL;
 }
 
-static int append_seccomp_with_archs(const oci_runtime_config_linux_seccomp *seccomp, Buffer *buffer)
+static int append_seccomp_with_archs(const oci_runtime_config_linux_seccomp *seccomp, isula_buffer *buffer)
 {
     int ret = 0;
     size_t i = 0;
@@ -2963,14 +2963,14 @@ static int trans_oci_seccomp(const oci_runtime_config_linux_seccomp *seccomp, ch
     size_t j = 0;
     size_t init_size = 4 * SIZE_KB;
 
-    Buffer *buffer = buffer_alloc(init_size);
+    isula_buffer *buffer = isula_buffer_alloc(init_size);
     if (buffer == NULL) {
         ERROR("Failed to malloc output_buffer\n");
         return -1;
     }
 
     /* config version */
-    if (buffer_nappendf(buffer, 3, "2\n")) {
+    if (buffer->append(buffer, "2\n")) {
         ERROR("Failed to append seccomp config version\n");
         ret = -1;
         goto out_free;
@@ -2997,14 +2997,14 @@ static int trans_oci_seccomp(const oci_runtime_config_linux_seccomp *seccomp, ch
             }
         }
     }
-    *seccomp_conf = buffer_to_s(buffer);
+    *seccomp_conf = buffer->to_str(buffer);
     if (*seccomp_conf == NULL) {
         ret = -1;
         goto out_free;
     }
 
 out_free:
-    buffer_free(buffer);
+    isula_buffer_free(buffer);
     return ret;
 }
 

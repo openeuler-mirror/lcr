@@ -26,29 +26,52 @@ find_package(GTest REQUIRED)
 configure_file("data/ocihook.json" ${CMAKE_BINARY_DIR}/tests/ocihook.json COPYONLY)
 configure_file("data/process.json" ${CMAKE_BINARY_DIR}/tests/process.json COPYONLY)
 
+file(GLOB_RECURSE test_util_srcs
+    "${CMAKE_SOURCE_DIR}/src/third_party/*.c"
+    "${CMAKE_SOURCE_DIR}/src/third_party/**/*.c"
+    "${CMAKE_SOURCE_DIR}/src/json/*.c"
+    "${CMAKE_SOURCE_DIR}/src/json/**/*.c"
+    "${CMAKE_SOURCE_DIR}/src/utils/*.c"
+    "${CMAKE_SOURCE_DIR}/src/utils/**/*.c"
+    "${CMAKE_BINARY_DIR}/json/*.c"
+)
+
+add_library(test_libisula_utils SHARED ${test_util_srcs})
+target_include_directories(test_libisula_utils
+    PUBLIC ${CMAKE_SOURCE_DIR}/src
+    PUBLIC ${CMAKE_SOURCE_DIR}/src/utils
+    PUBLIC ${CMAKE_SOURCE_DIR}/src/third_party
+    PUBLIC ${CMAKE_SOURCE_DIR}/src/third_party/libocispec
+    PUBLIC ${CMAKE_SOURCE_DIR}/src/json
+    PUBLIC ${CMAKE_SOURCE_DIR}/src/json/schema/src
+    PUBLIC ${CMAKE_BINARY_DIR}/json
+    PUBLIC ${CMAKE_BINARY_DIR}/conf
+    )
+target_link_libraries(test_libisula_utils ${LIBYAJL_LIBRARY})
+
 macro(_DEFINE_NEW_TEST)
     add_executable(${ARGV0}
-        ${TESTS_UTILS_SRCS}
         main.cpp
         ${ARGV0}.cpp
         )
 
     target_link_libraries(${ARGV0}
-        isula_libutils
+        test_libisula_utils
         ${GTEST_LIBRARY}
-        ${LIBYAJL_LIBRARY}
         pthread
         )
 
     target_include_directories(${ARGV0} PUBLIC
         ${GTEST_INCLUDE_DIR}
-        PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}
         PUBLIC ${CMAKE_SOURCE_DIR}/src
+        PUBLIC ${CMAKE_SOURCE_DIR}/src/utils
         PUBLIC ${CMAKE_SOURCE_DIR}/src/third_party
+        PUBLIC ${CMAKE_SOURCE_DIR}/src/third_party/libocispec
         PUBLIC ${CMAKE_SOURCE_DIR}/src/json
         PUBLIC ${CMAKE_SOURCE_DIR}/src/json/schema/src
         PUBLIC ${CMAKE_BINARY_DIR}/json
         PUBLIC ${CMAKE_BINARY_DIR}/conf
+        PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}
         )
 
     add_test(
@@ -72,7 +95,7 @@ _DEFINE_NEW_TEST(libocispec_ut libocispec_testcase)
 _DEFINE_NEW_TEST(defs_process_ut defs_process_testcase)
 _DEFINE_NEW_TEST(go_crc64_ut go_crc64_testcase)
 _DEFINE_NEW_TEST(auto_cleanup_ut autocleanup_testcase)
-
+_DEFINE_NEW_TEST(utils_buffer_ut isula_buffer_testcase)
 
 # mock test for run lcov to generate html
 add_executable(mock_ut main.cpp)
@@ -84,7 +107,7 @@ target_link_libraries(mock_ut
     ${GTEST_LIBRARY}
     pthread
     )
-add_dependencies(mock_ut log_ut libocispec_ut defs_process_ut go_crc64_ut)
+add_dependencies(mock_ut log_ut libocispec_ut defs_process_ut go_crc64_ut auto_cleanup_ut utils_buffer_ut)
 
 IF(ENABLE_GCOV)
     add_custom_target(coverage

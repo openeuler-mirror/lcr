@@ -26,6 +26,10 @@
 
 #include "oci_runtime_spec.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #define INVALID_INT 0
 
 /*
@@ -117,5 +121,9 @@ struct lcr_list *get_needed_lxc_conf();
 
 
 bool is_system_container(const oci_runtime_spec *container);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /*__LCR_CONF_H*/

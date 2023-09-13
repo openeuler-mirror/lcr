@@ -24,6 +24,9 @@
 #ifndef __LCR_LIST_H
 #define __LCR_LIST_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 struct lcr_list {
     void *elem;
@@ -143,5 +146,9 @@ static inline size_t lcr_list_len(struct lcr_list *list)
 
     return i;
 }
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
