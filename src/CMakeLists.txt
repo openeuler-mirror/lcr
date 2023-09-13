@@ -124,6 +124,7 @@ target_include_directories(liblcr
 # set liblcr compile flags
 set_target_properties(liblcr PROPERTIES PREFIX "")
 target_link_libraries(liblcr ${check_libs} isula_libutils)
+target_compile_options(liblcr PRIVATE -fvisibility=hidden)
 
 if (CMAKE_TOOLCHAIN_FILE)
     target_link_directories(liblcr PUBLIC ${CMAKE_LIBRARY_PATH})
