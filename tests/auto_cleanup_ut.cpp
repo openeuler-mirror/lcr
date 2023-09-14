@@ -105,16 +105,34 @@ TEST(autocleanup_testcase, test__isula_auto_prw_unlock)
 size_t do_auto_free()
 {
     __isula_auto_free void *test = nullptr;
+#if defined(__GLIBC__) && ((__GLIBC__ > 2) || (__GLIBC__ == 2 && __GLIBC_MINOR__ >= 33))
+    struct mallinfo2 info = { 0 };
+
+    // use 1024 * 1024 to ensure memory allo from mmap
+    test = malloc(1024 * 1024);
+    info = mallinfo2();
+    return info.hblks;
+#else
     struct mallinfo info = { 0 };
 
     // use 1024 * 1024 to ensure memory allo from mmap
     test = malloc(1024 * 1024);
     info = mallinfo();
     return info.hblks;
+#endif
 }
 
 TEST(autocleanup_testcase, test__isula_auto_free)
 {
+#if defined(__GLIBC__) && ((__GLIBC__ > 2) || (__GLIBC__ == 2 && __GLIBC_MINOR__ >= 33))
+    struct mallinfo2 before;
+    struct mallinfo2 after;
+    size_t used;
+
+    before = mallinfo2();
+    used = do_auto_free();
+    after = mallinfo2();
+#else
     struct mallinfo before;
     struct mallinfo after;
     size_t used;
@@ -122,6 +140,7 @@ TEST(autocleanup_testcase, test__isula_auto_free)
     before = mallinfo();
     used = do_auto_free();
     after = mallinfo();
+#endif
     ASSERT_EQ(0, after.hblks);
     ASSERT_NE(used, after.hblks);
     ASSERT_NE(used, before.hblks);

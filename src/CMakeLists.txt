@@ -92,16 +92,29 @@ target_include_directories(isula_libutils
 
 target_link_libraries(isula_libutils ${check_isula_utils_libs})
 
-add_library(isula_libutils_s
+add_library(isulad_shim_libutils
     STATIC
-    ${isula_libutils_srcs}
+    ${topsrcs}
+    ${THIRD_PARTY_SRCS}
+    ${commonjsonsrcs}
+    ${topjsonsrcs}
+    ${UTILS_SRCS}
+    ${CMAKE_BINARY_DIR}/json/logger_json_file.c
+    ${CMAKE_BINARY_DIR}/json/shim_client_process_state.c
+    ${CMAKE_BINARY_DIR}/json/shim_client_runtime_stats.c
+    ${CMAKE_BINARY_DIR}/json/shim_client_cgroup_resources.c
+    ${CMAKE_BINARY_DIR}/json/json_common.c
+    ${CMAKE_BINARY_DIR}/json/defs.c
+    ${CMAKE_BINARY_DIR}/json/oci_runtime_config_linux.c
+    ${CMAKE_BINARY_DIR}/json/oci_runtime_pspec.c
+    ${CMAKE_BINARY_DIR}/json/oci_runtime_spec.c
+    ${CMAKE_BINARY_DIR}/json/oci_runtime_state.c
     )
 
-target_include_directories(isula_libutils_s
+target_include_directories(isulad_shim_libutils
     PUBLIC ${isula_libutils_incs}
     )
-target_link_libraries(isula_libutils_s ${check_isula_utils_libs})
-set_target_properties(isula_libutils_s PROPERTIES OUTPUT_NAME isula_libutils)
+target_link_libraries(isulad_shim_libutils ${LIBYAJL_LIBRARY})
 
 if (ENABLE_LIBLCR)
 # set liblcr library
@@ -149,5 +162,5 @@ endif()
 
 install(TARGETS isula_libutils
     LIBRARY DESTINATION ${LIB_INSTALL_DIR_DEFAULT} PERMISSIONS OWNER_READ OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)
-install(TARGETS isula_libutils_s
+install(TARGETS isulad_shim_libutils
     ARCHIVE DESTINATION ${LIB_INSTALL_DIR_DEFAULT} PERMISSIONS OWNER_READ OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)

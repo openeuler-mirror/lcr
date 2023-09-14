@@ -20,68 +20,28 @@
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  ********************************************************************************/
-
 #define _GNU_SOURCE
 
-#include <stdio.h>
-#include <string.h>
+#include "utils_buffer.h"
 
-#include "buffer.h"
+#include "utils_memory.h"
 #include "log.h"
-#include "utils.h"
 #include "auto_cleanup.h"
 
-/* buffer allocate */
-Buffer *buffer_alloc(size_t initial_size)
-{
-    Buffer *buf = NULL;
-    char *tmp = NULL;
-
-    if (initial_size == 0) {
-        return NULL;
-    }
-
-    buf = lcr_util_common_calloc_s(sizeof(Buffer));
-    if (buf == NULL) {
-        return NULL;
-    }
-
-    tmp = calloc(1, initial_size);
-    if (tmp == NULL) {
-        free(buf);
-        return NULL;
-    }
-
-    buf->contents = tmp;
-    buf->bytes_used = 0;
-    buf->total_size = initial_size;
-
-    return buf;
-}
-
-/* buffer strlen */
-static size_t buffer_strlen(const Buffer *buf)
-{
-    return buf == NULL ? 0 : buf->bytes_used;
-}
-
-/* buffer free */
-void buffer_free(Buffer *buf)
+void isula_buffer_clear(isula_buffer *buf)
 {
     if (buf == NULL) {
         return;
     }
-    free(buf->contents);
-    buf->contents = NULL;
-    free(buf);
+    (void)memset(buf->contents, 0, buf->total_size);
+    buf->bytes_used = 0;
 }
 
-/* buffer has space */
-static bool buffer_has_space(const Buffer *buf, size_t desired_length)
+static bool buffer_has_space(const isula_buffer *buf, size_t desired_length)
 {
-    size_t bytes_remaining = 0;
+    size_t bytes_remaining;
 
-    if (buf == NULL) {
+    if (buf->total_size < buf->bytes_used) {
         return false;
     }
     bytes_remaining = buf->total_size - buf->bytes_used;
@@ -89,36 +49,27 @@ static bool buffer_has_space(const Buffer *buf, size_t desired_length)
     return desired_length <= bytes_remaining;
 }
 
-/* buffer grow */
-static int buffer_grow(Buffer *buf, size_t minimum_size)
+static int buffer_grow(isula_buffer *buf, size_t minimum_size)
 {
-    size_t factor = 0;
-    size_t new_size = 0;
+    size_t factor, new_size;
     char *tmp = NULL;
-
-    if (buf == NULL) {
-        return -1;
-    }
 
     factor = buf->total_size;
     if (factor < minimum_size) {
         factor = minimum_size;
     }
 
-    if (factor > SIZE_MAX / 2) {
+    if (factor == 0) {
+        ERROR("Invalid grow size");
         return -1;
     }
 
-    new_size = factor * 2;
-    if (new_size == 0) {
-        return -1;
-    }
-
-    tmp = lcr_util_common_calloc_s(new_size);
+    tmp = lcr_util_smart_calloc_s(factor, 2);
     if (tmp == NULL) {
         ERROR("Out of memory");
         return -1;
     }
+    new_size = factor * 2;
 
     (void)memcpy(tmp, buf->contents, buf->total_size);
 
@@ -129,14 +80,9 @@ static int buffer_grow(Buffer *buf, size_t minimum_size)
     return 0;
 }
 
-/* buffer cat */
-static void buffer_cat(Buffer *buf, const char *append, size_t length)
+static void buffer_cat(isula_buffer *buf, const char *append, size_t length)
 {
-    size_t i = 0;
-
-    if (buf == NULL) {
-        return;
-    }
+    size_t i;
 
     for (i = 0; i < length; i++) {
         if (append[i] == '\0') {
@@ -150,13 +96,12 @@ static void buffer_cat(Buffer *buf, const char *append, size_t length)
     *(buf->contents + buf->bytes_used) = '\0';
 }
 
-/* buffer append */
-static int buffer_append(Buffer *buf, const char *append, size_t length)
+static int buffer_append(isula_buffer *buf, const char *append, size_t length)
 {
     size_t desired_length = 0;
 
-    if (buf == NULL) {
-        return -1;
+    if (append == NULL) {
+        return 0;
     }
 
     desired_length = length + 1;
@@ -171,62 +116,132 @@ static int buffer_append(Buffer *buf, const char *append, size_t length)
     return 0;
 }
 
-/* buffer nappendf */
-int buffer_nappendf(Buffer *buf, size_t length, const char *format, ...)
+int isula_buffer_nappend(isula_buffer *buf, size_t length, const char *format, ...)
 {
     int status = 0;
-    size_t printf_length = 0;
+    size_t printf_length;
     __isula_auto_free char *tmp = NULL;
     va_list argp;
 
     if (buf == NULL) {
+        DEBUG("Empty buffer.");
         return -1;
     }
 
-    if (length > SIZE_MAX / sizeof(char) - 1) {
+    if (format == NULL || length == 0) {
+        return 0;
+    }
+
+    if (length > SIZE_MAX - 1) {
+        ERROR("Too large append string");
         return -1;
     }
     printf_length = length + 1;
-    tmp = calloc(1, printf_length * sizeof(char));
+    tmp = lcr_util_smart_calloc_s(sizeof(char), printf_length);
     if (tmp == NULL) {
+        ERROR("Out of memory");
         return -1;
     }
 
     va_start(argp, format);
-    status = vsnprintf(tmp, length, format, argp);
+    status = vsnprintf(tmp, printf_length, format, argp);
     va_end(argp);
     if (status < 0) {
+        SYSERROR("Sprintf error");
         return -1;
     }
 
-    status = buffer_append(buf, tmp, length);
-    if (status != 0) {
-        return -1;
-    }
-
-    return 0;
+    return buffer_append(buf, tmp, length);
 }
 
-/* buffer to string */
-char *buffer_to_s(const Buffer *buf)
+int isula_buffer_append(isula_buffer *buf, const char *str)
+{
+    if (buf == NULL) {
+        DEBUG("Empty buffer.");
+        return -1;
+    }
+
+    if (str == NULL || strlen(str) == 0) {
+        return 0;
+    }
+
+    return buffer_append(buf, str, strlen(str));
+}
+
+char *isula_buffer_to_str(const isula_buffer *buf)
 {
     size_t len;
     char *result = NULL;
 
     if (buf == NULL) {
+        DEBUG("Empty argument.");
         return NULL;
     }
 
-    len = buffer_strlen(buf);
+    len = buf->bytes_used;
     if (len == SIZE_MAX) {
+        ERROR("Too large buffer data");
         return NULL;
     }
 
-    result = calloc(1, len + 1);
+    result = lcr_util_smart_calloc_s(1, len + 1);
     if (result == NULL) {
+        ERROR("Out of memory");
         return NULL;
     }
     (void)strncpy(result, buf->contents, len);
 
     return result;
+}
+
+size_t isula_buffer_strlen(const isula_buffer *buf)
+{
+    return buf == NULL ? 0 : buf->bytes_used;
+}
+
+isula_buffer *isula_buffer_alloc(size_t initial_size)
+{
+    isula_buffer *buf = NULL;
+    char *tmp = NULL;
+
+    if (initial_size == 0) {
+        return NULL;
+    }
+
+    buf = lcr_util_common_calloc_s(sizeof(isula_buffer));
+    if (buf == NULL) {
+        ERROR("Out of memory");
+        return NULL;
+    }
+
+    tmp = lcr_util_smart_calloc_s(1, initial_size);
+    if (tmp == NULL) {
+        ERROR("Out of memory");
+        free(buf);
+        return NULL;
+    }
+
+    buf->contents = tmp;
+    buf->bytes_used = 0;
+    buf->total_size = initial_size;
+
+    buf->clear = isula_buffer_clear;
+    buf->nappend = isula_buffer_nappend;
+    buf->append = isula_buffer_append;
+    buf->to_str = isula_buffer_to_str;
+    buf->length = isula_buffer_strlen;
+
+    return buf;
+}
+
+void isula_buffer_free(isula_buffer *buf)
+{
+    if (buf == NULL) {
+        return;
+    }
+    free(buf->contents);
+    buf->contents = NULL;
+    buf->bytes_used = 0;
+    buf->total_size = 0;
+    free(buf);
 }
