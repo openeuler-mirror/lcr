@@ -54,6 +54,14 @@ def generate_json_common_c(out):
 
 # define MAX_NUM_STR_LEN 21
 
+#if __WORDSIZE == 64
+// current max user memory for 64-machine is 2^47 B
+#define MAX_MEMORY_SIZE ((size_t)1 << 47)
+#else
+// current max user memory for 32-machine is 2^31 B
+#define MAX_MEMORY_SIZE ((size_t)1 << 31)
+#endif
+
 static yajl_gen_status gen_yajl_val (yajl_val obj, yajl_gen g, parser_error *err);
 
 static yajl_gen_status gen_yajl_val_obj (yajl_val obj, yajl_gen g, parser_error *err)
@@ -227,15 +235,24 @@ safe_strdup(const char *src)
     return dst;
 }
 
-void *
-safe_malloc(size_t size)
-{
+void *smart_calloc(size_t count, size_t extra, size_t unit_size) {
     void *ret = NULL;
-    if (size == 0)
-        abort();
-    ret = calloc(1, size);
-    if (ret == NULL)
-        abort();
+    if (unit_size == 0) {
+        return NULL;
+    }
+
+    if (extra > MAX_MEMORY_SIZE || count > MAX_MEMORY_SIZE - extra) {
+        return NULL;
+    }
+
+    if (count + extra == 0 || count + extra > (MAX_MEMORY_SIZE / unit_size)) {
+        return NULL;
+    }
+
+    ret = calloc(count + extra, unit_size);
+    if (ret == NULL) {
+        return NULL;
+    }
     return ret;
 }
 
@@ -572,18 +589,18 @@ make_json_map_int_int (yajl_val src, const struct parser_context *ctx,
     return NULL;
 
   len = YAJL_GET_OBJECT_NO_CHECK (src)->len;
-  ret = calloc (1, sizeof (*ret));
+  ret = smart_calloc (1, 0, sizeof (*ret));
   if (ret == NULL)
     return NULL;
 
   ret->len = 0;
-  ret->keys = calloc (len + 1, sizeof (int));
+  ret->keys = smart_calloc (len, 1, sizeof (int));
   if (ret->keys == NULL)
     {
       return NULL;
     }
 
-  ret->values = calloc (len + 1, sizeof (int));
+  ret->values = smart_calloc (len, 1, sizeof (int));
   if (ret->values == NULL)
     {
       return NULL;
@@ -653,10 +670,10 @@ append_json_map_int_int (json_map_int_int * map, int key, int val)
     return -1;
 
   len = map->len + 1;
-  keys = calloc (1, len * sizeof (int));
+  keys = smart_calloc (len, 0, sizeof (int));
   if (keys == NULL)
     return -1;
-  vals = calloc (1, len * sizeof (int));
+  vals = smart_calloc (len, 0, sizeof (int));
   if (vals == NULL)
     {
       return -1;
@@ -760,16 +777,16 @@ make_json_map_int_bool (yajl_val src, const struct parser_context *ctx,
     return NULL;
 
   len = YAJL_GET_OBJECT_NO_CHECK (src)->len;
-  ret = calloc (1, sizeof (*ret));
+  ret = smart_calloc (1, 0, sizeof (*ret));
   if (ret == NULL)
     return NULL;
   ret->len = 0;
-  ret->keys = calloc (len + 1, sizeof (int));
+  ret->keys = smart_calloc (len, 1, sizeof (int));
   if (ret->keys == NULL)
     {
       return NULL;
     }
-  ret->values = calloc (len + 1, sizeof (bool));
+  ret->values = smart_calloc (len, 1, sizeof (bool));
   if (ret->values == NULL)
     {
       return NULL;
@@ -832,10 +849,10 @@ append_json_map_int_bool (json_map_int_bool * map, int key, bool val)
     return -1;
 
   len = map->len + 1;
-  keys = calloc (len, sizeof (int));
+  keys = smart_calloc (len, 0, sizeof (int));
   if (keys == NULL)
     return -1;
-  vals = calloc (len, sizeof (bool));
+  vals = smart_calloc (len, 0, sizeof (bool));
   if (vals == NULL)
     {
       return -1;
@@ -945,18 +962,18 @@ make_json_map_int_string (yajl_val src, const struct parser_context *ctx,
 
   len = YAJL_GET_OBJECT_NO_CHECK (src)->len;
 
-  ret = calloc (1, sizeof (*ret));
+  ret = smart_calloc (1, 0, sizeof (*ret));
   if (ret == NULL)
     return NULL;
 
   ret->len = 0;
-  ret->keys = calloc (len + 1, sizeof (int));
+  ret->keys = smart_calloc (len, 1, sizeof (int));
   if (ret->keys == NULL)
     {
       return NULL;
     }
 
-  ret->values = calloc (len + 1, sizeof (char *));
+  ret->values = smart_calloc (len, 1, sizeof (char *));
   if (ret->values == NULL)
     {
       return NULL;
@@ -1111,20 +1128,20 @@ make_json_map_string_int (yajl_val src, const struct parser_context *ctx,
     return NULL;
 
   len = YAJL_GET_OBJECT_NO_CHECK (src)->len;
-  ret = calloc (1, sizeof (*ret));
+  ret = smart_calloc (1, 0, sizeof (*ret));
   if (ret == NULL)
     {
       *(err) = strdup ("error allocating memory");
       return NULL;
     }
   ret->len = 0;
-  ret->keys = calloc (len + 1, sizeof (char *));
+  ret->keys = smart_calloc (len, 1, sizeof (char *));
   if (ret->keys == NULL)
     {
       *(err) = strdup ("error allocating memory");
       return NULL;
     }
-  ret->values = calloc (len + 1, sizeof (int));
+  ret->values = smart_calloc (len, 1, sizeof (int));
   if (ret->values == NULL)
     {
       *(err) = strdup ("error allocating memory");
@@ -1271,10 +1288,24 @@ make_json_map_string_int64 (yajl_val src, const struct parser_context *ctx, pars
     {
         size_t i;
         size_t len = YAJL_GET_OBJECT (src)->len;
-        ret = safe_malloc (sizeof(*ret));
+        char **keys = NULL;
+        int64_t *vals = NULL;
+        ret = smart_calloc (1, 0, sizeof(*ret));
+        if (ret == NULL) {
+          return NULL;
+        }
+        keys = smart_calloc (len, 1, sizeof (char *));
+        if (keys == NULL) {
+          return NULL;
+        }
+        vals = smart_calloc (len, 1, sizeof (int64_t));
+        if (vals == NULL) {
+          free(keys);
+          return NULL;
+        }
         ret->len = len;
-        ret->keys = safe_malloc ((len + 1) * sizeof (char *));
-        ret->values = safe_malloc ((len + 1) * sizeof (int64_t));
+        ret->keys = keys;
+        ret->values = vals;
         for (i = 0; i < len; i++)
         {
             const char *srckey = YAJL_GET_OBJECT (src)->keys[i];
@@ -1320,8 +1351,15 @@ append_json_map_string_int64 (json_map_string_int64 *map, const char *key, int64
         return -1;
 
     len = map->len + 1;
-    keys = safe_malloc (len * sizeof(char *));
-    vals = safe_malloc (len * sizeof(int64_t));
+    keys = smart_calloc (len, 0, sizeof(char *));
+    if (keys == NULL) {
+      return -1;
+    }
+    vals = smart_calloc (len, 0, sizeof(int64_t));
+    if (vals == NULL) {
+      free(keys);
+      return -1;
+    }
 
     if (map->len)
     {
@@ -1411,17 +1449,17 @@ make_json_map_string_bool (yajl_val src, const struct parser_context *ctx,
   if (src == NULL || YAJL_GET_OBJECT (src) == NULL)
     return NULL;
 
-  ret = calloc (1, sizeof (*ret));
+  ret = smart_calloc (1, 0, sizeof (*ret));
   if (ret == NULL)
     return NULL;
   ret->len = 0;
-  ret->keys = calloc (len + 1, sizeof (char *));
+  ret->keys = smart_calloc (len, 1, sizeof (char *));
   if (ret->keys == NULL)
     {
       return NULL;
     }
 
-  ret->values = calloc (len + 1, sizeof (bool));
+  ret->values = smart_calloc (len, 1, sizeof (bool));
   if (ret->values == NULL)
     {
       return NULL;
@@ -1478,10 +1516,10 @@ append_json_map_string_bool (json_map_string_bool * map, const char *key,
     return -1;
 
   len = map->len + 1;
-  keys = calloc (len, sizeof (char *));
+  keys = smart_calloc (len, 0, sizeof (char *));
   if (keys == NULL)
     return -1;
-  vals = calloc (len, sizeof (bool));
+  vals = smart_calloc (len, 0, sizeof (bool));
   if (vals == NULL)
     {
       return -1;
@@ -1599,14 +1637,14 @@ make_json_map_string_string (yajl_val src, const struct parser_context *ctx,
 
   ret->len = 0;
 
-  ret->keys = calloc (len + 1, sizeof (char *));
+  ret->keys = smart_calloc (len, 1, sizeof (char *));
   if (ret->keys == NULL)
     {
       *(err) = strdup ("error allocating memory");
       return NULL;
     }
 
-  ret->values = calloc (len + 1, sizeof (char *));
+  ret->values = smart_calloc (len, 1, sizeof (char *));
   if (ret->values == NULL)
     {
       *(err) = strdup ("error allocating memory");
@@ -1731,12 +1769,12 @@ dup_json_map_string_string(const json_map_string_string *src, json_map_string_st
         goto out;
     }
 
-    dest->keys = safe_malloc(src->len * sizeof(char *));
+    dest->keys = smart_calloc(src->len, 0, sizeof(char *));
     if (dest->keys == NULL) {
         ret = -1;
         goto out;
     }
-    dest->values = safe_malloc(src->len * sizeof(char *));
+    dest->values = smart_calloc(src->len, 0, sizeof(char *));
     if (dest->values == NULL) {
         free(dest->keys);
         dest->keys = NULL;
@@ -1800,7 +1838,7 @@ json_marshal_string (const char *str, size_t length,
       return json_buf;
     }
 
-  json_buf = calloc (1, gen_len + 1);
+  json_buf = smart_calloc (gen_len, 1, 1);
   if (json_buf == NULL)
     {
       *err = strdup ("error allocating memory");

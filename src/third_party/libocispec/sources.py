@@ -63,10 +63,10 @@ def parse_map_string_obj(obj, c_file, prefix, obj_typename):
     c_file.write('        const char **keys = YAJL_GET_OBJECT_NO_CHECK (tree)->keys;\n')
     c_file.write('        yajl_val *values = YAJL_GET_OBJECT_NO_CHECK (tree)->values;\n')
     c_file.write('        ret->len = len;\n')
-    c_file.write('        ret->keys = calloc (len + 1, sizeof (*ret->keys));\n')
+    c_file.write('        ret->keys = smart_calloc (len, 1, sizeof (*ret->keys));\n')
     c_file.write('        if (ret->keys == NULL)\n')
     c_file.write('          return NULL;\n')
-    c_file.write('        ret->%s = calloc (len + 1, sizeof (*ret->%s));\n' % \
+    c_file.write('        ret->%s = smart_calloc (len, 1, sizeof (*ret->%s));\n' % \
                  (child.fixname, child.fixname))
     c_file.write('        if (ret->%s == NULL)\n' % child.fixname)
     c_file.write('          {\n')
@@ -109,14 +109,14 @@ def parse_obj_type_array(obj, c_file, prefix, obj_typename):
         c_file.write('            size_t len = YAJL_GET_ARRAY_NO_CHECK (tmp)->len;\n')
         c_file.write('            yajl_val *values = YAJL_GET_ARRAY_NO_CHECK (tmp)->values;\n')
         c_file.write('            ret->%s_len = len;\n' % (obj.fixname))
-        c_file.write('            ret->%s = calloc (len + 1, sizeof (*ret->%s));\n' % \
+        c_file.write('            ret->%s = smart_calloc (len, 1, sizeof (*ret->%s));\n' % \
                      (obj.fixname, obj.fixname))
         c_file.write('            if (ret->%s == NULL)\n' % obj.fixname)
         c_file.write('              {\n')
         c_file.write('                return NULL;\n')
         c_file.write('              }\n')
         if obj.doublearray:
-            c_file.write('              ret->%s_item_lens = calloc ( len + 1, sizeof (size_t));\n'
+            c_file.write('              ret->%s_item_lens = smart_calloc ( len, 1, sizeof (size_t));\n'
                     % (obj.fixname))
             c_file.write('              if (ret->%s_item_lens == NULL)\n' % (obj.fixname))
             c_file.write('                  return NULL;\n')
@@ -125,7 +125,7 @@ def parse_obj_type_array(obj, c_file, prefix, obj_typename):
         c_file.write('                yajl_val val = values[i];\n')
         if obj.doublearray:
             c_file.write('                size_t j;\n')
-            c_file.write('                ret->%s[i] = calloc ( YAJL_GET_ARRAY_NO_CHECK(val)->len + 1, sizeof (**ret->%s));\n'
+            c_file.write('                ret->%s[i] = smart_calloc ( YAJL_GET_ARRAY_NO_CHECK(val)->len, 1, sizeof (**ret->%s));\n'
                     % (obj.fixname, obj.fixname))
             c_file.write('                if (ret->%s[i] == NULL)\n' % obj.fixname)
             c_file.write('                    return NULL;\n')
@@ -158,7 +158,7 @@ def parse_obj_type_array(obj, c_file, prefix, obj_typename):
         c_file.write('          {\n')
         if obj.doublearray:
             c_file.write('                yajl_val *items = YAJL_GET_ARRAY_NO_CHECK(tmp)->values;\n')
-            c_file.write('                ret->%s = calloc ( YAJL_GET_ARRAY_NO_CHECK(tmp)->len + 1, sizeof (*ret->%s));\n'
+            c_file.write('                ret->%s = smart_calloc ( YAJL_GET_ARRAY_NO_CHECK(tmp)->len, 1, sizeof (*ret->%s));\n'
                     % (obj.fixname, obj.fixname))
             c_file.write('                if (ret->%s[i] == NULL)\n' % obj.fixname)
             c_file.write('                    return NULL;\n')
@@ -194,14 +194,14 @@ def parse_obj_type_array(obj, c_file, prefix, obj_typename):
         c_file.write('            size_t len = YAJL_GET_ARRAY_NO_CHECK (tmp)->len;\n')
         c_file.write('            yajl_val *values = YAJL_GET_ARRAY_NO_CHECK (tmp)->values;\n')
         c_file.write('            ret->%s_len = len;\n' % (obj.fixname))
-        c_file.write('            ret->%s = calloc (len + 1, sizeof (*ret->%s));\n' \
+        c_file.write('            ret->%s = smart_calloc (len, 1, sizeof (*ret->%s));\n' \
                      % (obj.fixname, obj.fixname))
         c_file.write('            if (ret->%s == NULL)\n' % obj.fixname)
         c_file.write('              {\n')
         c_file.write('                return NULL;\n')
         c_file.write('              }\n')
         if obj.doublearray:
-            c_file.write('              ret->%s_item_lens = calloc ( len + 1, sizeof (size_t));\n'
+            c_file.write('              ret->%s_item_lens = smart_calloc ( len, 1, sizeof (size_t));\n'
                     % (obj.fixname))
             c_file.write('              if (ret->%s_item_lens == NULL)\n' % (obj.fixname))
             c_file.write('                  return NULL;\n')
@@ -209,7 +209,7 @@ def parse_obj_type_array(obj, c_file, prefix, obj_typename):
         c_file.write('              {\n')
         if obj.doublearray:
             c_file.write('                    yajl_val *items = YAJL_GET_ARRAY_NO_CHECK(values[i])->values;\n')
-            c_file.write('                    ret->%s[i] = calloc ( YAJL_GET_ARRAY_NO_CHECK(values[i])->len + 1, sizeof (**ret->%s));\n'
+            c_file.write('                    ret->%s[i] = smart_calloc ( YAJL_GET_ARRAY_NO_CHECK(values[i])->len, 1, sizeof (**ret->%s));\n'
                     % (obj.fixname, obj.fixname))
             c_file.write('                    if (ret->%s[i] == NULL)\n' % obj.fixname)
             c_file.write('                        return NULL;\n')
@@ -344,19 +344,19 @@ def parse_obj_arr_obj(obj, c_file, prefix, obj_typename):
 
         if (ctx->options & OPT_PARSE_FULLKEY)
           {
-            resi = calloc (1, sizeof(*tree));
+            resi = smart_calloc (1, 0, sizeof(*tree));
             if (resi == NULL)
               {
                 return NULL;
               }
             resi->type = yajl_t_object;
-            resi->u.object.keys = calloc (cnt, sizeof (const char *));
+            resi->u.object.keys = smart_calloc (cnt, 0, sizeof (const char *));
             if (resi->u.object.keys == NULL)
               {
                 yajl_tree_free (resi);
                 return NULL;
               }
-            resi->u.object.values = calloc (cnt, sizeof (yajl_val));
+            resi->u.object.values = smart_calloc (cnt, 0, sizeof (yajl_val));
             if (resi->u.object.values == NULL)
               {
                 yajl_tree_free (resi);
@@ -416,7 +416,7 @@ def parse_json_to_c(obj, c_file, prefix):
     c_file.write("    (void) ctx;  /* Silence compiler warning.  */\n")
     c_file.write("    if (tree == NULL)\n")
     c_file.write("      return NULL;\n")
-    c_file.write("    ret = calloc (1, sizeof (*ret));\n")
+    c_file.write("    ret = smart_calloc (1, 0, sizeof (*ret));\n")
     c_file.write("    if (ret == NULL)\n")
     c_file.write("      return NULL;\n")
     if obj.typ == 'mapStringObject':
@@ -832,7 +832,7 @@ def read_val_generator(c_file, level, src, dest, typ, keyname, obj_typename):
         c_file.write('%syajl_val val = %s;\n' % ('    ' * (level), src))
         c_file.write('%sif (val != NULL)\n' % ('    ' * (level)))
         c_file.write('%s  {\n' % ('    ' * (level)))
-        c_file.write('%s%s = calloc (1, sizeof (%s));\n' %
+        c_file.write('%s%s = smart_calloc (1, 0, sizeof (%s));\n' %
                      ('    ' * (level + 1), dest, helpers.get_map_c_types(num_type)))
         c_file.write('%sif (%s == NULL)\n' % ('    ' * (level + 1), dest))
         c_file.write('%s    return NULL;\n' % ('    ' * (level + 1)))
@@ -867,7 +867,7 @@ def read_val_generator(c_file, level, src, dest, typ, keyname, obj_typename):
         c_file.write('%syajl_val val = %s;\n' % ('    ' * (level), src))
         c_file.write('%sif (val != NULL)\n' % ('    ' * (level)))
         c_file.write('%s  {\n' % ('    ' * (level)))
-        c_file.write('%s%s = calloc (1, sizeof (bool));\n' % ('    ' * (level + 1), dest))
+        c_file.write('%s%s = smart_calloc (1, 0, sizeof (bool));\n' % ('    ' * (level + 1), dest))
         c_file.write('%sif (%s == NULL)\n' % ('    ' * (level + 1), dest))
         c_file.write('%s    return NULL;\n' % ('    ' * (level + 1)))
         c_file.write('%s*(%s) = YAJL_IS_TRUE(val);\n' % ('    ' * (level + 1), dest))
@@ -878,7 +878,7 @@ def read_val_generator(c_file, level, src, dest, typ, keyname, obj_typename):
                      % ('    ' * (level + 1), keyname))
         c_file.write('%sif (val != NULL)\n' % ('    ' * (level + 1)))
         c_file.write('%s  {\n' % ('    ' * (level + 1)))
-        c_file.write('%s%s = calloc (1, sizeof (bool));\n' % ('    ' * (level + 2), dest))
+        c_file.write('%s%s = smart_calloc (1, 0, sizeof (bool));\n' % ('    ' * (level + 2), dest))
         c_file.write('%sif (%s == NULL)\n' % ('    ' * (level + 2), dest))
         c_file.write('%s  return NULL;\n' % ('    ' * (level + 2)))
         c_file.write('%s*(%s) = YAJL_IS_TRUE(val);\n' % ('    ' * (level + 2), dest))
@@ -1163,17 +1163,17 @@ define_cleaner_function (%s *, free_%s)\n
     alen = YAJL_GET_ARRAY_NO_CHECK (tree)->len;
     if (alen == 0)
       return NULL;
-    ptr = calloc (1, sizeof (%s));
+    ptr = smart_calloc (1, 0, sizeof (%s));
     if (ptr == NULL)
       return NULL;
-    ptr->items = calloc (alen + 1, sizeof(*ptr->items));
+    ptr->items = smart_calloc (alen, 1, sizeof(*ptr->items));
     if (ptr->items == NULL)
       return NULL;
     ptr->len = alen;
 """ % (typename, typename, typename, typename, typename, typename, typename))
 
     if obj.doublearray:
-        c_file.write('    ptr->subitem_lens = calloc ( alen + 1, sizeof (size_t));\n')
+        c_file.write('    ptr->subitem_lens = smart_calloc ( alen, 1, sizeof (size_t));\n')
         c_file.write('    if (ptr->subitem_lens == NULL)\n')
         c_file.write('        return NULL;')
 
@@ -1191,7 +1191,7 @@ define_cleaner_function (%s *, free_%s)\n
 
         if obj.doublearray:
             c_file.write('        size_t j;\n')
-            c_file.write('        ptr->items[i] = calloc ( YAJL_GET_ARRAY_NO_CHECK(work)->len + 1, sizeof (**ptr->items));\n')
+            c_file.write('        ptr->items[i] = smart_calloc ( YAJL_GET_ARRAY_NO_CHECK(work)->len, 1, sizeof (**ptr->items));\n')
             c_file.write('        if (ptr->items[i] == NULL)\n')
             c_file.write('           return NULL;\n')
             c_file.write('        yajl_val *tmps = YAJL_GET_ARRAY_NO_CHECK(work)->values;\n')
@@ -1220,7 +1220,7 @@ define_cleaner_function (%s *, free_%s)\n
             c_file.write('        break;\n')
     else:
         if obj.doublearray:
-            c_file.write('        ptr->items[i] = calloc ( YAJL_GET_ARRAY_NO_CHECK(work)->len + 1, sizeof (**ptr->items));\n')
+            c_file.write('        ptr->items[i] = smart_calloc ( YAJL_GET_ARRAY_NO_CHECK(work)->len, 1, sizeof (**ptr->items));\n')
             c_file.write('        if (ptr->items[i] == NULL)\n')
             c_file.write('            return NULL;\n')
             c_file.write('        size_t j;\n')
@@ -1537,6 +1537,13 @@ define_cleaner_function (yajl_val, yajl_tree_free)
       return NULL;
 
     *err = NULL;
+    if (strlen(jsondata) >= JSON_MAX_SIZE) {
+        if (asprintf(err, "cannot parse the data with length exceeding %%llu", JSON_MAX_SIZE) < 0) {
+            *err = safe_strdup("error allocating memory");
+        }
+        return NULL;
+    }
+
     if (ctx == NULL)
      ctx = (const struct parser_context *)(&tmp_ctx);
 
@@ -1601,7 +1608,7 @@ char *
         return json_buf;
       }
 
-    json_buf = calloc (1, gen_len + 1);
+    json_buf = smart_calloc (gen_len, 1, 1);
     if (json_buf == NULL)
       {
         *err = strdup ("Cannot allocate memory");

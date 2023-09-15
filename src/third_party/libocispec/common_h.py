@@ -110,6 +110,8 @@ static inline void ptr_free_function(void *p) {
     return stat; \\
 }
 
+#define JSON_MAX_SIZE (10LL * 1024LL * 1024LL)
+
 typedef char *parser_error;
 
 struct parser_context
@@ -130,7 +132,7 @@ yajl_val get_val (yajl_val tree, const char *name, yajl_type type);
 
 char *safe_strdup(const char *src);
 
-void *safe_malloc(size_t size);
+void *smart_calloc(size_t count, size_t extra, size_t unit_size);
 
 int common_safe_double (const char *numstr, double *converted);
 

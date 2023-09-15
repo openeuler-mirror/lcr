@@ -43,52 +43,6 @@
 #include "utils.h"
 #include "oci_runtime_spec.h"
 
-/*
- * Free lcr_container_info array returned by lcr_list_{active,all}_containers
- */
-void lcr_containers_info_free(struct lcr_container_info **info_arr, size_t size)
-{
-    size_t i = 0;
-    struct lcr_container_info *in = NULL;
-
-    if (info_arr == NULL) {
-        return;
-    }
-    if (size == 0) {
-        return;
-    }
-    for (i = 0, in = *info_arr; i < size; i++, in++) {
-        free(in->interface);
-        free(in->ipv4);
-        free(in->ipv6);
-        free(in->name);
-        free(in->state);
-    }
-    free(*info_arr);
-    *info_arr = NULL;
-}
-
-/*
- * Free lcr_container_info returned lcr_container_info_get
- */
-void lcr_container_info_free(struct lcr_container_info *info)
-{
-    if (info == NULL) {
-        return;
-    }
-    free(info->interface);
-    info->interface = NULL;
-    free(info->ipv4);
-    info->ipv4 = NULL;
-    free(info->ipv6);
-    info->ipv6 = NULL;
-    free(info->name);
-    info->name = NULL;
-    free(info->state);
-    info->state = NULL;
-    free(info);
-}
-
 static inline bool is_container_exists(struct lxc_container *c)
 {
     return c->is_defined(c);
@@ -97,85 +51,6 @@ static inline bool is_container_exists(struct lxc_container *c)
 static inline bool is_container_can_control(struct lxc_container *c)
 {
     return c->may_control(c);
-}
-
-/*
- * Get one container info for a given name and lcrpath.
- * return struct of container info, or NULL on error.
- */
-struct lcr_container_info *lcr_container_info_get(const char *name, const char *lcrpath)
-{
-    int nret = -1;
-    struct lcr_container_info *info = NULL;
-    const char *st = NULL;
-    bool run_flag = false;
-
-    struct lxc_container *c = lxc_container_without_config_new(name, lcrpath);
-    if (c == NULL) {
-        return NULL;
-    }
-
-    if (!is_container_exists(c)) {
-        goto put_and_finish;
-    }
-
-    st = c->state(c);
-    if (st == NULL) {
-        st = "UNKNOWN";
-    }
-    run_flag = (strcmp(st, "STOPPED") != 0);
-
-    /* Now it makes sense to allocate memory */
-    info = lcr_util_common_calloc_s(sizeof(*info));
-    if (info == NULL) {
-        nret = -1;
-        goto put_and_finish;
-    }
-    info->init = -1;
-    info->running = run_flag;
-    info->name = lcr_util_strdup_s(name);
-    info->state = lcr_util_strdup_s(st);
-    if (run_flag) {
-        info->init = c->init_pid(c);
-    }
-
-    nret = 0;
-put_and_finish:
-    lxc_container_put(c);
-    if (nret != 0) {
-        lcr_container_info_free(info);
-        info = NULL;
-    }
-    return info;
-}
-
-/*
- * Get a complete list of all containers for a given lcrpath.
- * return Number of containers, or -1 on error.
- **/
-int lcr_list_all_containers(const char *lcrpath, struct lcr_container_info **info_arr)
-{
-    char **container = NULL;
-    int n = 0;
-    int nret = -1;
-    size_t info_size = 0;
-    const char *path = lcrpath ? lcrpath : LCRPATH;
-
-    clear_error_message(&g_lcr_error);
-    n = list_all_containers(path, &container, NULL);
-    if (n == -1) {
-        n = 0;
-    }
-
-    nret = lcr_containers_info_get(path, info_arr, &info_size, container, n);
-    if (info_arr == NULL && nret == 0) {
-        return -1;
-    } else if (info_arr == NULL || nret == -1) {
-        lcr_containers_info_free(info_arr, info_size);
-        return -1;
-    }
-
-    return (int)info_size;
 }
 
 static int create_partial(const struct lxc_container *c)
@@ -274,6 +149,16 @@ bool lcr_create(const char *name, const char *lcrpath, void *oci_config)
     bool bret = false;
     const char *tmp_path = lcrpath ? lcrpath : LCRPATH;
     oci_runtime_spec *oci_spec = (oci_runtime_spec *)oci_config;
+
+    if (name == NULL) {
+        ERROR("Missing container name");
+        return false;
+    }
+
+    if (oci_spec == NULL) {
+        ERROR("Empty oci config");
+        return false;
+    }
 
     clear_error_message(&g_lcr_error);
     isula_libutils_set_log_prefix(name);

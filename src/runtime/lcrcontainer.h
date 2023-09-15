@@ -46,24 +46,6 @@ __EXPORT__ struct lcr_console_config {
     char *log_file_size;
 };
 
-/*
-* Store lcr container info
-*/
-__EXPORT__ struct lcr_container_info {
-    /* Name of container. */
-    char *name;
-    /* State of container. */
-    char *state;
-    /* Interface of container. */
-    char *interface;
-    char *ipv4;
-    char *ipv6;
-    pid_t init;
-    double ram;
-    double swap;
-    bool running;
-};
-
 __EXPORT__ struct blkio_stats {
     uint64_t read;
     uint64_t write;
@@ -131,28 +113,6 @@ __EXPORT__ struct lcr_cgroup_resources {
     int64_t cpurt_period;
     int64_t cpurt_runtime;
 };
-
-/*
-* Get one container info for a given lcrpath.
-* return struct of container info, or NULL on error.
-*/
-__EXPORT__ struct lcr_container_info *lcr_container_info_get(const char *name, const char *lcrpath);
-
-/*
-* Free lcr_container_info returned lcr_container_info_get
-*/
-__EXPORT__ void lcr_container_info_free(struct lcr_container_info *info);
-
-/*
-* Get a complete list of all containers for a given lcrpath.
-* return Number of containers, or -1 on error.
-*/
-__EXPORT__ int lcr_list_all_containers(const char *lcrpath, struct lcr_container_info **info_arr);
-
-/*
-* Free lcr_container_info array returned by lcr_list_{active,all}_containers
-*/
-__EXPORT__ void lcr_containers_info_free(struct lcr_container_info **info_arr, size_t size);
 
 /*
 * Create a container

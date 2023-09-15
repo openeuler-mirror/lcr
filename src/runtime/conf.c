@@ -642,6 +642,10 @@ static int trans_oci_process_prlimit(const defs_process *proc, struct lcr_list *
 
     for (i = 0; i < proc->rlimits_len; i++) {
         defs_process_rlimits_element *lr = proc->rlimits[i];
+        if (lr == NULL) {
+            continue;
+        }
+
         char buf_key[30] = { 0 };
         char buf_value[60] = { 0 };
         size_t j;
@@ -753,6 +757,10 @@ out:
 struct lcr_list *trans_oci_process(const defs_process *proc)
 {
     struct lcr_list *conf = NULL;
+
+    if (proc == NULL) {
+        return NULL;
+    }
 
     conf = lcr_util_common_calloc_s(sizeof(struct lcr_list));
     if (conf == NULL) {
@@ -1097,7 +1105,8 @@ bool is_system_container(const oci_runtime_spec *container)
 {
     size_t i = 0;
     for (i = 0; container->annotations != NULL && i < container->annotations->len; i++) {
-        if (strcmp(container->annotations->keys[i], "system.container") == 0) {
+        if (container->annotations->keys[i] != NULL &&
+            strcmp(container->annotations->keys[i], "system.container") == 0) {
             return true;
         }
     }
@@ -1108,7 +1117,8 @@ static bool is_external_rootfs(const oci_runtime_spec *container)
 {
     size_t i = 0;
     for (i = 0; container->annotations != NULL && i < container->annotations->len; i++) {
-        if (strcmp(container->annotations->keys[i], "external.rootfs") == 0) {
+        if (container->annotations->keys[i] != NULL &&
+            strcmp(container->annotations->keys[i], "external.rootfs") == 0) {
             return true;
         }
     }
@@ -1170,8 +1180,14 @@ struct lcr_list *trans_oci_mounts(const oci_runtime_spec *c)
     struct lcr_list *node = NULL;
     defs_mount *tmp = NULL;
     size_t i;
-    bool system_container = is_system_container(c);
-    bool external_rootfs = is_external_rootfs(c);
+    bool system_container = false;
+    bool external_rootfs = false;
+
+    if (c == NULL) {
+        return NULL;
+    }
+    system_container = is_system_container(c);
+    external_rootfs = is_external_rootfs(c);
 
     conf = lcr_util_common_calloc_s(sizeof(*conf));
     if (conf == NULL) {
@@ -1181,7 +1197,7 @@ struct lcr_list *trans_oci_mounts(const oci_runtime_spec *c)
 
     for (i = 0; i < c->mounts_len; i++) {
         tmp = c->mounts[i];
-        if (tmp->type == NULL) {
+        if (tmp == NULL || tmp->type == NULL) {
             goto out_free;
         }
 
@@ -1209,6 +1225,10 @@ static int trans_one_oci_id_mapping(struct lcr_list *conf, const char *typ, cons
     struct lcr_list *node = NULL;
     char buf_value[DEFAULT_BUF_LEN] = { 0 };
     char subid[ID_MAP_LEN] = { 0 };
+
+    if (id == NULL) {
+        return -1;
+    }
 
     nret = snprintf(buf_value, sizeof(buf_value), "%s %u %u %u", typ, id->container_id, id->host_id, id->size);
     if (nret < 0 || (size_t)nret >= sizeof(buf_value)) {
@@ -1573,6 +1593,10 @@ static int trans_resources_devices_v1(const defs_resources *res, struct lcr_list
 
     for (i = 0; i < res->devices_len; i++) {
         defs_device_cgroup *lrd = res->devices[i];
+        if (lrd == NULL) {
+            continue;
+        }
+
         if (trans_resources_devices_ret(lrd, buf_value, sizeof(buf_value)) < 0) {
             goto out;
         }
@@ -2009,6 +2033,10 @@ static int trans_resources_devices_v2(const defs_resources *res, struct lcr_list
 
     for (i = 0; i < res->devices_len; i++) {
         defs_device_cgroup *lrd = res->devices[i];
+        if (lrd == NULL) {
+            continue;
+        }
+
         if (trans_resources_devices_ret(lrd, buf_value, sizeof(buf_value)) < 0) {
             goto out;
         }
@@ -2491,7 +2519,7 @@ static struct lcr_list *trans_oci_namespaces(const oci_runtime_config_linux *l)
         char *ns_name = NULL;
         ns = l->namespaces[i];
 
-        if (ns->type == NULL || ns->path == NULL) {
+        if (ns == NULL || ns->type == NULL || ns->path == NULL) {
             continue;
         }
 
@@ -2808,6 +2836,12 @@ static int seccomp_append_rule(const defs_syscall *syscall, size_t i, isula_buff
         ret = -1;
         goto out;
     }
+
+    if (strlen(syscall->names[i]) > SIZE_MAX - strlen(action) - 2) {
+        ERROR("Out of range");
+        ret = -1;
+        goto out;
+    }
     if (buffer->nappend(buffer, strlen(syscall->names[i]) + strlen(action) + 2, "%s %s", syscall->names[i], action)) {
         ERROR("Failed to append syscall name and action\n");
         ret = -1;
@@ -2817,6 +2851,15 @@ static int seccomp_append_rule(const defs_syscall *syscall, size_t i, isula_buff
     for (j = 0; j < syscall->args_len; j++) {
         if ((syscall->args[j] == NULL) || (syscall->args[j]->op == NULL)) {
             ERROR("Failed to get syscall args");
+            ret = -1;
+            goto out;
+        }
+
+        /* Appending content is syscall->args[j]->op plus
+         * three unsigned numbers(which length is no more than 20 * 3)
+         */
+        if (strlen(syscall->args[j]->op) > SIZE_MAX - 20 * 3) {
+            ERROR("Out of range");
             ret = -1;
             goto out;
         }
@@ -3033,6 +3076,10 @@ struct lcr_list *trans_oci_linux(const oci_runtime_config_linux *l, char **secco
     int ret = 0;
     struct lcr_list *tmp = NULL;
 
+    if (l == NULL) {
+        return NULL;
+    }
+
     struct lcr_list *conf = lcr_util_common_calloc_s(sizeof(*conf));
     if (conf == NULL) {
         return NULL;
@@ -3114,6 +3161,10 @@ struct lcr_list *trans_annotations(const json_map_string_string *anno)
     size_t i, j;
     size_t len;
     int ret = 0;
+
+    if (anno == NULL) {
+        return NULL;
+    }
 
     struct lcr_list *conf = lcr_util_common_calloc_s(sizeof(*conf));
     if (conf == NULL) {

@@ -29,6 +29,11 @@
 /* swap in oci is memoy+swap, so here we need to get real swap */
 int lcr_util_get_real_swap(int64_t memory, int64_t memory_swap, int64_t *swap)
 {
+    if (swap == NULL) {
+        ERROR("empty swap pointer");
+        return -1;
+    }
+
     if (memory == -1 && memory_swap == 0) {
         *swap = -1; // -1 is max
         return 0;

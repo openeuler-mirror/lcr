@@ -425,74 +425,6 @@ cleanup:
     return NULL;
 }
 
-static struct lcr_container_info *info_new(struct lcr_container_info **info, size_t *size)
-{
-    struct lcr_container_info *m = NULL;
-    struct lcr_container_info *n = NULL;
-    size_t length = 0;
-    int nret = 0;
-
-    if (*size > SIZE_MAX / sizeof(struct lcr_container_info) - 1) {
-        return NULL;
-    }
-
-    length = (*size + 1) * sizeof(struct lcr_container_info);
-
-    nret = lcr_mem_realloc((void **)&n, length, (void *)(*info), (*size) * sizeof(struct lcr_container_info));
-    if (nret < 0) {
-        return NULL;
-    }
-
-    *info = n;
-    m = *info + *size;
-    (*size)++;
-
-    // *INDENT-OFF*
-    *m = (struct lcr_container_info) {
-        .name = NULL, .state = NULL, .interface = NULL, .ipv4 = NULL, .ipv6 = NULL, .ram = 0.0, .swap = 0.0, .init = -1
-    };
-    // *INDENT-ON*
-    return m;
-}
-
-static void free_arr(char **array, size_t size)
-{
-    size_t i;
-    for (i = 0; i < size; i++) {
-        free(array[i]);
-        array[i] = NULL;
-    }
-    free(array);
-}
-
-/*
- * Get a complete list of active containers for a given lcrpath.
- * return Number of containers, or -1 on error.
- **/
-int lcr_list_active_containers(const char *lcrpath, struct lcr_container_info **info_arr)
-{
-    char **c = NULL;
-    int n = 0;
-    int nret = -1;
-    size_t info_size = 0;
-    const char *path = lcrpath ? lcrpath : LCRPATH;
-
-    n = list_active_containers(path, &c, NULL);
-    if (n == -1) {
-        n = 0;
-    }
-
-    nret = lcr_containers_info_get(path, info_arr, &info_size, c, n);
-    if ((info_arr == NULL) && nret == 0) {
-        return -1;
-    } else if ((info_arr == NULL) || nret == -1) {
-        lcr_containers_info_free(info_arr, info_size);
-        return -1;
-    }
-
-    return (int)info_size;
-}
-
 bool lcr_delete_with_force(const char *name, const char *lcrpath, bool force)
 {
     struct lxc_container *c = NULL;
@@ -563,61 +495,6 @@ void lcr_free_config(struct lcr_list *lcr_conf)
     }
 }
 
-int lcr_containers_info_get(const char *lcrpath, struct lcr_container_info **info, size_t *size, char **containers,
-                            int num)
-{
-    struct lcr_container_info *in = NULL;
-    struct lxc_container *c = NULL;
-    int i;
-    int nret = -1;
-
-    if ((lcrpath == NULL) || num == 0) {
-        goto err_out;
-    }
-
-    for (i = 0; i < num; i++) {
-        const char *st = NULL;
-        const char *name = containers[i];
-        bool run_flag = true;
-        if (name == NULL) {
-            continue;
-        }
-
-        c = lxc_container_without_config_new(name, lcrpath);
-        if (c == NULL) {
-            continue;
-        }
-
-        if (!c->is_defined(c)) {
-            goto put_container;
-        }
-
-        st = c->state(c);
-        if (st == NULL) {
-            st = "UNKNOWN";
-        }
-        run_flag = (strcmp(st, "STOPPED") != 0);
-
-        /* Now it makes sense to allocate memory */
-        in = info_new(info, size);
-        if (in == NULL) {
-            goto put_container;
-        }
-        in->running = run_flag;
-        in->name = lcr_util_strdup_s(name);
-        in->state = lcr_util_strdup_s(st);
-        if (run_flag) {
-            in->init = c->init_pid(c);
-        }
-put_container:
-        lxc_container_put(c);
-    }
-    nret = 0;
-err_out:
-    free_arr(containers, (size_t)num);
-    return nret;
-}
-
 /*
  * Transform container JSON into oci_runtime_spec struct
  */
@@ -626,6 +503,11 @@ bool container_parse(const char *oci_filename, const char *oci_json_data, oci_ru
     struct parser_context ctx = { OPT_PARSE_STRICT, stderr };
     parser_error err = NULL;
     bool ret = true;
+
+    if (container == NULL) {
+        ERROR("Invalid container arg");
+        return false;
+    }
 
     if (oci_json_data == NULL) {
         *container = oci_runtime_spec_parse_file(oci_filename, &ctx, &err);
@@ -682,6 +564,11 @@ struct lcr_list *lcr_oci2lcr(const struct lxc_container *c, oci_runtime_spec *co
                              char **seccomp)
 {
     struct lcr_list *lcr_conf = NULL;
+
+    if (container == NULL) {
+        ERROR("Invalid arguments");
+        return NULL;
+    }
 
     lcr_conf = lcr_util_common_calloc_s(sizeof(*lcr_conf));
     if (lcr_conf == NULL) {
@@ -773,6 +660,10 @@ static char *escape_string_encode(const char *src)
 
     len = strlen(src);
     if (len == 0) {
+        return NULL;
+    }
+
+    if (len > (SIZE_MAX - 1) / 2) {
         return NULL;
     }
 
@@ -874,7 +765,7 @@ cleanup:
     return ret;
 }
 
-char *lcr_get_bundle(const char *lcrpath, const char *name)
+static char *lcr_get_bundle(const char *lcrpath, const char *name)
 {
     size_t len = 0;
     int nret = 0;
@@ -929,6 +820,11 @@ bool lcr_save_spec(const char *name, const char *lcrpath, const struct lcr_list 
 
     if (name == NULL) {
         ERROR("Missing container name");
+        return bret;
+    }
+
+    if (lcr_conf == NULL) {
+        ERROR("Empty lcr conf");
         return bret;
     }
 

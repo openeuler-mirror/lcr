@@ -104,6 +104,10 @@ static int buffer_append(isula_buffer *buf, const char *append, size_t length)
         return 0;
     }
 
+    if (length == SIZE_MAX) {
+        return -1;
+    }
+
     desired_length = length + 1;
     if (!buffer_has_space(buf, desired_length)) {
         if (buffer_grow(buf, desired_length) != 0) {

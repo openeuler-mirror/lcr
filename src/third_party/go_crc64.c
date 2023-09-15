@@ -32,10 +32,9 @@ isula_crc_table_t g_iso_crc_table;
 static void make_table(isula_crc_table_t *tab, uint64_t poly)
 {
     uint64_t i, j;
-    uint64_t t;
 
     for (i = 0; i < CRC_COL_LEN; i++) {
-        t = i;
+        uint64_t t = i;
         for (j = 0; j < CRC_ROW_LEN; j++) {
             if ((t & 1) == 1) {
                 t = (t >> 1) ^ poly;
@@ -50,10 +49,9 @@ static void make_table(isula_crc_table_t *tab, uint64_t poly)
 static void make_crc_table(isula_crc_table_t *tab)
 {
     uint64_t i, j;
-    uint64_t crc;
 
     for (i = 0; i < CRC_COL_LEN; i++) {
-        crc = tab->table[0][i];
+        uint64_t crc = tab->table[0][i];
         for (j = 1; j < CRC_ROW_LEN; j++) {
             crc = tab->table[0][(crc&0xff)] ^ (crc >> 8);
             tab->table[j][i] = crc;
