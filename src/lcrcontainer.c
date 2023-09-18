@@ -290,6 +290,12 @@ bool lcr_start(const struct lcr_start_request *request)
         close(pipefd[0]);
         dup2(pipefd[1], 2);
 
+        // should set LXC_MEMFD_REXEC=1 before lxc_start
+        // to improve the security of launching containers
+        if (setenv("LXC_MEMFD_REXEC", "1", true) != 0) {
+            exit(1);
+        }
+
         execute_lxc_start(request->name, path, request);
     }
 
