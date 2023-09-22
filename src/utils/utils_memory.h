@@ -31,11 +31,41 @@
 extern "C" {
 #endif
 
-void *lcr_util_smart_calloc_s(size_t unit_size, size_t count);
-void *lcr_util_common_calloc_s(size_t size);
-int lcr_mem_realloc(void **newptr, size_t newsize, void *oldptr, size_t oldsize);
+/*
+* allocate dynamic memory which size = (unit_size * count)
+* if (unit_size * count) >= 2^47B on 64bit machine, will failed and return NULL;
+* if unit_size == 0, will failed and return NULL;
+*/
+void *isula_smart_calloc_s(size_t unit_size, size_t count);
 
-char *lcr_util_strdup_s(const char *src);
+/*
+* allocate dynamic memory
+* if size >= 2^47B on 64bit machine, will failed and return NULL;
+* if size == 0, will failed and return NULL;
+*/
+void *isula_common_calloc_s(size_t size);
+
+/*
+* free memory which allocate by isula_smart_calloc_s,
+* isula_common_calloc_s, isula_mem_realloc or isula_strdup_s
+*/
+void isula_free_s(void *ptr);
+
+/*
+* reallocate dynamic memory
+* if success, will copy data in oldptr into newptr, and free memory of oldptr
+* if newptr == NULL, will failed;
+* if (oldsize > newsize) or newsize == 0, will failed;
+* if oldptr == NULL, isula_mem_realloc equal to isula_common_calloc_s;
+*/
+int isula_mem_realloc(void **newptr, size_t newsize, void **oldptr, size_t oldsize);
+
+/*
+* copy src and return to caller
+* if src == NULL, will return NULL
+* if strdup failed, will cause to abort process
+*/
+char *isula_strdup_s(const char *src);
 
 #ifdef __cplusplus
 }

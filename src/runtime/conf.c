@@ -327,18 +327,18 @@ struct lcr_list *create_lcr_list_node(const char *key, const char *value)
     struct lcr_list *node = NULL;
     lcr_config_item_t *entry = NULL;
 
-    node = lcr_util_common_calloc_s(sizeof(*node));
+    node = isula_common_calloc_s(sizeof(*node));
     if (node == NULL) {
         return NULL;
     }
-    entry = lcr_util_common_calloc_s(sizeof(*entry));
+    entry = isula_common_calloc_s(sizeof(*entry));
     if (entry == NULL) {
         free(node);
         return NULL;
     }
-    entry->name = lcr_util_strdup_s(key);
+    entry->name = isula_strdup_s(key);
 
-    entry->value = lcr_util_strdup_s(value);
+    entry->value = isula_strdup_s(value);
 
     node->elem = entry;
     return node;
@@ -405,7 +405,7 @@ static char *capabilities_join(const char *sep, const char **parts, size_t len)
         result_len += strlen(parts[iter]) - 4;
     }
 
-    result = lcr_util_smart_calloc_s(sizeof(char), result_len + 1);
+    result = isula_smart_calloc_s(sizeof(char), result_len + 1);
     if (result == NULL) {
         return NULL;
     }
@@ -489,7 +489,7 @@ static int trans_oci_process_init_groups(const defs_process *proc, struct lcr_li
         }
 
         size_t total_len = (MAX_USER_GID_LEN + 1) * proc->user->additional_gids_len;
-        char *gids = lcr_util_common_calloc_s(total_len);
+        char *gids = isula_common_calloc_s(total_len);
         if (gids == NULL) {
             goto out;
         }
@@ -649,7 +649,7 @@ static int trans_oci_process_prlimit(const defs_process *proc, struct lcr_list *
         char buf_key[30] = { 0 };
         char buf_value[60] = { 0 };
         size_t j;
-        char *type = lcr_util_strdup_s(lr->type);
+        char *type = isula_strdup_s(lr->type);
 
         // Lower case type,eg. RLIMIT_NOFILE -> RLIMIT_nofile
         for (j = strlen("RLIMIT_"); j < strlen(type); j++) {
@@ -762,7 +762,7 @@ struct lcr_list *trans_oci_process(const defs_process *proc)
         return NULL;
     }
 
-    conf = lcr_util_common_calloc_s(sizeof(struct lcr_list));
+    conf = isula_common_calloc_s(sizeof(struct lcr_list));
     if (conf == NULL) {
         return NULL;
     }
@@ -833,7 +833,7 @@ static int trans_oci_root_rootfs_options(const oci_runtime_spec_root *root, stru
     int nret;
 
     if (is_root_readonly(root)) {
-        value = lcr_util_strdup_s("ro");
+        value = isula_strdup_s("ro");
     }
 
     if ((linux != NULL) && linux->rootfs_propagation != NULL) {
@@ -844,7 +844,7 @@ static int trans_oci_root_rootfs_options(const oci_runtime_spec_root *root, stru
                 goto out;
             }
             newsize = strlen(linux->rootfs_propagation) + strlen(value) + APPEND_COMMA_END_SIZE;
-            nret = lcr_mem_realloc((void **)&tmpvalue, newsize, value, strlen(value));
+            nret = isula_mem_realloc((void **)&tmpvalue, newsize, (void **)&value, strlen(value));
             if (nret < 0) {
                 ERROR("Out of memory");
                 goto out;
@@ -857,7 +857,7 @@ static int trans_oci_root_rootfs_options(const oci_runtime_spec_root *root, stru
                 goto out;
             }
         } else {
-            value = lcr_util_strdup_s(linux->rootfs_propagation);
+            value = isula_strdup_s(linux->rootfs_propagation);
         }
     }
 
@@ -879,7 +879,7 @@ struct lcr_list *trans_oci_root(const oci_runtime_spec_root *root, const oci_run
 {
     struct lcr_list *conf = NULL;
 
-    conf = lcr_util_common_calloc_s(sizeof(*conf));
+    conf = isula_common_calloc_s(sizeof(*conf));
     if (conf == NULL) {
         return NULL;
     }
@@ -953,7 +953,7 @@ static char *trans_mount_to_lxc_options(const defs_mount *mount)
 
     prefix = lcr_util_string_join(",", (const char **)mount->options, mount->options_len);
     if (prefix == NULL) {
-        prefix = lcr_util_strdup_s("defaults");
+        prefix = isula_strdup_s("defaults");
     }
 
     result = lcr_util_string_append(lxc_options, prefix);
@@ -990,15 +990,15 @@ static char *get_mount_readmode_options(const defs_mount *mount, const char *typ
 
     if (is_mount_type_cgroup(type)) {
         if (readonly) {
-            options = lcr_util_strdup_s("ro:force");
+            options = isula_strdup_s("ro:force");
         } else {
-            options = lcr_util_strdup_s("rw:force");
+            options = isula_strdup_s("rw:force");
         }
     } else {
         if (readonly) {
-            options = lcr_util_strdup_s("ro");
+            options = isula_strdup_s("ro");
         } else {
-            options = lcr_util_strdup_s("rw");
+            options = isula_strdup_s("rw");
         }
     }
 
@@ -1031,7 +1031,7 @@ static struct lcr_list *trans_mount_auto_to_lxc(const defs_mount *mount)
     }
 
     buf_len = strlen(type) + strlen(options) + 2;
-    buf = lcr_util_smart_calloc_s(sizeof(char), buf_len);
+    buf = isula_smart_calloc_s(sizeof(char), buf_len);
     if (buf == NULL) {
         DEBUG("Out of memory");
         goto out_free;
@@ -1079,7 +1079,7 @@ static struct lcr_list *trans_mount_entry_to_lxc(const defs_mount *mount)
     }
 
     buf_len = strlen(replaced_dest) + strlen(mount->type) + strlen(replaced_source) + strlen(options) + 8;
-    buf = lcr_util_smart_calloc_s(sizeof(char), buf_len);
+    buf = isula_smart_calloc_s(sizeof(char), buf_len);
     if (buf == NULL) {
         ERROR("Out of memory");
         goto out_free;
@@ -1189,7 +1189,7 @@ struct lcr_list *trans_oci_mounts(const oci_runtime_spec *c)
     system_container = is_system_container(c);
     external_rootfs = is_external_rootfs(c);
 
-    conf = lcr_util_common_calloc_s(sizeof(*conf));
+    conf = isula_common_calloc_s(sizeof(*conf));
     if (conf == NULL) {
         return NULL;
     }
@@ -1284,7 +1284,7 @@ static struct lcr_list *trans_oci_id_mapping(const oci_runtime_config_linux *l)
     struct lcr_list *conf = NULL;
     int nret = 0;
 
-    conf = lcr_util_common_calloc_s(sizeof(*conf));
+    conf = isula_common_calloc_s(sizeof(*conf));
     if (conf == NULL) {
         return NULL;
     }
@@ -1960,7 +1960,7 @@ static struct lcr_list *trans_oci_resources_v1(const defs_resources *res)
 {
     struct lcr_list *conf = NULL;
 
-    conf = lcr_util_common_calloc_s(sizeof(*conf));
+    conf = isula_common_calloc_s(sizeof(*conf));
     if (conf == NULL) {
         return NULL;
     }
@@ -2417,7 +2417,7 @@ static struct lcr_list *trans_oci_resources_v2(const defs_resources *res)
 {
     struct lcr_list *conf = NULL;
 
-    conf = lcr_util_common_calloc_s(sizeof(*conf));
+    conf = isula_common_calloc_s(sizeof(*conf));
     if (conf == NULL) {
         return NULL;
     }
@@ -2495,7 +2495,7 @@ static char *trans_oci_namespace_to_lxc(const char *typ)
 
     for (p = namespaces_map; p != NULL && p->ns_name != NULL; p++) {
         if (strcmp(typ, p->ns_name) == 0) {
-            return lcr_util_strdup_s(p->lxc_name);
+            return isula_strdup_s(p->lxc_name);
         }
     }
     return NULL;
@@ -2509,7 +2509,7 @@ static struct lcr_list *trans_oci_namespaces(const oci_runtime_config_linux *l)
     size_t i;
     defs_namespace_reference *ns = NULL;
 
-    conf = lcr_util_common_calloc_s(sizeof(*conf));
+    conf = isula_common_calloc_s(sizeof(*conf));
     if (conf == NULL) {
         return NULL;
     }
@@ -2553,7 +2553,7 @@ static struct lcr_list *trans_oci_mask_ro_paths(const oci_runtime_config_linux *
     size_t i;
     char *path = NULL;
 
-    conf = lcr_util_common_calloc_s(sizeof(*conf));
+    conf = isula_common_calloc_s(sizeof(*conf));
     if (conf == NULL) {
         return NULL;
     }
@@ -2603,7 +2603,7 @@ static struct lcr_list *trans_oci_linux_devices(const oci_runtime_config_linux *
     defs_device *device = NULL;
     char buf_value[POPULATE_DEVICE_SIZE] = { 0 };
 
-    conf = lcr_util_common_calloc_s(sizeof(*conf));
+    conf = isula_common_calloc_s(sizeof(*conf));
     if (conf == NULL) {
         return NULL;
     }
@@ -2672,15 +2672,15 @@ static inline bool is_seccomp_action_errno(const char *value)
 static char *seccomp_trans_action(const char *action)
 {
     if (is_seccomp_action_kill(action)) {
-        return lcr_util_strdup_s("kill");
+        return isula_strdup_s("kill");
     } else if (is_seccomp_action_trap(action)) {
-        return lcr_util_strdup_s("trap");
+        return isula_strdup_s("trap");
     } else if (is_seccomp_action_allow(action)) {
-        return lcr_util_strdup_s("allow");
+        return isula_strdup_s("allow");
     } else if (is_seccomp_action_trace(action)) {
-        return lcr_util_strdup_s("trace 1");
+        return isula_strdup_s("trace 1");
     } else if (is_seccomp_action_errno(action)) {
-        return lcr_util_strdup_s("errno 1");
+        return isula_strdup_s("errno 1");
     }
 
     return NULL;
@@ -2748,11 +2748,11 @@ static char *get_hostarch(void)
     for (i = 0; i < len; i++) {
         if (i == 0 || i == 1 || i == 2) {
             if (strcmp(uts.machine, arch_type[i].arch) == 0) {
-                return lcr_util_strdup_s(arch_type[i].value);
+                return isula_strdup_s(arch_type[i].value);
             }
         } else {
             if (strncmp(uts.machine, arch_type[i].arch, (size_t)(arch_type[i].num)) == 0) {
-                return lcr_util_strdup_s(arch_type[i].value);
+                return isula_strdup_s(arch_type[i].value);
             }
         }
     }
@@ -2794,7 +2794,7 @@ static char *seccomp_trans_arch(const char *arch)
         if (strcmp(arch_type[i].arch, "SCMP_ARCH_AUTO") == 0) {
             return get_hostarch();
         } else if (strcmp(arch, arch_type[i].arch) == 0) {
-            return lcr_util_strdup_s(arch_type[i].value);
+            return isula_strdup_s(arch_type[i].value);
         }
     }
     return NULL;
@@ -2920,7 +2920,7 @@ static struct lcr_list *trans_oci_linux_sysctl(const json_map_string_string *sys
     struct lcr_list *node = NULL;
     size_t i;
 
-    conf = lcr_util_common_calloc_s(sizeof(*conf));
+    conf = isula_common_calloc_s(sizeof(*conf));
     if (conf == NULL) {
         return NULL;
     }
@@ -3080,7 +3080,7 @@ struct lcr_list *trans_oci_linux(const oci_runtime_config_linux *l, char **secco
         return NULL;
     }
 
-    struct lcr_list *conf = lcr_util_common_calloc_s(sizeof(*conf));
+    struct lcr_list *conf = isula_common_calloc_s(sizeof(*conf));
     if (conf == NULL) {
         return NULL;
     }
@@ -3166,7 +3166,7 @@ struct lcr_list *trans_annotations(const json_map_string_string *anno)
         return NULL;
     }
 
-    struct lcr_list *conf = lcr_util_common_calloc_s(sizeof(*conf));
+    struct lcr_list *conf = isula_common_calloc_s(sizeof(*conf));
     if (conf == NULL) {
         return NULL;
     }
@@ -3240,7 +3240,7 @@ static int add_needed_net_conf(struct lcr_list *conf)
 /* get needed lxc conf */
 struct lcr_list *get_needed_lxc_conf()
 {
-    struct lcr_list *conf = lcr_util_common_calloc_s(sizeof(*conf));
+    struct lcr_list *conf = isula_common_calloc_s(sizeof(*conf));
     if (conf == NULL) {
         return NULL;
     }

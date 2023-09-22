@@ -96,7 +96,7 @@ static void remove_partial(const struct lxc_container *c)
     // $lxcpath + '/' + $name + '/partial' + \0
     len = strlen(c->config_path) + strlen(c->name) + 10;
 
-    char *path = lcr_util_common_calloc_s(len);
+    char *path = isula_common_calloc_s(len);
     if (path == NULL) {
         ERROR("Out of memory in remove_partial");
         return;
@@ -902,7 +902,7 @@ static char *lcr_get_config_item(struct lxc_container *c, const char *key, bool 
         goto out;
     }
 
-    cret = lcr_util_common_calloc_s((len + 1) * sizeof(char));
+    cret = isula_common_calloc_s((len + 1) * sizeof(char));
     if (cret == NULL) {
         ERROR("Out of memory");
         goto out;

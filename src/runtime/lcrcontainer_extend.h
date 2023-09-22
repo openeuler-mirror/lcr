@@ -37,7 +37,7 @@ struct lcr_list;
 
 #define SAFE_MALLOC(P, size, ret)           \
     do {                                    \
-        (P) = lcr_util_common_calloc_s((size)); \
+        (P) = isula_common_calloc_s((size)); \
         if ((P) == NULL) {                  \
             ERROR("Out of memory");         \
             (ret) = false;                  \

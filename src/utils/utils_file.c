@@ -171,7 +171,7 @@ int lcr_util_ensure_path(char **confpath, const char *path)
         return -1;
     }
 
-    *confpath = lcr_util_strdup_s(real_path);
+    *confpath = isula_strdup_s(real_path);
     return EXIT_SUCCESS;
 }
 
@@ -373,7 +373,7 @@ int lcr_util_build_dir(const char *name)
         return -1;
     }
 
-    n = lcr_util_strdup_s(name);
+    n = isula_strdup_s(name);
     e = &(n[strlen(n)]);
     for (p = n + 1; p < e; p++) {
         if (*p != '/') {
@@ -526,7 +526,7 @@ static int append_new_content_to_file(FILE *fp, const char *content)
         return -1;
     }
     content_len = strlen(content) + strlen("\n") + 1;
-    tmp_str = lcr_util_common_calloc_s(content_len);
+    tmp_str = isula_common_calloc_s(content_len);
     if (tmp_str == NULL) {
         ERROR("Out of memory");
         return -1;

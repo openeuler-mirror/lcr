@@ -79,7 +79,7 @@ static inline void add_array_elem(char **array, size_t total, size_t *pos, const
     if (*pos + 1 >= total - 1) {
         return;
     }
-    array[*pos] = lcr_util_strdup_s(elem);
+    array[*pos] = isula_strdup_s(elem);
     *pos += 1;
 }
 
@@ -778,7 +778,7 @@ void do_lcr_state(struct lxc_container *c, struct lcr_container_state *lcs)
     clear_error_message(&g_lcr_error);
     (void)memset(lcs, 0x00, sizeof(struct lcr_container_state));
 
-    lcs->name = lcr_util_strdup_s(c->name);
+    lcs->name = isula_strdup_s(c->name);
     lcs->init = -1;// init to -1
 
     if (!c->get_container_metrics(c, &lxc_metrics)) {
@@ -786,7 +786,7 @@ void do_lcr_state(struct lxc_container *c, struct lcr_container_state *lcs)
         return;
     }
 
-    lcs->state = lcr_util_strdup_s(lxc_metrics.state);
+    lcs->state = isula_strdup_s(lxc_metrics.state);
     lcs->init = lxc_metrics.init;
 
     lcs->cpu_use_nanos = lxc_metrics.cpu_use_nanos;
@@ -833,11 +833,7 @@ static void execute_lxc_attach(const char *name, const char *path, const struct 
 
     args_len = args_len + request->args_len + request->env_len;
 
-    if (args_len > (SIZE_MAX / sizeof(char *))) {
-        exit(EXIT_FAILURE);
-    }
-
-    params = lcr_util_common_calloc_s(args_len * sizeof(char *));
+    params = isula_smart_calloc_s(sizeof(char *), args_len);
     if (params == NULL) {
         COMMAND_ERROR("Out of memory");
         exit(EXIT_FAILURE);

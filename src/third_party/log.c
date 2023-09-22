@@ -353,7 +353,7 @@ static bool init_log_file(const char *fname)
     }
 
     free(log_fname);
-    log_fname = lcr_util_strdup_s(fname);
+    log_fname = isula_strdup_s(fname);
     return true;
 clean_out:
     clean_pre_init();

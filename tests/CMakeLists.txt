@@ -96,6 +96,7 @@ _DEFINE_NEW_TEST(defs_process_ut defs_process_testcase)
 _DEFINE_NEW_TEST(go_crc64_ut go_crc64_testcase)
 _DEFINE_NEW_TEST(auto_cleanup_ut autocleanup_testcase)
 _DEFINE_NEW_TEST(utils_buffer_ut isula_buffer_testcase)
+_DEFINE_NEW_TEST(utils_memory_ut isula_memory_testcase)
 
 # mock test for run lcov to generate html
 add_executable(mock_ut main.cpp)
@@ -107,7 +108,7 @@ target_link_libraries(mock_ut
     ${GTEST_LIBRARY}
     pthread
     )
-add_dependencies(mock_ut log_ut libocispec_ut defs_process_ut go_crc64_ut auto_cleanup_ut utils_buffer_ut)
+add_dependencies(mock_ut log_ut libocispec_ut defs_process_ut go_crc64_ut auto_cleanup_ut utils_memory_ut)
 
 IF(ENABLE_GCOV)
     add_custom_target(coverage

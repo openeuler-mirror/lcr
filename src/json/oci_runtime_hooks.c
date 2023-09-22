@@ -53,7 +53,7 @@ oci_runtime_spec_hooks *oci_runtime_spec_hooks_parse_file(const char *filename,
     content = read_file(filename, &filesize);
     if (content == NULL) {
         if (asprintf(err, "cannot read the file: %s", filename) < 0) {
-            *err = lcr_util_strdup_s("error allocating memory");
+            *err = isula_strdup_s("error allocating memory");
         }
         return NULL;
     }
@@ -61,7 +61,7 @@ oci_runtime_spec_hooks *oci_runtime_spec_hooks_parse_file(const char *filename,
     free(content);
     if (tree == NULL) {
         if (asprintf(err, "cannot parse the file: %s", errbuf) < 0) {
-            *err = lcr_util_strdup_s("error allocating memory");
+            *err = isula_strdup_s("error allocating memory");
         }
         return NULL;
     }
