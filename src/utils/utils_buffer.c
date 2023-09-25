@@ -64,7 +64,7 @@ static int buffer_grow(isula_buffer *buf, size_t minimum_size)
         return -1;
     }
 
-    tmp = lcr_util_smart_calloc_s(factor, 2);
+    tmp = isula_smart_calloc_s(factor, 2);
     if (tmp == NULL) {
         ERROR("Out of memory");
         return -1;
@@ -141,7 +141,7 @@ int isula_buffer_nappend(isula_buffer *buf, size_t length, const char *format, .
         return -1;
     }
     printf_length = length + 1;
-    tmp = lcr_util_smart_calloc_s(sizeof(char), printf_length);
+    tmp = isula_smart_calloc_s(sizeof(char), printf_length);
     if (tmp == NULL) {
         ERROR("Out of memory");
         return -1;
@@ -188,7 +188,7 @@ char *isula_buffer_to_str(const isula_buffer *buf)
         return NULL;
     }
 
-    result = lcr_util_smart_calloc_s(1, len + 1);
+    result = isula_smart_calloc_s(1, len + 1);
     if (result == NULL) {
         ERROR("Out of memory");
         return NULL;
@@ -212,13 +212,13 @@ isula_buffer *isula_buffer_alloc(size_t initial_size)
         return NULL;
     }
 
-    buf = lcr_util_common_calloc_s(sizeof(isula_buffer));
+    buf = isula_common_calloc_s(sizeof(isula_buffer));
     if (buf == NULL) {
         ERROR("Out of memory");
         return NULL;
     }
 
-    tmp = lcr_util_smart_calloc_s(1, initial_size);
+    tmp = isula_smart_calloc_s(1, initial_size);
     if (tmp == NULL) {
         ERROR("Out of memory");
         free(buf);

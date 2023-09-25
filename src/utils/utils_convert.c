@@ -238,7 +238,7 @@ int lcr_parse_byte_size_string(const char *s, int64_t *converted)
         return -EINVAL;
     }
 
-    dup = lcr_util_strdup_s(s);
+    dup = isula_strdup_s(s);
 
     pmlt = dup;
     while (*pmlt != '\0' && (isdigit(*pmlt) || *pmlt == '.')) {

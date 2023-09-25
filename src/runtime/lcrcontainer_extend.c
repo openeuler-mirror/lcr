@@ -82,7 +82,7 @@ static int realloc_annotations(oci_runtime_spec *oci_spec, size_t new_lens)
     }
 
     if (!oci_spec->annotations) {
-        oci_spec->annotations = lcr_util_common_calloc_s(sizeof(json_map_string_string));
+        oci_spec->annotations = isula_common_calloc_s(sizeof(json_map_string_string));
         if (!oci_spec->annotations) {
             ERROR("Out of memory");
             nret = -1;
@@ -97,7 +97,7 @@ static int realloc_annotations(oci_runtime_spec *oci_spec, size_t new_lens)
     }
     new_size = (oci_spec->annotations->len + new_lens) * sizeof(char *);
     old_size = oci_spec->annotations->len * sizeof(char *);
-    nret = lcr_mem_realloc((void **)&fkey, new_size, oci_spec->annotations->keys, old_size);
+    nret = isula_mem_realloc((void **)&fkey, new_size, (void **)&(oci_spec->annotations->keys), old_size);
     if (nret) {
         ERROR("Failed to realloc memory for files limit variables");
         nret = -1;
@@ -105,7 +105,7 @@ static int realloc_annotations(oci_runtime_spec *oci_spec, size_t new_lens)
     }
     oci_spec->annotations->keys = fkey;
 
-    nret = lcr_mem_realloc((void **)&fval, new_size, oci_spec->annotations->values, old_size);
+    nret = isula_mem_realloc((void **)&fval, new_size, (void **)&(oci_spec->annotations->values), old_size);
     if (nret) {
         ERROR("Failed to realloc memory for files limit variables");
         nret = -1;
@@ -132,7 +132,7 @@ static int make_annotations(oci_runtime_spec *container, const struct lxc_contai
             goto out;
         }
         fpos = (int)(anno->len - 1);
-        anno->keys[fpos] = lcr_util_strdup_s("log.console.file");
+        anno->keys[fpos] = isula_strdup_s("log.console.file");
         anno->values[fpos] = NULL;
     }
 
@@ -145,7 +145,7 @@ static int make_annotations(oci_runtime_spec *container, const struct lxc_contai
         if (anno->values[fpos]) {
             free(anno->values[fpos]);
         }
-        anno->values[fpos] = lcr_util_strdup_s(default_path);
+        anno->values[fpos] = isula_strdup_s(default_path);
     }
     if (strcmp("none", anno->values[fpos]) == 0) {
         DEBUG("Disable console log.");
@@ -360,7 +360,7 @@ static int lcr_spec_write_seccomp_line(FILE *fp, const char *seccomp)
 
     len = strlen("lxc.seccomp.profile") + 3 + strlen(seccomp) + 1;
 
-    line = lcr_util_common_calloc_s(len * sizeof(char));
+    line = isula_common_calloc_s(len * sizeof(char));
     if (line == NULL) {
         ERROR("Out of memory");
         goto cleanup;
@@ -570,7 +570,7 @@ struct lcr_list *lcr_oci2lcr(const struct lxc_container *c, oci_runtime_spec *co
         return NULL;
     }
 
-    lcr_conf = lcr_util_common_calloc_s(sizeof(*lcr_conf));
+    lcr_conf = isula_common_calloc_s(sizeof(*lcr_conf));
     if (lcr_conf == NULL) {
         goto out_free;
     }
@@ -667,7 +667,7 @@ static char *escape_string_encode(const char *src)
         return NULL;
     }
 
-    dst = lcr_util_common_calloc_s(2 * len + 1);
+    dst = isula_common_calloc_s(2 * len + 1);
     if (dst == NULL) {
         ERROR("Out of memory");
         return NULL;
@@ -725,7 +725,7 @@ static int lcr_spec_write_config(FILE *fp, const struct lcr_list *lcr_conf)
                 goto cleanup;
             }
             len = strlen(item->name) + 3 + strlen(item->value) + 1;
-            line = lcr_util_common_calloc_s(len);
+            line = isula_common_calloc_s(len);
             if (line == NULL) {
                 ERROR("Out of memory");
                 goto cleanup;
@@ -778,7 +778,7 @@ static char *lcr_get_bundle(const char *lcrpath, const char *name)
 
     /* bundle = lcrpath + '/' + name + '\0' */
     len = strlen(lcrpath) + strlen(name) + 2;
-    bundle = lcr_util_common_calloc_s(len);
+    bundle = isula_common_calloc_s(len);
     if (bundle == NULL) {
         ERROR("Out of memory");
         goto cleanup;

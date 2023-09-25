@@ -81,10 +81,7 @@ static char **lcr_shrink_array(char **orig_array, size_t new_size)
         return orig_array;
     }
 
-    if (new_size > SIZE_MAX / sizeof(char *)) {
-        return orig_array;
-    }
-    res_array = (char **)lcr_util_common_calloc_s(new_size * sizeof(char *));
+    res_array = (char **)isula_smart_calloc_s(sizeof(char *), new_size);
     if (res_array == NULL) {
         return orig_array;
     }
@@ -112,7 +109,7 @@ char **lcr_string_split_and_trim(const char *orig_str, char _sep)
         return calloc(1, sizeof(char *));
     }
 
-    str = lcr_util_strdup_s(orig_str);
+    str = isula_strdup_s(orig_str);
 
     token = strtok_r(str, deli, &reserve_ptr);
     while (token != NULL) {
@@ -128,7 +125,7 @@ char **lcr_string_split_and_trim(const char *orig_str, char _sep)
         if (r < 0) {
             goto error_out;
         }
-        res_array[count] = lcr_util_strdup_s(token);
+        res_array[count] = isula_strdup_s(token);
         count++;
         token = strtok_r(NULL, deli, &reserve_ptr);
     }
@@ -177,10 +174,7 @@ int lcr_grow_array(void ***orig_array, size_t *orig_capacity, size_t size, size_
         add_capacity += increment;
     }
     if (add_capacity != *orig_capacity) {
-        if (add_capacity > SIZE_MAX / sizeof(void *)) {
-            return -1;
-        }
-        add_array = lcr_util_common_calloc_s(add_capacity * sizeof(void *));
+        add_array = isula_smart_calloc_s(sizeof(void *), add_capacity);
         if (add_array == NULL) {
             return -1;
         }
@@ -292,17 +286,17 @@ char *lcr_util_string_append(const char *post, const char *pre)
         return NULL;
     }
     if (pre == NULL) {
-        return lcr_util_strdup_s(post);
+        return isula_strdup_s(post);
     }
     if (post == NULL) {
-        return lcr_util_strdup_s(pre);
+        return isula_strdup_s(pre);
     }
     if (strlen(post) > ((SIZE_MAX - strlen(pre)) - 1)) {
         ERROR("String is too long to be appended");
         return NULL;
     }
     length = strlen(post) + strlen(pre) + 1;
-    res_string = lcr_util_common_calloc_s(length);
+    res_string = isula_common_calloc_s(length);
     if (res_string == NULL) {
         return NULL;
     }
@@ -331,7 +325,7 @@ char *lcr_util_string_split_prefix(size_t prefix_len, const char *file)
     if (len > SIZE_MAX / sizeof(char) - 1) {
         return NULL;
     }
-    path = lcr_util_common_calloc_s((len + 1) * sizeof(char));
+    path = isula_smart_calloc_s(sizeof(char), (len + 1));
     if (path == NULL) {
         return NULL;
     }

@@ -37,7 +37,7 @@
 * Be careful, if count == 0;
 * some OS maybe not return NULL, you should manual free it
 */
-void *lcr_util_smart_calloc_s(size_t unit_size, size_t count)
+void *isula_smart_calloc_s(size_t unit_size, size_t count)
 {
     if (unit_size == 0) {
         return NULL;
@@ -51,7 +51,7 @@ void *lcr_util_smart_calloc_s(size_t unit_size, size_t count)
 }
 
 /* util common malloc s */
-void *lcr_util_common_calloc_s(size_t size)
+void *isula_common_calloc_s(size_t size)
 {
     if (size == 0 || size > MAX_MEMORY_SIZE) {
         return NULL;
@@ -60,7 +60,16 @@ void *lcr_util_common_calloc_s(size_t size)
     return calloc((size_t)1, size);
 }
 
-int lcr_mem_realloc(void **newptr, size_t newsize, void *oldptr, size_t oldsize)
+void isula_free_s(void *ptr)
+{
+    if (ptr == NULL) {
+        return;
+    }
+
+    free(ptr);
+}
+
+int isula_mem_realloc(void **newptr, size_t newsize, void **oldptr, size_t oldsize)
 {
     void *addr = NULL;
 
@@ -72,14 +81,15 @@ int lcr_mem_realloc(void **newptr, size_t newsize, void *oldptr, size_t oldsize)
         return -1;
     }
 
-    addr = lcr_util_common_calloc_s(newsize);
+    addr = isula_common_calloc_s(newsize);
     if (addr == NULL) {
         return -1;
     }
 
-    if (oldptr != NULL) {
-        (void)memcpy(addr, oldptr, oldsize);
-        free(oldptr);
+    if (oldptr != NULL && *oldptr != NULL) {
+        (void)memcpy(addr, *oldptr, oldsize);
+        free(*oldptr);
+        *oldptr = NULL;
     }
 
     *newptr = addr;
@@ -90,7 +100,7 @@ int lcr_mem_realloc(void **newptr, size_t newsize, void *oldptr, size_t oldsize)
  * Return: copy string, you should free it.
  * Notice: If out of memory, will abort process!
 */
-char *lcr_util_strdup_s(const char *src)
+char *isula_strdup_s(const char *src)
 {
     char *dst = NULL;
 
