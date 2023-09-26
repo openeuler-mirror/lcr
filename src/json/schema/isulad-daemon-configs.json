@@ -168,8 +168,11 @@
         "selinux-enabled": {
             "type": "boolean"
         },
-	"metrics-port": {
-	    "type": "int32"
-	}
+        "metrics-port": {
+            "type": "int32"
+        },
+        "enable-cri-v1": {
+            "type": "boolean"
+        }
     }
 }
