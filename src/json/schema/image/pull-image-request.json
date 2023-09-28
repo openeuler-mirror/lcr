@@ -1,9 +1,12 @@
 {
-	"$schema": "http://json-schema.org/draft-04/schema#",
-	"type": "object",
-	"properties": {
-		"image_name": {
-			"type": "string"
-		}
-	}
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "type": "object",
+    "properties": {
+        "image_name": {
+            "type": "string"
+        },
+        "is_progress_visible": {
+            "type": "boolean"
+        }
+    }
 }

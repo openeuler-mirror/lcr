@@ -13,6 +13,9 @@
 		},
 		"errmsg": {
 			"type": "string"
+		},
+		"stream": {
+			"type": "string"
 		}
 	}
 }
