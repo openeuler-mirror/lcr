@@ -31,18 +31,27 @@
 extern "C" {
 #endif
 
-#define SIZE_KB 1024LL
-#define SIZE_MB (1024LL * SIZE_KB)
-#define SIZE_GB (1024LL * SIZE_MB)
-#define SIZE_TB (1024LL * SIZE_GB)
-#define SIZE_PB (1024LL * SIZE_TB)
+#define ISULA_SIZE_KB 1024LL
+#define ISULA_SIZE_MB (1024LL * ISULA_SIZE_KB)
+#define ISULA_SIZE_GB (1024LL * ISULA_SIZE_MB)
+#define ISULA_SIZE_TB (1024LL * ISULA_SIZE_GB)
+#define ISULA_SIZE_PB (1024LL * ISULA_SIZE_TB)
 
-int lcr_util_safe_strtod(const char *numstr, double *converted);
-int lcr_util_safe_uint(const char *numstr, unsigned int *converted);
-int lcr_util_safe_int(const char *numstr, int *converted);
-int lcr_util_safe_llong(const char *numstr, long long *converted);
+int isula_safe_strto_bool(const char *boolstr, bool *converted);
 
-int lcr_parse_byte_size_string(const char *s, int64_t *converted);
+int isula_safe_strto_uint16(const char *numstr, uint16_t *converted);
+
+int isula_safe_strto_uint64(const char *numstr, uint64_t *converted);
+
+int isula_safe_strto_int(const char *numstr, int *converted);
+
+int isula_safe_strto_uint(const char *numstr, unsigned int *converted);
+
+int isula_safe_strto_llong(const char *numstr, long long *converted);
+
+int isula_safe_strto_double(const char *numstr, double *converted);
+
+int isula_parse_byte_size_string(const char *s, int64_t *converted);
 
 #ifdef __cplusplus
 }
