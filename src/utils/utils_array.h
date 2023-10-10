@@ -24,23 +24,19 @@
 #define _ISULA_UTILS_UTILS_ARRAY_H
 
 #include <sys/types.h>
-#include <stdint.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-void lcr_free_array(void **array);
-int lcr_grow_array(void ***array, size_t *capacity, size_t new_size, size_t capacity_increment);
-size_t lcr_array_len(void **array);
-size_t lcr_util_array_len(char **array);
+void isula_free_array(void **array);
 
-char *lcr_util_string_join(const char *sep, const char **parts, size_t len);
-char **lcr_string_split_and_trim(const char *str, char _sep);
-char *lcr_util_string_replace(const char *needle, const char *replacement, const char *haystack);
-char *lcr_util_string_append(const char *post, const char *pre);
-char *lcr_util_string_split_prefix(size_t prefix_len, const char *file);
+int isula_grow_array(void ***array, size_t *capacity, size_t new_size, size_t capacity_increment);
 
+size_t isula_array_len(void **array);
+
+typedef void *(*clone_cb)(const void *src);
+int isula_array_append(void ***array, const void *element, clone_cb cb);
 
 #ifdef __cplusplus
 }
