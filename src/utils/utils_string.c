@@ -58,7 +58,7 @@ char *isula_string_join(const char *sep, const char **parts, size_t len)
 
     sep_len = strlen(sep);
 
-    if ((sep_len != 0) && (sep_len != 1) && (len > SIZE_MAX / sep_len + 1)) {
+    if ((sep_len > 1) && (len > SIZE_MAX / sep_len + 1)) {
         return NULL;
     }
     result_len = (len - 1) * sep_len;
@@ -109,7 +109,8 @@ char *isula_string_replace(const char *needle, const char *replace, const char *
 {
     ssize_t length = -1;
     ssize_t reserve_len = -1;
-    char *res_string = NULL;
+    __isula_auto_free char *res_string = NULL;
+    char *result = NULL;
 
     if ((needle == NULL) || (replace == NULL) || (haystack == NULL)) {
         ERROR("Invalid NULL pointer");
@@ -126,21 +127,20 @@ char *isula_string_replace(const char *needle, const char *replace, const char *
         }
         length = do_isula_string_replace_one(needle, replace, haystack, &res_string);
         if (length < 0) {
-            free(res_string);
             return NULL;
         }
     }
 
     if (reserve_len != length) {
-        free(res_string);
         return NULL;
     }
     if (res_string[length] != '\0') {
-        free(res_string);
         return NULL;
     }
 
-    return res_string;
+    result = res_string;
+    res_string = NULL;
+    return result;
 }
 
 /* util string append */
@@ -178,7 +178,7 @@ isula_string_array *isula_string_split_to_multi(const char *src_str, char delim)
     char *token = NULL;
     char *cur = NULL;
     char deli[2] = { delim, '\0' };
-    char *tmpstr = NULL;
+    __isula_auto_free char *tmpstr = NULL;
     // for empty result, we should return ["", NULL]
     isula_string_array *result = isula_string_array_new(2);
 
@@ -202,7 +202,6 @@ isula_string_array *isula_string_split_to_multi(const char *src_str, char delim)
         token = strsep(&cur, deli);
     }
 
-    free(tmpstr);
     return result;
 }
 
@@ -230,7 +229,7 @@ static bool do_expand_array(isula_string_array *array, size_t new_cap)
 {
     char **new_items = NULL;
 
-    // array capability sure less than ISULA_MAX_MEMORY_SIZE
+    // array capability should be less than ISULA_MAX_MEMORY_SIZE
     // so we need to check Overflow:
     if (new_cap <= array->cap) {
         ERROR("Too large string array, overflow memory");
@@ -314,7 +313,7 @@ static bool isula_string_array_contain(const struct __isula_string_array *ptr, c
     }
 
     for (i = 0; i < ptr->len; i++) {
-        // if container NULL item, just skip it
+        // if contains NULL item, just skip it
         if (ptr->items[i] == NULL) {
             continue;
         }

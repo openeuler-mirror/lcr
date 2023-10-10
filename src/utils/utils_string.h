@@ -31,8 +31,8 @@ extern "C" {
 #endif
 
 /*
- * Return copy of spe + parts[0] + parts[...];
- * if spe == null or parts == null or len == 0, will return NULL;
+ * Return copy of sep + parts[0] + parts[...];
+ * if sep == null or parts == null or len == 0, will return NULL;
  * if error, return NULL;
  */
 char *isula_string_join(const char *sep, const char **parts, size_t len);

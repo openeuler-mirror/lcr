@@ -27,20 +27,13 @@
 #include <string.h>
 
 #include "utils_memory.h"
-
-#if __WORDSIZE == 64
-// current max user memory for 64-machine is 2^47 B
-#define MAX_MEMORY_SIZE ((size_t)1 << 47)
-#else
-// current max user memory for 32-machine is 2^31 B
-#define MAX_MEMORY_SIZE ((size_t)1 << 31)
-#endif
+#include "utils_array.h"
 
 TEST(isula_memory_testcase, test__isula_smart_calloc_s)
 {
     void *ib = nullptr;
 
-    ib = isula_smart_calloc_s(MAX_MEMORY_SIZE, 2);
+    ib = isula_smart_calloc_s(ISULA_MAX_MEMORY_SIZE, 2);
     ASSERT_EQ(ib, nullptr);
 
     ib = isula_smart_calloc_s(0, 2);
@@ -56,7 +49,7 @@ TEST(isula_memory_testcase, test__isula_common_calloc_s)
 {
     void *ib = nullptr;
 
-    ib = isula_common_calloc_s(MAX_MEMORY_SIZE + 1);
+    ib = isula_common_calloc_s(ISULA_MAX_MEMORY_SIZE + 1);
     ASSERT_EQ(ib, nullptr);
 
     ib = isula_common_calloc_s(0);
@@ -87,6 +80,11 @@ TEST(isula_memory_testcase, test__isula_mem_realloc)
     char *new_str = nullptr;
     char *old_str = isula_strdup_s("hello world");
     int ret;
+    char **sarr = (char **)isula_smart_calloc_s(sizeof(char *), 2);
+    ASSERT_NE(sarr, nullptr);
+    sarr[0] = isula_strdup_s("hello");
+    sarr[1] = isula_strdup_s("world");
+    char **new_sarr = nullptr;
 
     ret = isula_mem_realloc(nullptr, strlen(old_str) + 1, (void **)&old_str, strlen(old_str) + 1);
     ASSERT_NE(ret, 0);
@@ -108,6 +106,15 @@ TEST(isula_memory_testcase, test__isula_mem_realloc)
     ASSERT_NE(new_str, nullptr);
     ASSERT_EQ(old_str, nullptr);
     ASSERT_STREQ(new_str, "hello world");
+
+    ret = isula_mem_realloc((void **)&new_sarr, 4 * sizeof(char *), (void **)&sarr, 2 * sizeof(char *));
+    ASSERT_EQ(ret, 0);
+    ASSERT_NE(new_sarr, nullptr);
+    ASSERT_EQ(sarr, nullptr);
+    ASSERT_STREQ(new_sarr[0], "hello");
+    ASSERT_STREQ(new_sarr[1], "world");
+
+    isula_free_array((void **)new_sarr);
 
     isula_free_s(new_str);
 }
