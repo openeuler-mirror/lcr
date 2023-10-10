@@ -73,14 +73,6 @@ if (ENABLE_UT)
     find_library(GTEST_LIBRARY gtest
         HINTS ${PC_GTEST_LIBDIR} ${PC_GTEST_LIBRARY_DIRS})
     _CHECK(GTEST_LIBRARY "GTEST_LIBRARY-NOTFOUND" "libgtest.so")
-
-    pkg_check_modules(PC_GMOCK "gmock")
-    find_path(GMOCK_INCLUDE_DIR gmock/gmock.h
-        HINTS ${PC_GMOCK_INCLUDEDIR} ${PC_GMOCK_INCLUDE_DIRS})
-    _CHECK(GMOCK_INCLUDE_DIR "GMOCK_INCLUDE_DIR-NOTFOUND" "gmock.h")
-    find_library(GMOCK_LIBRARY z
-        HINTS ${PC_GMOCK_LIBDIR} ${PC_GMOCK_LIBRARY_DIRS})
-    _CHECK(GMOCK_LIBRARY "GMOCK_LIBRARY-NOTFOUND" "libgmock.so")
 endif()
 
 if (ENABLE_GCOV)

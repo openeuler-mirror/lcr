@@ -129,8 +129,11 @@ install(DIRECTORY ${CMAKE_BINARY_DIR}/json/ DESTINATION include/isula_libutils
         FILES_MATCHING PATTERN "*.h")
 install(FILES src/auto_cleanup.h DESTINATION include/isula_libutils)
 # export utils here
+install(FILES src/utils/utils_array.h DESTINATION include/isula_libutils)
 install(FILES src/utils/utils_buffer.h DESTINATION include/isula_libutils)
+install(FILES src/utils/utils_convert.h DESTINATION include/isula_libutils)
 install(FILES src/utils/utils_memory.h DESTINATION include/isula_libutils)
+install(FILES src/utils/utils_string.h DESTINATION include/isula_libutils)
 
 # uninstall
 if(NOT TARGET uninstall)

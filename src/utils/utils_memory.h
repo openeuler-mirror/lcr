@@ -31,6 +31,14 @@
 extern "C" {
 #endif
 
+#if __WORDSIZE == 64
+// current max user memory for 64-machine is 2^47 B
+#define ISULA_MAX_MEMORY_SIZE ((size_t)1 << 47)
+#else
+// current max user memory for 32-machine is 2^31 B
+#define ISULA_MAX_MEMORY_SIZE ((size_t)1 << 31)
+#endif
+
 /*
 * allocate dynamic memory which size = (unit_size * count)
 * if (unit_size * count) >= 2^47B on 64bit machine, will failed and return NULL;

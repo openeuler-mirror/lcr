@@ -29,6 +29,7 @@
 #include "utils_cgroup.h"
 #include "utils_array.h"
 #include "utils_file.h"
+#include "utils_string.h"
 
 #ifdef __cplusplus
 extern "C" {

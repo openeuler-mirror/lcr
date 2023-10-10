@@ -333,7 +333,7 @@ restart:
             continue;
         }
 
-        if (lcr_util_safe_int(pdirent->d_name, &fd) < 0) {
+        if (isula_safe_strto_int(pdirent->d_name, &fd) < 0) {
             continue;
         }
 
