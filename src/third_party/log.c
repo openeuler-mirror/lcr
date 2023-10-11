@@ -36,7 +36,8 @@
 #include <unistd.h>
 
 #include "log.h"
-#include "utils.h"
+#include "utils_file.h"
+#include "utils_memory.h"
 
 #define STRARRAYLEN(x) (sizeof(x) - 1)
 
@@ -271,7 +272,7 @@ static int log_append_logfile(const struct lxc_log_appender *appender,
 
 	buffer[n] = '\n';
 
-	return lcr_util_write_nointr(fd_to_use, buffer, n + 1);
+	return isula_file_write_nointr(fd_to_use, buffer, n + 1);
 }
 
 static struct lxc_log_appender log_appender_stderr = {
@@ -313,7 +314,7 @@ static int open_fifo(const char *fifo_path)
         return nret;
     }
 
-    fifo_fd = lcr_util_open(fifo_path, O_RDWR | O_NONBLOCK, 0);
+    fifo_fd = isula_file_open(fifo_path, O_RDWR | O_NONBLOCK, 0);
     if (fifo_fd == -1) {
         CMD_SYSERROR("Open fifo %s failed", fifo_path);
         return -1;
@@ -342,7 +343,7 @@ static bool init_log_file(const char *fname)
     if (strcmp(fname, "none") == 0) {
         return true;
     }
-    if (lcr_util_build_dir(fname) != 0) {
+    if (isula_dir_build(fname) != 0) {
         CMD_SYSERROR("build log path \"%s\" failed", fname);
         goto clean_out;
     }

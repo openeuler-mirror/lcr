@@ -41,6 +41,9 @@
 #include "lcrcontainer_extend.h"
 #include "log.h"
 #include "utils.h"
+#include "utils_convert.h"
+#include "utils_file.h"
+#include "utils_memory.h"
 #include "oci_runtime_spec.h"
 
 static inline bool is_container_exists(struct lxc_container *c)
@@ -66,7 +69,7 @@ static int create_partial(const struct lxc_container *c)
         return -1;
     }
 
-    fd = lcr_util_open(path, O_RDWR | O_CREAT | O_EXCL, DEFAULT_SECURE_FILE_MODE);
+    fd = isula_file_open(path, O_RDWR | O_CREAT | O_EXCL, DEFAULT_SECURE_FILE_MODE);
     if (fd < 0) {
         SYSERROR("Error creating partial file: %s", path);
         return -1;
@@ -226,7 +229,7 @@ static bool wait_start_pid(pid_t pid, int rfd, const char *name, const char *pat
     ssize_t size_read = 0;
     char buffer[ISULA_PAGE_BUFSIZE] = { 0 };
 
-    ret = lcr_wait_for_pid(pid);
+    ret = isula_wait_pid(pid);
     if (ret == 0) {
         return true;
     }

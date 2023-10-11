@@ -38,7 +38,8 @@
 #include "error.h"
 #include "lcrcontainer.h"
 #include "lcrcontainer_extend.h"
-#include "utils.h"
+#include "utils_file.h"
+#include "utils_memory.h"
 #include "log.h"
 #include "conf.h"
 #include "oci_runtime_hooks.h"
@@ -152,7 +153,7 @@ static int make_annotations(oci_runtime_spec *container, const struct lxc_contai
         ret = 0;
         goto out;
     }
-    if (lcr_util_ensure_path(&realpath, anno->values[fpos])) {
+    if (isula_file_ensure_path(&realpath, anno->values[fpos])) {
         SYSERROR("Invalid log path: %s.", anno->values[fpos]);
         goto out;
     }
@@ -401,13 +402,13 @@ static char *lcr_save_seccomp_file(const char *bundle, const char *seccomp_conf)
         goto cleanup;
     }
 
-    nret = lcr_util_ensure_path(&real_seccomp, seccomp);
+    nret = isula_file_ensure_path(&real_seccomp, seccomp);
     if (nret < 0) {
         ERROR("Failed to ensure path %s", seccomp);
         goto cleanup;
     }
 
-    fd = lcr_util_open(real_seccomp, O_CREAT | O_TRUNC | O_CLOEXEC | O_WRONLY, CONFIG_FILE_MODE);
+    fd = isula_file_open(real_seccomp, O_CREAT | O_TRUNC | O_CLOEXEC | O_WRONLY, CONFIG_FILE_MODE);
     if (fd == -1) {
         SYSERROR("Create file %s failed", real_seccomp);
         goto cleanup;
@@ -622,13 +623,13 @@ static FILE *lcr_open_config_file(const char *bundle)
         goto out;
     }
 
-    nret = lcr_util_ensure_path(&real_config, config);
+    nret = isula_file_ensure_path(&real_config, config);
     if (nret < 0) {
         ERROR("Failed to ensure path %s", config);
         goto out;
     }
 
-    fd = lcr_util_open(real_config, O_CREAT | O_TRUNC | O_CLOEXEC | O_WRONLY, CONFIG_FILE_MODE);
+    fd = isula_file_open(real_config, O_CREAT | O_TRUNC | O_CLOEXEC | O_WRONLY, CONFIG_FILE_MODE);
     if (fd == -1) {
         SYSERROR("Create file %s failed", real_config);
         lcr_set_error_message(LCR_ERR_RUNTIME, "Create file %s failed", real_config);
@@ -878,12 +879,12 @@ static int lcr_write_file(const char *path, const char *data, size_t len)
         return -1;
     }
 
-    if (lcr_util_ensure_path(&real_path, path) < 0) {
+    if (isula_file_ensure_path(&real_path, path) < 0) {
         ERROR("Failed to ensure path %s", path);
         goto out_free;
     }
 
-    fd = lcr_util_open(real_path, O_CREAT | O_TRUNC | O_CLOEXEC | O_WRONLY, CONFIG_FILE_MODE);
+    fd = isula_file_open(real_path, O_CREAT | O_TRUNC | O_CLOEXEC | O_WRONLY, CONFIG_FILE_MODE);
     if (fd == -1) {
         ERROR("Create file %s failed", real_path);
         lcr_set_error_message(LCR_ERR_RUNTIME, "Create file %s failed", real_path);

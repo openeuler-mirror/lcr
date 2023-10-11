@@ -28,6 +28,7 @@
 #include <string.h>
 #include <stdint.h>
 
+#include "utils.h"
 #include "utils_memory.h"
 #include "utils_convert.h"
 #include "constants.h"
@@ -96,6 +97,8 @@ static int do_clean_path(const char *respath, const char *limit_respath, const c
     return 0;
 }
 
+// if path is not exists, realpath() will return error;
+// so we need cleanpath() to do clean path in this scene;
 static char *cleanpath(const char *path, char *realpath, size_t realpath_len)
 {
     char *respath = NULL;
@@ -151,7 +154,7 @@ static char *cleanpath(const char *path, char *realpath, size_t realpath_len)
 /*
  * if path do not exist, this function will create it.
  */
-int lcr_util_ensure_path(char **confpath, const char *path)
+int isula_file_ensure_path(char **confpath, const char *path)
 {
     __isula_auto_close int fd = -1;
     char real_path[PATH_MAX + 1] = { 0 };
@@ -160,7 +163,7 @@ int lcr_util_ensure_path(char **confpath, const char *path)
         return -1;
     }
 
-    fd = lcr_util_open(path, O_WRONLY | O_CREAT | O_TRUNC | O_EXCL, DEFAULT_SECURE_FILE_MODE);
+    fd = isula_file_open(path, O_WRONLY | O_CREAT | O_TRUNC | O_EXCL, DEFAULT_SECURE_FILE_MODE);
     if (fd < 0 && errno != EEXIST) {
         ERROR("failed to open '%s'", path);
         return -1;
@@ -172,11 +175,27 @@ int lcr_util_ensure_path(char **confpath, const char *path)
     }
 
     *confpath = isula_strdup_s(real_path);
-    return EXIT_SUCCESS;
+    return 0;
+}
+
+bool isula_file_exists(const char *f)
+{
+    struct stat buf;
+    int nret;
+
+    if (f == NULL) {
+        return false;
+    }
+
+    nret = stat(f, &buf);
+    if (nret < 0) {
+        return false;
+    }
+    return true;
 }
 
 /* util dir exists */
-bool lcr_util_dir_exists(const char *path)
+bool isula_dir_exists(const char *path)
 {
     struct stat s;
     int nret;
@@ -230,7 +249,7 @@ static void util_rmdir_one(const char *dirpath, const struct dirent *pdirent, in
     }
 
     if (S_ISDIR(fstat.st_mode)) {
-        if (lcr_util_recursive_rmdir(fname, (recursive_depth + 1)) < 0) {
+        if (isula_dir_recursive_remove(fname, (recursive_depth + 1)) < 0) {
             *failure = -1;
         }
     } else {
@@ -242,18 +261,23 @@ static void util_rmdir_one(const char *dirpath, const struct dirent *pdirent, in
 }
 
 /* util recursive rmdir */
-int lcr_util_recursive_rmdir(const char *dirpath, int recursive_depth)
+int isula_dir_recursive_remove(const char *dirpath, int recursive_depth)
 {
     struct dirent *pdirent = NULL;
     __isula_auto_dir DIR *directory = NULL;
     int ret = 0;
 
-    if ((recursive_depth + 1) > MAX_PATH_DEPTH) {
+    if (dirpath == NULL) {
+        ERROR("Empty dirpath argument.");
+        return -1;
+    }
+
+    if (recursive_depth >= ISULA_MAX_PATH_DEPTH) {
         ERROR("Reach max path depth: %s", dirpath);
         return -1;
     }
 
-    if (!lcr_util_dir_exists(dirpath)) { /* dir not exists, just ignore */
+    if (!isula_dir_exists(dirpath)) { /* dir not exists, just ignore */
         return 0;
     }
 
@@ -277,7 +301,7 @@ int lcr_util_recursive_rmdir(const char *dirpath, int recursive_depth)
     return ret;
 }
 
-int lcr_util_open(const char *filename, int flags, mode_t mode)
+int isula_file_open(const char *filename, int flags, mode_t mode)
 {
     char rpath[PATH_MAX] = { 0x00 };
 
@@ -309,7 +333,7 @@ static bool util_is_std_fileno(int fd)
     return fd == STDIN_FILENO || fd == STDOUT_FILENO || fd == STDERR_FILENO;
 }
 
-int lcr_util_check_inherited(bool closeall, int fd_to_ignore)
+int isula_close_inherited_fds(bool closeall, int fd_to_ignore)
 {
     struct dirent *pdirent = NULL;
     int fd = -1;
@@ -362,7 +386,7 @@ static void set_char_to_terminator(char *p)
  * @name is absolute path of this file.
  * make all directory in this absolute path.
  * */
-int lcr_util_build_dir(const char *name)
+int isula_dir_build(const char *name)
 {
     char *n = NULL; // because we'll be modifying it
     char *p = NULL;
@@ -382,7 +406,7 @@ int lcr_util_build_dir(const char *name)
         set_char_to_terminator(p);
         if (access(n, F_OK)) {
             nret = mkdir(n, DEFAULT_SECURE_DIRECTORY_MODE);
-            if (nret && (errno != EEXIST || !lcr_util_dir_exists(n))) {
+            if (nret && (errno != EEXIST || !isula_dir_exists(n))) {
                 ERROR("failed to create directory '%s'.", n);
                 free(n);
                 return -1;
@@ -394,8 +418,57 @@ int lcr_util_build_dir(const char *name)
     return 0;
 }
 
+int isula_dir_recursive_mk(const char *dir, mode_t mode)
+{
+    const char *tmp_pos = NULL;
+    const char *base = NULL;
+    int len = 0;
+    int ret = 0;
+    char rpath[PATH_MAX] = { 0x00 };
+
+    if (dir == NULL) {
+        return -1;
+    }
+
+    if (cleanpath(dir, rpath, sizeof(rpath)) == NULL) {
+        return -1;
+    }
+
+    tmp_pos = rpath;
+    base = rpath;
+
+    do {
+        __isula_auto_free char *cur_dir = NULL;
+        dir = tmp_pos + strspn(tmp_pos, "/");
+        tmp_pos = dir + strcspn(dir, "/");
+        len = (int)(dir - base);
+        if (len <= 0) {
+            break;
+        }
+        cur_dir = strndup(base, (size_t)len);
+        if (cur_dir == NULL) {
+            ERROR("strndup failed");
+            return -1;
+        }
+        if (*cur_dir) {
+            ret = mkdir(cur_dir, mode);
+            if (ret != 0 && (errno != EEXIST || !isula_dir_exists(cur_dir))) {
+                SYSERROR("failed to create directory '%s'", cur_dir);
+                return -1;
+            }
+        }
+    } while (tmp_pos != dir);
+
+    if (chmod(base, mode) != 0) {
+        SYSERROR("Failed to chmod for directory");
+        return -1;
+    }
+
+    return 0;
+}
+
 /* util write nointr */
-ssize_t lcr_util_write_nointr(int fd, const void *buf, size_t count)
+ssize_t isula_file_write_nointr(int fd, const void *buf, size_t count)
 {
     ssize_t nret;
 
@@ -417,7 +490,7 @@ ssize_t lcr_util_write_nointr(int fd, const void *buf, size_t count)
 }
 
 /* util read nointr */
-ssize_t lcr_util_read_nointr(int fd, void *buf, size_t count)
+ssize_t isula_file_read_nointr(int fd, void *buf, size_t count)
 {
     ssize_t nret;
 
@@ -435,56 +508,6 @@ ssize_t lcr_util_read_nointr(int fd, void *buf, size_t count)
     }
 
     return nret;
-}
-
-static int open_devnull(void)
-{
-    int fd = open("/dev/null", O_RDWR);
-    if (fd < 0) {
-        SYSERROR("Can't open /dev/null");
-    }
-
-    return fd;
-}
-
-static int set_stdfds(int fd)
-{
-    int ret = 0;
-
-    if (fd < 0) {
-        return -1;
-    }
-
-    ret = dup2(fd, STDIN_FILENO);
-    if (ret < 0) {
-        return -1;
-    }
-
-    ret = dup2(fd, STDOUT_FILENO);
-    if (ret < 0) {
-        return -1;
-    }
-
-    ret = dup2(fd, STDERR_FILENO);
-    if (ret < 0) {
-        return -1;
-    }
-
-    return 0;
-}
-
-int lcr_util_null_stdfds(void)
-{
-    int ret = -1;
-    int fd;
-
-    fd = open_devnull();
-    if (fd >= 0) {
-        ret = set_stdfds(fd);
-        close(fd);
-    }
-
-    return ret;
 }
 
 static void util_trim_newline(char *s)
@@ -544,7 +567,7 @@ static int append_new_content_to_file(FILE *fp, const char *content)
     return 0;
 }
 
-int lcr_util_atomic_write_file(const char *filepath, const char *content)
+int isula_file_atomic_write(const char *filepath, const char *content)
 {
     __isula_auto_close int fd = -1;
     int ret = 0;
@@ -554,7 +577,7 @@ int lcr_util_atomic_write_file(const char *filepath, const char *content)
     if (filepath == NULL || content == NULL) {
         return -1;
     }
-    fd = lcr_util_open(filepath, O_RDWR | O_CREAT | O_APPEND, DEFAULT_SECURE_FILE_MODE);
+    fd = isula_file_open(filepath, O_RDWR | O_CREAT | O_APPEND, DEFAULT_SECURE_FILE_MODE);
     if (fd < 0) {
         ERROR("Failed to open: %s", filepath);
         return -1;
@@ -574,4 +597,63 @@ int lcr_util_atomic_write_file(const char *filepath, const char *content)
     }
 
     return ret;
+}
+
+ssize_t isula_file_total_write_nointr(int fd, const char *buf, size_t count)
+{
+    size_t nwritten;
+
+    if (buf == NULL) {
+        return -1;
+    }
+
+    // no file of which size can bigger than SIZE_MAX/4
+    if (count > (SIZE_MAX>>2)) {
+        ERROR("Too large data to write");
+        return -1;
+    }
+
+    for (nwritten = 0; nwritten < count;) {
+        ssize_t nret;
+        nret = write(fd, buf + nwritten, count - nwritten);
+        if (nret >= 0) {
+            nwritten += nret;
+            continue;
+        }
+
+        if (errno == EINTR) {
+            continue;
+        }
+        if (errno == EAGAIN) {
+            // if Resource temporarily unavailable,
+            // we should wait a while to avoid high cpu usage
+            isula_usleep_nointerupt(100);
+            continue;
+        }
+        return nret;
+    }
+
+    return (ssize_t)nwritten;
+}
+
+// Remove the named file or directory.
+int isula_path_remove(const char *path)
+{
+    int saved_errno;
+
+    if (path == NULL) {
+        return -1;
+    }
+
+    if (unlink(path) == 0 || errno == ENOENT) {
+        return 0;
+    }
+    saved_errno = errno;
+    if (rmdir(path) == 0 || errno == ENOENT) {
+        return 0;
+    }
+    if (errno == ENOTDIR) {
+        errno = saved_errno;
+    }
+    return -1;
 }

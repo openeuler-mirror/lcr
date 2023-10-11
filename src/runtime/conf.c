@@ -33,10 +33,14 @@
 #include "lcrcontainer.h"
 #include "lcrcontainer_extend.h"
 #include "error.h"
-#include "utils.h"
 #include "log.h"
 
 #include "utils_buffer.h"
+#include "utils_cgroup.h"
+#include "utils_convert.h"
+#include "utils_memory.h"
+#include "utils_file.h"
+#include "utils_string.h"
 #include "lcr_list.h"
 #include "constants.h"
 
@@ -173,7 +177,7 @@ static int check_rootfs_mount(const char *value)
         return -1;
     }
 
-    if (!lcr_util_dir_exists(value)) {
+    if (!isula_dir_exists(value)) {
         lcr_set_error_message(LCR_ERR_RUNTIME, "Container rootfs mount path '%s' is not exist", value);
         return -1;
     }
@@ -1245,7 +1249,7 @@ static int trans_one_oci_id_mapping(struct lcr_list *conf, const char *typ, cons
     if (nret < 0 || (size_t)nret >= sizeof(subid)) {
         return -1;
     }
-    nret = lcr_util_atomic_write_file(path, subid);
+    nret = isula_file_atomic_write(path, subid);
     if (nret < 0) {
         return -1;
     }

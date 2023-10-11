@@ -132,8 +132,10 @@ install(FILES src/auto_cleanup.h DESTINATION include/isula_libutils)
 install(FILES src/utils/utils_array.h DESTINATION include/isula_libutils)
 install(FILES src/utils/utils_buffer.h DESTINATION include/isula_libutils)
 install(FILES src/utils/utils_convert.h DESTINATION include/isula_libutils)
+install(FILES src/utils/utils_file.h DESTINATION include/isula_libutils)
 install(FILES src/utils/utils_memory.h DESTINATION include/isula_libutils)
 install(FILES src/utils/utils_string.h DESTINATION include/isula_libutils)
+install(FILES src/utils/utils.h DESTINATION include/isula_libutils)
 
 # uninstall
 if(NOT TARGET uninstall)
