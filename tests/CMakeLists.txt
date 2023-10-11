@@ -26,6 +26,28 @@ find_package(GTest REQUIRED)
 configure_file("data/ocihook.json" ${CMAKE_BINARY_DIR}/tests/ocihook.json COPYONLY)
 configure_file("data/process.json" ${CMAKE_BINARY_DIR}/tests/process.json COPYONLY)
 
+function(gmock_find_library _name)
+  find_library(${_name}
+    NAMES ${ARGN}
+    HINTS
+      $ENV{GMOCK_ROOT}
+      ${GMOCK_ROOT}
+  )
+  mark_as_advanced(${_name})
+endfunction()
+
+find_path(GMOCK_INCLUDE_DIR gmock/gmock.h
+  HINTS
+    $ENV{GMOCK_ROOT}/include
+    ${GMOCK_ROOT}/include
+)
+mark_as_advanced(GMOCK_INCLUDE_DIR)
+
+gmock_find_library(GMOCK_LIBRARY            gmock)
+gmock_find_library(GMOCK_LIBRARY_DEBUG      gmockd)
+gmock_find_library(GMOCK_MAIN_LIBRARY       gmock_main)
+gmock_find_library(GMOCK_MAIN_LIBRARY_DEBUG gmock_maind)
+
 file(GLOB_RECURSE test_util_srcs
     "${CMAKE_SOURCE_DIR}/src/third_party/*.c"
     "${CMAKE_SOURCE_DIR}/src/third_party/**/*.c"
@@ -36,7 +58,7 @@ file(GLOB_RECURSE test_util_srcs
     "${CMAKE_BINARY_DIR}/json/*.c"
 )
 
-add_library(test_libisula_utils SHARED ${test_util_srcs})
+add_library(test_libisula_utils STATIC ${test_util_srcs})
 target_include_directories(test_libisula_utils
     PUBLIC ${CMAKE_SOURCE_DIR}/src
     PUBLIC ${CMAKE_SOURCE_DIR}/src/utils
@@ -54,11 +76,13 @@ macro(_DEFINE_NEW_TEST)
         main.cpp
         ${ARGV0}.cpp
         )
-
     target_link_libraries(${ARGV0}
         test_libisula_utils
         ${GTEST_LIBRARY}
-        pthread
+        ${GMOCK_LIBRARY}
+        ${GMOCK_MAIN_LIBRARY}
+        ${CMAKE_THREAD_LIBS_INIT}
+        -lz
         )
 
     target_include_directories(${ARGV0} PUBLIC
@@ -97,6 +121,12 @@ _DEFINE_NEW_TEST(go_crc64_ut go_crc64_testcase)
 _DEFINE_NEW_TEST(auto_cleanup_ut autocleanup_testcase)
 _DEFINE_NEW_TEST(utils_buffer_ut isula_buffer_testcase)
 _DEFINE_NEW_TEST(utils_memory_ut isula_memory_testcase)
+_DEFINE_NEW_TEST(utils_array_ut utils_array_testcase)
+_DEFINE_NEW_TEST(utils_string_ut utils_string_testcase)
+_DEFINE_NEW_TEST(utils_convert_ut utils_convert_testcase)
+
+set_target_properties(utils_array_ut PROPERTIES LINK_FLAGS "-Wl,--wrap,calloc")
+set_target_properties(utils_string_ut PROPERTIES LINK_FLAGS "-Wl,--wrap,calloc")
 
 # mock test for run lcov to generate html
 add_executable(mock_ut main.cpp)
@@ -108,7 +138,9 @@ target_link_libraries(mock_ut
     ${GTEST_LIBRARY}
     pthread
     )
-add_dependencies(mock_ut log_ut libocispec_ut defs_process_ut go_crc64_ut auto_cleanup_ut utils_memory_ut)
+add_dependencies(mock_ut log_ut libocispec_ut defs_process_ut go_crc64_ut
+    auto_cleanup_ut utils_memory_ut utils_array_ut utils_string_ut
+    )
 
 IF(ENABLE_GCOV)
     add_custom_target(coverage

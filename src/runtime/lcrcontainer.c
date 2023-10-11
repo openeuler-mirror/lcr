@@ -949,7 +949,7 @@ static bool lcr_get_console_config_items(struct lxc_container *c, struct lcr_con
     if (item == NULL) {
         DEBUG("Log rotate is NULL");
     } else {
-        if (lcr_util_safe_uint(item, &trotate) == 0) {
+        if (isula_safe_strto_uint(item, &trotate) == 0) {
             config->log_rotate = trotate;
         } else {
             ERROR("trans to uint failed");
@@ -1083,7 +1083,7 @@ int lcr_log_init(const char *name, const char *file, const char *priority, const
                  const char *lcrpath)
 {
     char *full_path = NULL;
-    char *pre_name = "fifo:";
+    const char *pre_name = "fifo:";
     size_t pre_len = 0;
     struct isula_libutils_log_config lconf = { 0 };
     struct lxc_log lxc_log_conf = { 0 };
@@ -1096,7 +1096,7 @@ int lcr_log_init(const char *name, const char *file, const char *priority, const
         lconf.priority = priority ? priority : "ERROR";
     } else {
         /* File has prefix "fifo:", */
-        full_path = lcr_util_string_split_prefix(pre_len, file);
+        full_path = isula_strdup_s(file + pre_len);
         lconf.file = full_path;
         lconf.driver = "fifo";
         lconf.priority = priority;

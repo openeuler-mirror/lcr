@@ -118,7 +118,7 @@ void lcr_append_error_message(lcr_errno_t errcode, const char *format, ...)
         return;
     }
     g_lcr_error.errcode = errcode;
-    result = lcr_util_string_append(g_lcr_error.errmsg, errbuf);
+    result = isula_string_append(errbuf, g_lcr_error.errmsg);
     if (result == NULL) {
         g_lcr_error.errcode = LCR_ERR_MEMOUT;
         return;

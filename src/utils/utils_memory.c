@@ -25,14 +25,6 @@
 
 #include "auto_cleanup.h"
 
-#if __WORDSIZE == 64
-// current max user memory for 64-machine is 2^47 B
-#define MAX_MEMORY_SIZE ((size_t)1 << 47)
-#else
-// current max user memory for 32-machine is 2^31 B
-#define MAX_MEMORY_SIZE ((size_t)1 << 31)
-#endif
-
 /*
 * Be careful, if count == 0;
 * some OS maybe not return NULL, you should manual free it
@@ -43,7 +35,7 @@ void *isula_smart_calloc_s(size_t unit_size, size_t count)
         return NULL;
     }
 
-    if (count > (MAX_MEMORY_SIZE / unit_size)) {
+    if (count > (ISULA_MAX_MEMORY_SIZE / unit_size)) {
         return NULL;
     }
 
@@ -53,7 +45,7 @@ void *isula_smart_calloc_s(size_t unit_size, size_t count)
 /* util common malloc s */
 void *isula_common_calloc_s(size_t size)
 {
-    if (size == 0 || size > MAX_MEMORY_SIZE) {
+    if (size == 0 || size > ISULA_MAX_MEMORY_SIZE) {
         return NULL;
     }
 

@@ -35,7 +35,7 @@ struct __isula_buffer;
 /*
  * clear used data in buffer, and reset used_size to 0
  */
-typedef void (*clear_op)(struct __isula_buffer *buf);
+typedef void (*isula_buf_clear_op)(struct __isula_buffer *buf);
 
 /*
 * append string which length is length into buffer;
@@ -43,34 +43,34 @@ typedef void (*clear_op)(struct __isula_buffer *buf);
 * success, return 0;
 * fail, return -1;
 */
-typedef int (*nappend_op)(struct __isula_buffer *buf, size_t length, const char *format, ...);
+typedef int (*isula_buf_nappend_op)(struct __isula_buffer *buf, size_t length, const char *format, ...);
 
 /*
 * append string into buffer;
 * success, return 0;
 * fail, return -1;
 */
-typedef int (*append_op)(struct __isula_buffer *buf, const char *str);
+typedef int (*isula_buf_append_op)(struct __isula_buffer *buf, const char *str);
 
 /*
 * transform buffer to string, and return to caller
 */
-typedef char *(*to_str_op)(const struct __isula_buffer *buf);
+typedef char *(*isula_buf_to_str_op)(const struct __isula_buffer *buf);
 
 /*
 * get length of data in buffer
 */
-typedef size_t (*length_op)(const struct __isula_buffer *buf);
+typedef size_t (*isula_buf_length_op)(const struct __isula_buffer *buf);
 
 struct __isula_buffer {
     char *contents;
     size_t bytes_used;
     size_t total_size;
-    clear_op clear;
-    nappend_op nappend;
-    append_op append;
-    to_str_op to_str;
-    length_op length;
+    isula_buf_clear_op clear;
+    isula_buf_nappend_op nappend;
+    isula_buf_append_op append;
+    isula_buf_to_str_op to_str;
+    isula_buf_length_op length;
 };
 typedef struct __isula_buffer isula_buffer;
 

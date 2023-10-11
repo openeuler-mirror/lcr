@@ -64,7 +64,7 @@ static int files_limit_checker_v1(const char *value)
         return 1;
     }
 
-    ret = lcr_util_safe_llong(value, &limit);
+    ret = isula_safe_strto_llong(value, &limit);
     if (ret) {
         ret = -1;
     }
@@ -89,7 +89,7 @@ static int files_limit_checker_v2(const char *value)
         return 1;
     }
 
-    ret = lcr_util_safe_llong(value, &limit);
+    ret = isula_safe_strto_llong(value, &limit);
     if (ret) {
         ret = -1;
     }
@@ -118,13 +118,13 @@ static int check_console_log_filesize(const char *value)
 {
     int ret = -1;
     int64_t tmp = 0;
-    int64_t min = 4 * SIZE_KB;
+    int64_t min = 4 * ISULA_SIZE_KB;
 
     if (value == NULL) {
         return ret;
     }
 
-    if (lcr_parse_byte_size_string(value, &tmp) == 0 && tmp >= min) {
+    if (isula_parse_byte_size_string(value, &tmp) == 0 && tmp >= min) {
         ret = 0;
     }
 
@@ -143,7 +143,7 @@ static int check_oom_score_adj(const char *value)
         return ret;
     }
 
-    if (lcr_util_safe_int(value, &tmp) == 0 && tmp >= min && tmp <= max) {
+    if (isula_safe_strto_int(value, &tmp) == 0 && tmp >= min && tmp <= max) {
         ret = 0;
     }
     lcr_set_error_message(LCR_ERR_RUNTIME, "Invalid value %s, range for oom score adj is [%d, %d]", value, min, max);
@@ -159,7 +159,7 @@ static int check_console_log_filerotate(const char *value)
         return ret;
     }
 
-    if (lcr_util_safe_uint(value, &tmp) == 0) {
+    if (isula_safe_strto_uint(value, &tmp) == 0) {
         ret = 0;
     }
 
@@ -594,7 +594,7 @@ static int trans_oci_process_env_and_cap(const defs_process *proc, struct lcr_li
     size_t i;
 
     for (i = 0; i < proc->env_len; i++) {
-        char *replaced = lcr_util_string_replace(" ", SPACE_MAGIC_STR, proc->env[i]);
+        char *replaced = isula_string_replace(" ", SPACE_MAGIC_STR, proc->env[i]);
         if (replaced == NULL) {
             ERROR("memory allocation error");
             goto out;
@@ -951,12 +951,12 @@ static char *trans_mount_to_lxc_options(const defs_mount *mount)
 
     lxc_options = isdir ? ",create=dir" : ",create=file";
 
-    prefix = lcr_util_string_join(",", (const char **)mount->options, mount->options_len);
+    prefix = isula_string_join(",", (const char **)mount->options, mount->options_len);
     if (prefix == NULL) {
         prefix = isula_strdup_s("defaults");
     }
 
-    result = lcr_util_string_append(lxc_options, prefix);
+    result = isula_string_append(prefix, lxc_options);
     free(prefix);
     return result;
 
@@ -1060,12 +1060,12 @@ static struct lcr_list *trans_mount_entry_to_lxc(const defs_mount *mount)
     char *replaced_dest = NULL;
     int ret;
 
-    char *replaced_source = lcr_util_string_replace(" ", SPACE_MAGIC_STR, mount->source);
+    char *replaced_source = isula_string_replace(" ", SPACE_MAGIC_STR, mount->source);
     if (replaced_source == NULL) {
         ERROR("memory allocation error");
         goto err_out;
     }
-    replaced_dest = lcr_util_string_replace(" ", SPACE_MAGIC_STR, mount->destination);
+    replaced_dest = isula_string_replace(" ", SPACE_MAGIC_STR, mount->destination);
     if (replaced_dest == NULL) {
         ERROR("memory allocation error");
         free(replaced_source);
@@ -3004,7 +3004,7 @@ static int trans_oci_seccomp(const oci_runtime_config_linux_seccomp *seccomp, ch
 {
     int ret = 0;
     size_t j = 0;
-    size_t init_size = 4 * SIZE_KB;
+    size_t init_size = 4 * ISULA_SIZE_KB;
 
     isula_buffer *buffer = isula_buffer_alloc(init_size);
     if (buffer == NULL) {
