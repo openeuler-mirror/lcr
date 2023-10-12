@@ -33,11 +33,15 @@
 #include "lcrcontainer.h"
 #include "lcrcontainer_extend.h"
 #include "error.h"
-#include "utils.h"
 #include "log.h"
 
 #include "utils_buffer.h"
-#include "lcr_list.h"
+#include "utils_cgroup.h"
+#include "utils_convert.h"
+#include "utils_memory.h"
+#include "utils_file.h"
+#include "utils_string.h"
+#include "utils_linked_list.h"
 #include "constants.h"
 
 #define SUB_UID_PATH "/etc/subuid"
@@ -173,7 +177,7 @@ static int check_rootfs_mount(const char *value)
         return -1;
     }
 
-    if (!lcr_util_dir_exists(value)) {
+    if (!isula_dir_exists(value)) {
         lcr_set_error_message(LCR_ERR_RUNTIME, "Container rootfs mount path '%s' is not exist", value);
         return -1;
     }
@@ -322,9 +326,9 @@ static const lcr_annotation_item_t g_require_annotations[] = {
 };
 
 /* create lcr list node */
-struct lcr_list *create_lcr_list_node(const char *key, const char *value)
+struct isula_linked_list *create_lcr_list_node(const char *key, const char *value)
 {
-    struct lcr_list *node = NULL;
+    struct isula_linked_list *node = NULL;
     lcr_config_item_t *entry = NULL;
 
     node = isula_common_calloc_s(sizeof(*node));
@@ -345,7 +349,7 @@ struct lcr_list *create_lcr_list_node(const char *key, const char *value)
 }
 
 /* free lcr list node */
-void free_lcr_list_node(struct lcr_list *node)
+void free_lcr_list_node(struct isula_linked_list *node)
 {
     lcr_config_item_t *entry = NULL;
 
@@ -364,7 +368,7 @@ void free_lcr_list_node(struct lcr_list *node)
 }
 
 /* trans oci hostname */
-struct lcr_list *trans_oci_hostname(const char *hostname)
+struct isula_linked_list *trans_oci_hostname(const char *hostname)
 {
     if (hostname == NULL) {
         return NULL;
@@ -428,9 +432,9 @@ static char *capabilities_join(const char *sep, const char **parts, size_t len)
 
 #define UID_MAX_SIZE 21
 /* UID to use within a private user namespace for init */
-static int trans_oci_process_init_uid(const defs_process *proc, struct lcr_list *conf)
+static int trans_oci_process_init_uid(const defs_process *proc, struct isula_linked_list *conf)
 {
-    struct lcr_list *node = NULL;
+    struct isula_linked_list *node = NULL;
     char buf[UID_MAX_SIZE] = { 0 };
     int nret;
     int ret = -1;
@@ -444,7 +448,7 @@ static int trans_oci_process_init_uid(const defs_process *proc, struct lcr_list 
         if (node == NULL) {
             goto out;
         }
-        lcr_list_add_tail(conf, node);
+        isula_linked_list_add_tail(conf, node);
     }
     ret = 0;
 out:
@@ -452,9 +456,9 @@ out:
 }
 
 /* GID to use within a private user namespace for init */
-static int trans_oci_process_init_gid(const defs_process *proc, struct lcr_list *conf)
+static int trans_oci_process_init_gid(const defs_process *proc, struct isula_linked_list *conf)
 {
-    struct lcr_list *node = NULL;
+    struct isula_linked_list *node = NULL;
     char buf[UID_MAX_SIZE] = { 0 };
     int nret;
     int ret = -1;
@@ -468,7 +472,7 @@ static int trans_oci_process_init_gid(const defs_process *proc, struct lcr_list 
         if (node == NULL) {
             goto out;
         }
-        lcr_list_add_tail(conf, node);
+        isula_linked_list_add_tail(conf, node);
     }
     ret = 0;
 out:
@@ -476,10 +480,10 @@ out:
 }
 
 /* additional groups for init command */
-static int trans_oci_process_init_groups(const defs_process *proc, struct lcr_list *conf)
+static int trans_oci_process_init_groups(const defs_process *proc, struct isula_linked_list *conf)
 {
 #define MAX_USER_GID_LEN 21
-    struct lcr_list *node = NULL;
+    struct isula_linked_list *node = NULL;
     int nret;
     size_t i = 0;
     int ret = -1;
@@ -514,7 +518,7 @@ static int trans_oci_process_init_groups(const defs_process *proc, struct lcr_li
         if (node == NULL) {
             goto out;
         }
-        lcr_list_add_tail(conf, node);
+        isula_linked_list_add_tail(conf, node);
     }
     ret = 0;
 out:
@@ -522,9 +526,9 @@ out:
 }
 
 /* Sets the command to use as the init system for the containers */
-static int trans_oci_process_init_args(const defs_process *proc, struct lcr_list *conf)
+static int trans_oci_process_init_args(const defs_process *proc, struct isula_linked_list *conf)
 {
-    struct lcr_list *node = NULL;
+    struct isula_linked_list *node = NULL;
     size_t i = 0;
     int ret = -1;
     for (i = 0; i < proc->args_len; i++) {
@@ -532,7 +536,7 @@ static int trans_oci_process_init_args(const defs_process *proc, struct lcr_list
         if (node == NULL) {
             goto out;
         }
-        lcr_list_add_tail(conf, node);
+        isula_linked_list_add_tail(conf, node);
     }
     ret = 0;
 out:
@@ -540,16 +544,16 @@ out:
 }
 
 /* working directory to use within container */
-static int trans_oci_process_init_cwd(const defs_process *proc, struct lcr_list *conf)
+static int trans_oci_process_init_cwd(const defs_process *proc, struct isula_linked_list *conf)
 {
-    struct lcr_list *node = NULL;
+    struct isula_linked_list *node = NULL;
     int ret = -1;
     if (proc->cwd != NULL) {
         node = create_lcr_list_node("lxc.init.cwd", proc->cwd);
         if (node == NULL) {
             goto out;
         }
-        lcr_list_add_tail(conf, node);
+        isula_linked_list_add_tail(conf, node);
     }
     ret = 0;
 out:
@@ -557,7 +561,7 @@ out:
 }
 
 /* trans oci process init */
-static int trans_oci_process_init(const defs_process *proc, struct lcr_list *conf)
+static int trans_oci_process_init(const defs_process *proc, struct isula_linked_list *conf)
 {
     int ret = -1;
     if (trans_oci_process_init_uid(proc, conf)) {
@@ -586,9 +590,9 @@ out:
 }
 
 /* trans oci process env and cap */
-static int trans_oci_process_env_and_cap(const defs_process *proc, struct lcr_list *conf)
+static int trans_oci_process_env_and_cap(const defs_process *proc, struct isula_linked_list *conf)
 {
-    struct lcr_list *node = NULL;
+    struct isula_linked_list *node = NULL;
     char *boundings = NULL;
     int ret = -1;
     size_t i;
@@ -604,7 +608,7 @@ static int trans_oci_process_env_and_cap(const defs_process *proc, struct lcr_li
         if (node == NULL) {
             goto out;
         }
-        lcr_list_add_tail(conf, node);
+        isula_linked_list_add_tail(conf, node);
     }
 
     if (proc->capabilities != NULL && proc->capabilities->bounding_len > 0) {
@@ -619,13 +623,13 @@ static int trans_oci_process_env_and_cap(const defs_process *proc, struct lcr_li
         if (node == NULL) {
             goto out;
         }
-        lcr_list_add_tail(conf, node);
+        isula_linked_list_add_tail(conf, node);
     } else {
         node = create_lcr_list_node("lxc.cap.keep", "ISULAD_KEEP_NONE");
         if (node == NULL) {
             goto out;
         }
-        lcr_list_add_tail(conf, node);
+        isula_linked_list_add_tail(conf, node);
     }
     ret = 0;
 out:
@@ -633,9 +637,9 @@ out:
 }
 
 /* trans oci process prlimit */
-static int trans_oci_process_prlimit(const defs_process *proc, struct lcr_list *conf)
+static int trans_oci_process_prlimit(const defs_process *proc, struct isula_linked_list *conf)
 {
-    struct lcr_list *node = NULL;
+    struct isula_linked_list *node = NULL;
     int ret = -1;
     int nret;
     size_t i;
@@ -674,7 +678,7 @@ static int trans_oci_process_prlimit(const defs_process *proc, struct lcr_list *
         if (node == NULL) {
             goto out;
         }
-        lcr_list_add_tail(conf, node);
+        isula_linked_list_add_tail(conf, node);
     }
     ret = 0;
 out:
@@ -682,9 +686,9 @@ out:
 }
 
 /* trans oci process no new privs */
-static int trans_oci_process_no_new_privs(const defs_process *proc, struct lcr_list *conf)
+static int trans_oci_process_no_new_privs(const defs_process *proc, struct isula_linked_list *conf)
 {
-    struct lcr_list *node = NULL;
+    struct isula_linked_list *node = NULL;
     int ret = -1;
 
     if (proc->no_new_privileges) {
@@ -692,16 +696,16 @@ static int trans_oci_process_no_new_privs(const defs_process *proc, struct lcr_l
         if (node == NULL) {
             goto out;
         }
-        lcr_list_add_tail(conf, node);
+        isula_linked_list_add_tail(conf, node);
     }
     ret = 0;
 out:
     return ret;
 }
 
-static int trans_oci_process_apparmor(const defs_process *proc, struct lcr_list *conf)
+static int trans_oci_process_apparmor(const defs_process *proc, struct isula_linked_list *conf)
 {
-    struct lcr_list *node = NULL;
+    struct isula_linked_list *node = NULL;
     int ret = -1;
 
     if (proc->apparmor_profile != NULL) {
@@ -709,7 +713,7 @@ static int trans_oci_process_apparmor(const defs_process *proc, struct lcr_list 
         if (node == NULL) {
             goto out;
         }
-        lcr_list_add_tail(conf, node);
+        isula_linked_list_add_tail(conf, node);
     }
 
     ret = 0;
@@ -717,9 +721,9 @@ out:
     return ret;
 }
 
-static int trans_oci_process_selinux(const defs_process *proc, struct lcr_list *conf)
+static int trans_oci_process_selinux(const defs_process *proc, struct isula_linked_list *conf)
 {
-    struct lcr_list *node = NULL;
+    struct isula_linked_list *node = NULL;
     int ret = -1;
 
     if (proc->selinux_label != NULL) {
@@ -727,7 +731,7 @@ static int trans_oci_process_selinux(const defs_process *proc, struct lcr_list *
         if (node == NULL) {
             goto out;
         }
-        lcr_list_add_tail(conf, node);
+        isula_linked_list_add_tail(conf, node);
     }
 
     ret = 0;
@@ -736,7 +740,7 @@ out:
 }
 
 /* trans oci process apparmor and selinux */
-static int trans_oci_process_apparmor_and_selinux(const defs_process *proc, struct lcr_list *conf)
+static int trans_oci_process_apparmor_and_selinux(const defs_process *proc, struct isula_linked_list *conf)
 {
     int ret = -1;
 
@@ -754,19 +758,19 @@ out:
 }
 
 /* trans oci process */
-struct lcr_list *trans_oci_process(const defs_process *proc)
+struct isula_linked_list *trans_oci_process(const defs_process *proc)
 {
-    struct lcr_list *conf = NULL;
+    struct isula_linked_list *conf = NULL;
 
     if (proc == NULL) {
         return NULL;
     }
 
-    conf = isula_common_calloc_s(sizeof(struct lcr_list));
+    conf = isula_common_calloc_s(sizeof(struct isula_linked_list));
     if (conf == NULL) {
         return NULL;
     }
-    lcr_list_init(conf);
+    isula_linked_list_init(conf);
 
     if (trans_oci_process_init(proc, conf)) {
         goto out_free;
@@ -798,9 +802,9 @@ out_free:
 
 #define APPEND_COMMA_END_SIZE 2
 /* trans oci root rootfs */
-static int trans_oci_root_rootfs(const oci_runtime_spec_root *root, struct lcr_list *conf)
+static int trans_oci_root_rootfs(const oci_runtime_spec_root *root, struct isula_linked_list *conf)
 {
-    struct lcr_list *node = NULL;
+    struct isula_linked_list *node = NULL;
     int ret = -1;
 
     if ((root != NULL) && root->path != NULL) {
@@ -809,7 +813,7 @@ static int trans_oci_root_rootfs(const oci_runtime_spec_root *root, struct lcr_l
             if (node == NULL) {
                 goto out;
             }
-            lcr_list_add_tail(conf, node);
+            isula_linked_list_add_tail(conf, node);
         }
     }
     ret = 0;
@@ -823,10 +827,10 @@ static inline bool is_root_readonly(const oci_runtime_spec_root *root)
 }
 
 /* trans oci root rootfsoptions */
-static int trans_oci_root_rootfs_options(const oci_runtime_spec_root *root, struct lcr_list *conf,
+static int trans_oci_root_rootfs_options(const oci_runtime_spec_root *root, struct isula_linked_list *conf,
                                          const oci_runtime_config_linux *linux)
 {
-    struct lcr_list *node = NULL;
+    struct isula_linked_list *node = NULL;
     char *value = NULL;
     char *tmpvalue = NULL;
     int ret = -1;
@@ -866,7 +870,7 @@ static int trans_oci_root_rootfs_options(const oci_runtime_spec_root *root, stru
         if (node == NULL) {
             goto out;
         }
-        lcr_list_add_tail(conf, node);
+        isula_linked_list_add_tail(conf, node);
     }
     ret = 0;
 out:
@@ -875,15 +879,15 @@ out:
 }
 
 /* trans oci root */
-struct lcr_list *trans_oci_root(const oci_runtime_spec_root *root, const oci_runtime_config_linux *linux)
+struct isula_linked_list *trans_oci_root(const oci_runtime_spec_root *root, const oci_runtime_config_linux *linux)
 {
-    struct lcr_list *conf = NULL;
+    struct isula_linked_list *conf = NULL;
 
     conf = isula_common_calloc_s(sizeof(*conf));
     if (conf == NULL) {
         return NULL;
     }
-    lcr_list_init(conf);
+    isula_linked_list_init(conf);
 
     if (trans_oci_root_rootfs(root, conf)) {
         goto out_free;
@@ -1006,9 +1010,9 @@ static char *get_mount_readmode_options(const defs_mount *mount, const char *typ
 }
 
 /* trans mount auto to lxc */
-static struct lcr_list *trans_mount_auto_to_lxc(const defs_mount *mount)
+static struct isula_linked_list *trans_mount_auto_to_lxc(const defs_mount *mount)
 {
-    struct lcr_list *node = NULL;
+    struct isula_linked_list *node = NULL;
     size_t buf_len = 0;
     char *buf = NULL;
     char *options = NULL;
@@ -1051,9 +1055,9 @@ out_free:
 }
 
 /* trans mount entry to lxc */
-static struct lcr_list *trans_mount_entry_to_lxc(const defs_mount *mount)
+static struct isula_linked_list *trans_mount_entry_to_lxc(const defs_mount *mount)
 {
-    struct lcr_list *node = NULL;
+    struct isula_linked_list *node = NULL;
     size_t buf_len = 0;
     char *buf = NULL;
     char *options = NULL;
@@ -1125,9 +1129,9 @@ static bool is_external_rootfs(const oci_runtime_spec *container)
     return false;
 }
 
-static struct lcr_list *trans_oci_mounts_normal(const defs_mount *tmp)
+static struct isula_linked_list *trans_oci_mounts_normal(const defs_mount *tmp)
 {
-    struct lcr_list *node = NULL;
+    struct isula_linked_list *node = NULL;
     if (is_mount_type_cgroup(tmp->type) || is_mount_type_proc(tmp->type) || is_mount_type_sysfs(tmp->type)) {
         node = trans_mount_auto_to_lxc(tmp);
     } else {
@@ -1137,9 +1141,9 @@ static struct lcr_list *trans_oci_mounts_normal(const defs_mount *tmp)
     return node;
 }
 
-static struct lcr_list *trans_oci_mounts_system_container(const defs_mount *tmp)
+static struct isula_linked_list *trans_oci_mounts_system_container(const defs_mount *tmp)
 {
-    struct lcr_list *node = NULL;
+    struct isula_linked_list *node = NULL;
     if (is_mount_type_cgroup(tmp->type) || (is_mount_type_proc(tmp->source) && is_mount_type_proc(tmp->type)) ||
         is_mount_type_sysfs(tmp->type)) {
         node = trans_mount_auto_to_lxc(tmp);
@@ -1150,9 +1154,9 @@ static struct lcr_list *trans_oci_mounts_system_container(const defs_mount *tmp)
     return node;
 }
 
-static struct lcr_list *trans_oci_mounts_node(const oci_runtime_spec *c, const defs_mount *tmp)
+static struct isula_linked_list *trans_oci_mounts_node(const oci_runtime_spec *c, const defs_mount *tmp)
 {
-    struct lcr_list *node = NULL;
+    struct isula_linked_list *node = NULL;
     // system container
     if (is_system_container(c)) {
         node = trans_oci_mounts_system_container(tmp);
@@ -1174,10 +1178,10 @@ static inline bool should_ignore_dev_mount(const defs_mount *tmp, bool system_co
 }
 
 /* trans oci mounts */
-struct lcr_list *trans_oci_mounts(const oci_runtime_spec *c)
+struct isula_linked_list *trans_oci_mounts(const oci_runtime_spec *c)
 {
-    struct lcr_list *conf = NULL;
-    struct lcr_list *node = NULL;
+    struct isula_linked_list *conf = NULL;
+    struct isula_linked_list *node = NULL;
     defs_mount *tmp = NULL;
     size_t i;
     bool system_container = false;
@@ -1193,7 +1197,7 @@ struct lcr_list *trans_oci_mounts(const oci_runtime_spec *c)
     if (conf == NULL) {
         return NULL;
     }
-    lcr_list_init(conf);
+    isula_linked_list_init(conf);
 
     for (i = 0; i < c->mounts_len; i++) {
         tmp = c->mounts[i];
@@ -1208,7 +1212,7 @@ struct lcr_list *trans_oci_mounts(const oci_runtime_spec *c)
         if (node == NULL) {
             goto out_free;
         }
-        lcr_list_add_tail(conf, node);
+        isula_linked_list_add_tail(conf, node);
     }
 
     return conf;
@@ -1219,10 +1223,10 @@ out_free:
     return NULL;
 }
 
-static int trans_one_oci_id_mapping(struct lcr_list *conf, const char *typ, const defs_id_mapping *id, const char *path)
+static int trans_one_oci_id_mapping(struct isula_linked_list *conf, const char *typ, const defs_id_mapping *id, const char *path)
 {
     int nret;
-    struct lcr_list *node = NULL;
+    struct isula_linked_list *node = NULL;
     char buf_value[DEFAULT_BUF_LEN] = { 0 };
     char subid[ID_MAP_LEN] = { 0 };
 
@@ -1239,20 +1243,20 @@ static int trans_one_oci_id_mapping(struct lcr_list *conf, const char *typ, cons
     if (node == NULL) {
         return -1;
     }
-    lcr_list_add_tail(conf, node);
+    isula_linked_list_add_tail(conf, node);
 
     nret = snprintf(subid, sizeof(subid), "%u:%u:%u", id->container_id, id->host_id, id->size);
     if (nret < 0 || (size_t)nret >= sizeof(subid)) {
         return -1;
     }
-    nret = lcr_util_atomic_write_file(path, subid);
+    nret = isula_file_atomic_write(path, subid);
     if (nret < 0) {
         return -1;
     }
     return 0;
 }
 
-static int trans_oci_uid_mapping(struct lcr_list *conf, defs_id_mapping **uid_mappings, size_t uid_mappings_len)
+static int trans_oci_uid_mapping(struct isula_linked_list *conf, defs_id_mapping **uid_mappings, size_t uid_mappings_len)
 {
     size_t i;
 
@@ -1265,7 +1269,7 @@ static int trans_oci_uid_mapping(struct lcr_list *conf, defs_id_mapping **uid_ma
     return 0;
 }
 
-static int trans_oci_gid_mapping(struct lcr_list *conf, defs_id_mapping **gid_mappings, size_t gid_mappings_len)
+static int trans_oci_gid_mapping(struct isula_linked_list *conf, defs_id_mapping **gid_mappings, size_t gid_mappings_len)
 {
     size_t i;
 
@@ -1279,16 +1283,16 @@ static int trans_oci_gid_mapping(struct lcr_list *conf, defs_id_mapping **gid_ma
 }
 
 /* trans oci id mapping */
-static struct lcr_list *trans_oci_id_mapping(const oci_runtime_config_linux *l)
+static struct isula_linked_list *trans_oci_id_mapping(const oci_runtime_config_linux *l)
 {
-    struct lcr_list *conf = NULL;
+    struct isula_linked_list *conf = NULL;
     int nret = 0;
 
     conf = isula_common_calloc_s(sizeof(*conf));
     if (conf == NULL) {
         return NULL;
     }
-    lcr_list_init(conf);
+    isula_linked_list_init(conf);
 
     nret = trans_oci_uid_mapping(conf, l->uid_mappings, l->uid_mappings_len);
     if (nret < 0) {
@@ -1311,9 +1315,9 @@ out_free:
 
 #define WILDCARD (-1LL)
 
-static int trans_conf_int(struct lcr_list *conf, const char *lxc_key, int val)
+static int trans_conf_int(struct isula_linked_list *conf, const char *lxc_key, int val)
 {
-    struct lcr_list *node = NULL;
+    struct isula_linked_list *node = NULL;
     char buf_value[DEFAULT_BUF_LEN] = { 0 };
     int nret;
 
@@ -1325,13 +1329,13 @@ static int trans_conf_int(struct lcr_list *conf, const char *lxc_key, int val)
     if (node == NULL) {
         return -1;
     }
-    lcr_list_add_tail(conf, node);
+    isula_linked_list_add_tail(conf, node);
     return 0;
 }
 
-static int trans_conf_uint32(struct lcr_list *conf, const char *lxc_key, uint32_t val)
+static int trans_conf_uint32(struct isula_linked_list *conf, const char *lxc_key, uint32_t val)
 {
-    struct lcr_list *node = NULL;
+    struct isula_linked_list *node = NULL;
     char buf_value[DEFAULT_BUF_LEN] = { 0 };
     int nret;
 
@@ -1343,13 +1347,13 @@ static int trans_conf_uint32(struct lcr_list *conf, const char *lxc_key, uint32_
     if (node == NULL) {
         return -1;
     }
-    lcr_list_add_tail(conf, node);
+    isula_linked_list_add_tail(conf, node);
     return 0;
 }
 
-static int trans_conf_int64(struct lcr_list *conf, const char *lxc_key, int64_t val)
+static int trans_conf_int64(struct isula_linked_list *conf, const char *lxc_key, int64_t val)
 {
-    struct lcr_list *node = NULL;
+    struct isula_linked_list *node = NULL;
     char buf_value[DEFAULT_BUF_LEN] = { 0 };
     int nret;
 
@@ -1361,13 +1365,13 @@ static int trans_conf_int64(struct lcr_list *conf, const char *lxc_key, int64_t 
     if (node == NULL) {
         return -1;
     }
-    lcr_list_add_tail(conf, node);
+    isula_linked_list_add_tail(conf, node);
     return 0;
 }
 
-static int trans_conf_uint64(struct lcr_list *conf, const char *lxc_key, uint64_t val)
+static int trans_conf_uint64(struct isula_linked_list *conf, const char *lxc_key, uint64_t val)
 {
-    struct lcr_list *node = NULL;
+    struct isula_linked_list *node = NULL;
     char buf_value[DEFAULT_BUF_LEN] = { 0 };
     int nret;
 
@@ -1379,24 +1383,24 @@ static int trans_conf_uint64(struct lcr_list *conf, const char *lxc_key, uint64_
     if (node == NULL) {
         return -1;
     }
-    lcr_list_add_tail(conf, node);
+    isula_linked_list_add_tail(conf, node);
     return 0;
 }
 
-static int trans_conf_string(struct lcr_list *conf, const char *lxc_key, const char *val)
+static int trans_conf_string(struct isula_linked_list *conf, const char *lxc_key, const char *val)
 {
-    struct lcr_list *node = NULL;
+    struct isula_linked_list *node = NULL;
 
     node = create_lcr_list_node(lxc_key, val);
     if (node == NULL) {
         return -1;
     }
-    lcr_list_add_tail(conf, node);
+    isula_linked_list_add_tail(conf, node);
     return 0;
 }
 
 /* trans resources mem swap of cgroup v1 */
-static int trans_resources_mem_swap_v1(const defs_resources *res, struct lcr_list *conf)
+static int trans_resources_mem_swap_v1(const defs_resources *res, struct isula_linked_list *conf)
 {
     int ret = -1;
     int nret;
@@ -1428,7 +1432,7 @@ out:
     return ret;
 }
 
-static int trans_resources_mem_limit_v1(const defs_resources *res, struct lcr_list *conf)
+static int trans_resources_mem_limit_v1(const defs_resources *res, struct isula_linked_list *conf)
 {
     if (res->memory->limit != INVALID_INT) {
         /* set limit of memory usage */
@@ -1441,7 +1445,7 @@ static int trans_resources_mem_limit_v1(const defs_resources *res, struct lcr_li
 }
 
 /* trans resources mem kernel of cgroup v1 */
-static int trans_resources_mem_kernel_v1(const defs_resources *res, struct lcr_list *conf)
+static int trans_resources_mem_kernel_v1(const defs_resources *res, struct isula_linked_list *conf)
 {
     int ret = -1;
     int nret;
@@ -1465,21 +1469,21 @@ out:
     return ret;
 }
 
-static int trans_resources_mem_disable_oom_v1(const defs_resources *res, struct lcr_list *conf)
+static int trans_resources_mem_disable_oom_v1(const defs_resources *res, struct isula_linked_list *conf)
 {
-    struct lcr_list *node = NULL;
+    struct isula_linked_list *node = NULL;
     if (res->memory->disable_oom_killer) {
         node = create_lcr_list_node("lxc.cgroup.memory.oom_control", "1");
         if (node == NULL) {
             return -1;
         }
-        lcr_list_add_tail(conf, node);
+        isula_linked_list_add_tail(conf, node);
     }
     return 0;
 }
 
 /* trans resources memory of cgroup v1 */
-static int trans_resources_memory_v1(const defs_resources *res, struct lcr_list *conf)
+static int trans_resources_memory_v1(const defs_resources *res, struct isula_linked_list *conf)
 {
     int ret = -1;
 
@@ -1507,7 +1511,7 @@ out:
     return ret;
 }
 
-static int trans_conf_int64_with_max(struct lcr_list *conf, const char *lxc_key, int64_t val)
+static int trans_conf_int64_with_max(struct isula_linked_list *conf, const char *lxc_key, int64_t val)
 {
     int ret = 0;
 
@@ -1523,10 +1527,10 @@ static int trans_conf_int64_with_max(struct lcr_list *conf, const char *lxc_key,
     return ret;
 }
 
-static int trans_resources_devices_node_v1(const defs_device_cgroup *lrd, struct lcr_list *conf,
+static int trans_resources_devices_node_v1(const defs_device_cgroup *lrd, struct isula_linked_list *conf,
                                            const char *buf_value)
 {
-    struct lcr_list *node = NULL;
+    struct isula_linked_list *node = NULL;
     int ret = -1;
 
     if (lrd->allow == true) {
@@ -1537,7 +1541,7 @@ static int trans_resources_devices_node_v1(const defs_device_cgroup *lrd, struct
     if (node == NULL) {
         goto out;
     }
-    lcr_list_add_tail(conf, node);
+    isula_linked_list_add_tail(conf, node);
 
     ret = 0;
 out:
@@ -1585,7 +1589,7 @@ static int trans_resources_devices_ret(const defs_device_cgroup *lrd, char *buf_
 }
 
 /* trans resources devices for cgroup v1 */
-static int trans_resources_devices_v1(const defs_resources *res, struct lcr_list *conf)
+static int trans_resources_devices_v1(const defs_resources *res, struct isula_linked_list *conf)
 {
     int ret = -1;
     size_t i = 0;
@@ -1611,7 +1615,7 @@ out:
 }
 
 /* trans resources cpu cfs */
-static int trans_resources_cpu_cfs(const defs_resources *res, struct lcr_list *conf)
+static int trans_resources_cpu_cfs(const defs_resources *res, struct isula_linked_list *conf)
 {
     int ret = -1;
 
@@ -1631,7 +1635,7 @@ out:
 }
 
 /* trans resources cpu rt */
-static int trans_resources_cpu_rt(const defs_resources *res, struct lcr_list *conf)
+static int trans_resources_cpu_rt(const defs_resources *res, struct isula_linked_list *conf)
 {
     int ret = -1;
 
@@ -1651,9 +1655,9 @@ out:
 }
 
 /* trans resources cpu set */
-static int trans_resources_cpu_set(const defs_resources *res, struct lcr_list *conf)
+static int trans_resources_cpu_set(const defs_resources *res, struct isula_linked_list *conf)
 {
-    struct lcr_list *node = NULL;
+    struct isula_linked_list *node = NULL;
     int ret = -1;
 
     if (res->cpu->cpus != NULL) {
@@ -1661,14 +1665,14 @@ static int trans_resources_cpu_set(const defs_resources *res, struct lcr_list *c
         if (node == NULL) {
             goto out;
         }
-        lcr_list_add_tail(conf, node);
+        isula_linked_list_add_tail(conf, node);
     }
     if (res->cpu->mems != NULL) {
         node = create_lcr_list_node("lxc.cgroup.cpuset.mems", res->cpu->mems);
         if (node == NULL) {
             goto out;
         }
-        lcr_list_add_tail(conf, node);
+        isula_linked_list_add_tail(conf, node);
     }
     ret = 0;
 out:
@@ -1676,7 +1680,7 @@ out:
 }
 
 /* trans resources cpu shares */
-static int trans_resources_cpu_shares(const defs_resources *res, struct lcr_list *conf)
+static int trans_resources_cpu_shares(const defs_resources *res, struct isula_linked_list *conf)
 {
     if (res->cpu->shares != INVALID_INT) {
         int nret = trans_conf_int64(conf, "lxc.cgroup.cpu.shares", (int64_t)(res->cpu->shares));
@@ -1688,7 +1692,7 @@ static int trans_resources_cpu_shares(const defs_resources *res, struct lcr_list
 }
 
 /* trans resources cpu of cgroup v1 */
-static int trans_resources_cpu_v1(const defs_resources *res, struct lcr_list *conf)
+static int trans_resources_cpu_v1(const defs_resources *res, struct isula_linked_list *conf)
 {
     int ret = -1;
 
@@ -1719,7 +1723,7 @@ out:
 }
 
 /* trans resources blkio weight of cgroup v1 */
-static int trans_blkio_weight_v1(const defs_resources_block_io *block_io, struct lcr_list *conf)
+static int trans_blkio_weight_v1(const defs_resources_block_io *block_io, struct isula_linked_list *conf)
 {
     int ret = -1;
 
@@ -1740,9 +1744,9 @@ out:
 }
 
 /* trans resources blkio wdevice of cgroup v1 */
-static int trans_blkio_wdevice_v1(const defs_resources_block_io *block_io, struct lcr_list *conf)
+static int trans_blkio_wdevice_v1(const defs_resources_block_io *block_io, struct isula_linked_list *conf)
 {
-    struct lcr_list *node = NULL;
+    struct isula_linked_list *node = NULL;
     int ret = -1;
     size_t i = 0;
     char buf_value[DEFAULT_BUF_LEN] = { 0 };
@@ -1761,7 +1765,7 @@ static int trans_blkio_wdevice_v1(const defs_resources_block_io *block_io, struc
             if (node == NULL) {
                 goto out;
             }
-            lcr_list_add_tail(conf, node);
+            isula_linked_list_add_tail(conf, node);
         }
         if ((wd != NULL) && wd->leaf_weight != INVALID_INT) {
             nret = snprintf(buf_value, sizeof(buf_value), "%lld:%lld %d", (long long)(wd->major),
@@ -1774,7 +1778,7 @@ static int trans_blkio_wdevice_v1(const defs_resources_block_io *block_io, struc
             if (node == NULL) {
                 goto out;
             }
-            lcr_list_add_tail(conf, node);
+            isula_linked_list_add_tail(conf, node);
         }
     }
     ret = 0;
@@ -1784,9 +1788,9 @@ out:
 
 /* trans resources blkio throttle of cgroup v1 */
 static int trans_blkio_throttle_v1(defs_block_io_device_throttle **throttle, size_t len,
-                                   const char *lxc_key, struct lcr_list *conf)
+                                   const char *lxc_key, struct isula_linked_list *conf)
 {
-    struct lcr_list *node = NULL;
+    struct isula_linked_list *node = NULL;
     int ret = -1;
     size_t i;
 
@@ -1808,7 +1812,7 @@ static int trans_blkio_throttle_v1(defs_block_io_device_throttle **throttle, siz
             if (node == NULL) {
                 goto out;
             }
-            lcr_list_add_tail(conf, node);
+            isula_linked_list_add_tail(conf, node);
         }
     }
     ret = 0;
@@ -1817,7 +1821,7 @@ out:
 }
 
 /* trans resources blkio of cgroup v1 */
-static int trans_resources_blkio_v1(const defs_resources_block_io *block_io, struct lcr_list *conf)
+static int trans_resources_blkio_v1(const defs_resources_block_io *block_io, struct isula_linked_list *conf)
 {
     int ret = -1;
 
@@ -1859,7 +1863,7 @@ out:
 }
 
 /* trans resources hugetlb of cgroup v1 */
-static int trans_resources_hugetlb_v1(const defs_resources *res, struct lcr_list *conf)
+static int trans_resources_hugetlb_v1(const defs_resources *res, struct isula_linked_list *conf)
 {
     int ret = -1;
     size_t i = 0;
@@ -1885,7 +1889,7 @@ out:
 }
 
 /* trans resources network of cgroup v1 */
-static int trans_resources_network_v1(const defs_resources *res, struct lcr_list *conf)
+static int trans_resources_network_v1(const defs_resources *res, struct isula_linked_list *conf)
 {
     int ret = -1;
     size_t i = 0;
@@ -1909,11 +1913,11 @@ static int trans_resources_network_v1(const defs_resources *res, struct lcr_list
                 goto out;
             }
 
-            struct lcr_list *node = create_lcr_list_node("lxc.cgroup.net_prio.ifpriomap", buf_value);
+            struct isula_linked_list *node = create_lcr_list_node("lxc.cgroup.net_prio.ifpriomap", buf_value);
             if (node == NULL) {
                 goto out;
             }
-            lcr_list_add_tail(conf, node);
+            isula_linked_list_add_tail(conf, node);
         }
     }
 
@@ -1923,7 +1927,7 @@ out:
 }
 
 /* trans resources pids of cgroup v1 */
-static int trans_resources_pids_v1(const defs_resources *res, struct lcr_list *conf)
+static int trans_resources_pids_v1(const defs_resources *res, struct isula_linked_list *conf)
 {
     int ret = -1;
     char buf_value[DEFAULT_BUF_LEN] = { 0 };
@@ -1943,11 +1947,11 @@ static int trans_resources_pids_v1(const defs_resources *res, struct lcr_list *c
             goto out;
         }
 
-        struct lcr_list *node = create_lcr_list_node("lxc.cgroup.pids.max", buf_value);
+        struct isula_linked_list *node = create_lcr_list_node("lxc.cgroup.pids.max", buf_value);
         if (node == NULL) {
             goto out;
         }
-        lcr_list_add_tail(conf, node);
+        isula_linked_list_add_tail(conf, node);
     }
 
     ret = 0;
@@ -1956,15 +1960,15 @@ out:
 }
 
 /* trans oci resources to lxc cgroup config v1 */
-static struct lcr_list *trans_oci_resources_v1(const defs_resources *res)
+static struct isula_linked_list *trans_oci_resources_v1(const defs_resources *res)
 {
-    struct lcr_list *conf = NULL;
+    struct isula_linked_list *conf = NULL;
 
     conf = isula_common_calloc_s(sizeof(*conf));
     if (conf == NULL) {
         return NULL;
     }
-    lcr_list_init(conf);
+    isula_linked_list_init(conf);
 
     if (trans_resources_devices_v1(res, conf)) {
         goto out_free;
@@ -2003,10 +2007,10 @@ out_free:
     return NULL;
 }
 
-static int trans_resources_devices_node_v2(const defs_device_cgroup *lrd, struct lcr_list *conf,
+static int trans_resources_devices_node_v2(const defs_device_cgroup *lrd, struct isula_linked_list *conf,
                                            const char *buf_value)
 {
-    struct lcr_list *node = NULL;
+    struct isula_linked_list *node = NULL;
     int ret = -1;
 
     if (lrd->allow == true) {
@@ -2017,7 +2021,7 @@ static int trans_resources_devices_node_v2(const defs_device_cgroup *lrd, struct
     if (node == NULL) {
         goto out;
     }
-    lcr_list_add_tail(conf, node);
+    isula_linked_list_add_tail(conf, node);
 
     ret = 0;
 out:
@@ -2025,7 +2029,7 @@ out:
 }
 
 /* trans resources devices for cgroup v2 */
-static int trans_resources_devices_v2(const defs_resources *res, struct lcr_list *conf)
+static int trans_resources_devices_v2(const defs_resources *res, struct isula_linked_list *conf)
 {
     int ret = -1;
     size_t i = 0;
@@ -2051,7 +2055,7 @@ out:
 }
 
 /* set limit of memory usage of cgroup v2 */
-static int trans_resources_mem_limit_v2(const defs_resources *res, struct lcr_list *conf)
+static int trans_resources_mem_limit_v2(const defs_resources *res, struct isula_linked_list *conf)
 {
     if (res->memory->limit != INVALID_INT) {
         if (trans_conf_int64_with_max(conf, "lxc.cgroup2.memory.max", res->memory->limit) != 0) {
@@ -2069,7 +2073,7 @@ static int trans_resources_mem_limit_v2(const defs_resources *res, struct lcr_li
 }
 
 /* trans resources mem swap of cgroup v2 */
-static int trans_resources_mem_swap_v2(const defs_resources *res, struct lcr_list *conf)
+static int trans_resources_mem_swap_v2(const defs_resources *res, struct isula_linked_list *conf)
 {
     int64_t swap = 0;
 
@@ -2089,7 +2093,7 @@ static int trans_resources_mem_swap_v2(const defs_resources *res, struct lcr_lis
 }
 
 /* trans resources memory of cgroup v2 */
-static int trans_resources_memory_v2(const defs_resources *res, struct lcr_list *conf)
+static int trans_resources_memory_v2(const defs_resources *res, struct isula_linked_list *conf)
 {
     if (res->memory == NULL) {
         return 0;
@@ -2107,7 +2111,7 @@ static int trans_resources_memory_v2(const defs_resources *res, struct lcr_list 
 }
 
 /* trans resources cpu weight of cgroup v2, it's called cpu shares in cgroup v1 */
-static int trans_resources_cpu_weight_v2(const defs_resources *res, struct lcr_list *conf)
+static int trans_resources_cpu_weight_v2(const defs_resources *res, struct isula_linked_list *conf)
 {
     if (res->cpu->shares == INVALID_INT) {
         return 0;
@@ -2126,7 +2130,7 @@ static int trans_resources_cpu_weight_v2(const defs_resources *res, struct lcr_l
 }
 
 /* trans resources cpu max of cgroup v2, it's called quota/period in cgroup v1 */
-static int trans_resources_cpu_max_v2(const defs_resources *res, struct lcr_list *conf)
+static int trans_resources_cpu_max_v2(const defs_resources *res, struct isula_linked_list *conf)
 {
     char buf_value[DEFAULT_BUF_LEN] = {0};
     uint64_t period = res->cpu->period;
@@ -2161,7 +2165,7 @@ static int trans_resources_cpu_max_v2(const defs_resources *res, struct lcr_list
 }
 
 /* trans resources cpu set of cgroup v2 */
-static int trans_resources_cpuset_v2(const defs_resources *res, struct lcr_list *conf)
+static int trans_resources_cpuset_v2(const defs_resources *res, struct isula_linked_list *conf)
 {
     if (res->cpu->cpus != NULL) {
         if (trans_conf_string(conf, "lxc.cgroup2.cpuset.cpus", res->cpu->cpus) != 0) {
@@ -2179,7 +2183,7 @@ static int trans_resources_cpuset_v2(const defs_resources *res, struct lcr_list 
 }
 
 /* trans resources cpu of cgroup v2 */
-static int trans_resources_cpu_v2(const defs_resources *res, struct lcr_list *conf)
+static int trans_resources_cpu_v2(const defs_resources *res, struct isula_linked_list *conf)
 {
     if (res->cpu == NULL) {
         return 0;
@@ -2201,7 +2205,7 @@ static int trans_resources_cpu_v2(const defs_resources *res, struct lcr_list *co
 }
 
 /* trans resources io.weight/io.weight_device of cgroup v2 */
-static int trans_io_weight_v2(const defs_resources_block_io *block_io, struct lcr_list *conf)
+static int trans_io_weight_v2(const defs_resources_block_io *block_io, struct isula_linked_list *conf)
 {
     size_t i = 0;
     uint64_t weight = 0;
@@ -2252,7 +2256,7 @@ static int trans_io_weight_v2(const defs_resources_block_io *block_io, struct lc
 }
 
 /* trans resources io.bfq.weight/io.bfq.weight_device of cgroup v2 */
-static int trans_io_bfq_weight_v2(const defs_resources_block_io *block_io, struct lcr_list *conf)
+static int trans_io_bfq_weight_v2(const defs_resources_block_io *block_io, struct isula_linked_list *conf)
 {
     size_t i = 0;
     uint64_t weight = 0;
@@ -2304,7 +2308,7 @@ static int trans_io_bfq_weight_v2(const defs_resources_block_io *block_io, struc
 
 /* trans resources io throttle of cgroup v2 */
 static int trans_io_throttle_v2(defs_block_io_device_throttle **throttle, size_t len,
-                                const char *lxc_key, const char *rate_key, struct lcr_list *conf)
+                                const char *lxc_key, const char *rate_key, struct isula_linked_list *conf)
 {
     int ret = -1;
     size_t i;
@@ -2335,7 +2339,7 @@ out:
 
 
 /* trans resources blkio of cgroup v2 */
-static int trans_resources_blkio_v2(const defs_resources_block_io *block_io, struct lcr_list *conf)
+static int trans_resources_blkio_v2(const defs_resources_block_io *block_io, struct isula_linked_list *conf)
 {
     if (block_io == NULL) {
         return 0;
@@ -2373,7 +2377,7 @@ static int trans_resources_blkio_v2(const defs_resources_block_io *block_io, str
 }
 
 /* trans resources hugetlb of cgroup v2 */
-static int trans_resources_hugetlb_v2(const defs_resources *res, struct lcr_list *conf)
+static int trans_resources_hugetlb_v2(const defs_resources *res, struct isula_linked_list *conf)
 {
     size_t i = 0;
     char buf_key[DEFAULT_BUF_LEN] = { 0 };
@@ -2397,7 +2401,7 @@ static int trans_resources_hugetlb_v2(const defs_resources *res, struct lcr_list
 }
 
 /* trans resources pids of cgroup v2 */
-static int trans_resources_pids_v2(const defs_resources *res, struct lcr_list *conf)
+static int trans_resources_pids_v2(const defs_resources *res, struct isula_linked_list *conf)
 {
     if (res->pids == NULL) {
         return 0;
@@ -2413,15 +2417,15 @@ static int trans_resources_pids_v2(const defs_resources *res, struct lcr_list *c
 }
 
 /* trans oci resources to lxc cgroup config v2 */
-static struct lcr_list *trans_oci_resources_v2(const defs_resources *res)
+static struct isula_linked_list *trans_oci_resources_v2(const defs_resources *res)
 {
-    struct lcr_list *conf = NULL;
+    struct isula_linked_list *conf = NULL;
 
     conf = isula_common_calloc_s(sizeof(*conf));
     if (conf == NULL) {
         return NULL;
     }
-    lcr_list_init(conf);
+    isula_linked_list_init(conf);
 
     if (trans_resources_devices_v2(res, conf)) {
         goto out_free;
@@ -2462,7 +2466,7 @@ out_free:
 /* oci config: https://github.com/opencontainers/runtime-spec/blob/master/schema/config-linux.json */
 /* cgroup v1 config: https://www.kernel.org/doc/html/latest/admin-guide/cgroup-v1/index.html */
 /* cgroup v2 config: https://www.kernel.org/doc/html/latest/admin-guide/cgroup-v2.html */
-static struct lcr_list *trans_oci_resources(const defs_resources *res)
+static struct isula_linked_list *trans_oci_resources(const defs_resources *res)
 {
     int cgroup_version = 0;
 
@@ -2502,10 +2506,10 @@ static char *trans_oci_namespace_to_lxc(const char *typ)
 }
 
 /* trans oci namespaces */
-static struct lcr_list *trans_oci_namespaces(const oci_runtime_config_linux *l)
+static struct isula_linked_list *trans_oci_namespaces(const oci_runtime_config_linux *l)
 {
-    struct lcr_list *conf = NULL;
-    struct lcr_list *node = NULL;
+    struct isula_linked_list *conf = NULL;
+    struct isula_linked_list *node = NULL;
     size_t i;
     defs_namespace_reference *ns = NULL;
 
@@ -2513,7 +2517,7 @@ static struct lcr_list *trans_oci_namespaces(const oci_runtime_config_linux *l)
     if (conf == NULL) {
         return NULL;
     }
-    lcr_list_init(conf);
+    isula_linked_list_init(conf);
 
     for (i = 0; i < l->namespaces_len; i++) {
         char *ns_name = NULL;
@@ -2533,7 +2537,7 @@ static struct lcr_list *trans_oci_namespaces(const oci_runtime_config_linux *l)
         if (node == NULL) {
             goto out_free;
         }
-        lcr_list_add_tail(conf, node);
+        isula_linked_list_add_tail(conf, node);
     }
 
     return conf;
@@ -2546,10 +2550,10 @@ out_free:
 }
 
 /* trans oci mask ro paths */
-static struct lcr_list *trans_oci_mask_ro_paths(const oci_runtime_config_linux *l)
+static struct isula_linked_list *trans_oci_mask_ro_paths(const oci_runtime_config_linux *l)
 {
-    struct lcr_list *conf = NULL;
-    struct lcr_list *node = NULL;
+    struct isula_linked_list *conf = NULL;
+    struct isula_linked_list *node = NULL;
     size_t i;
     char *path = NULL;
 
@@ -2557,7 +2561,7 @@ static struct lcr_list *trans_oci_mask_ro_paths(const oci_runtime_config_linux *
     if (conf == NULL) {
         return NULL;
     }
-    lcr_list_init(conf);
+    isula_linked_list_init(conf);
 
     for (i = 0; i < l->masked_paths_len; i++) {
         path = l->masked_paths[i];
@@ -2568,7 +2572,7 @@ static struct lcr_list *trans_oci_mask_ro_paths(const oci_runtime_config_linux *
         if (node == NULL) {
             goto out_free;
         }
-        lcr_list_add_tail(conf, node);
+        isula_linked_list_add_tail(conf, node);
     }
 
     for (i = 0; i < l->readonly_paths_len; i++) {
@@ -2580,7 +2584,7 @@ static struct lcr_list *trans_oci_mask_ro_paths(const oci_runtime_config_linux *
         if (node == NULL) {
             goto out_free;
         }
-        lcr_list_add_tail(conf, node);
+        isula_linked_list_add_tail(conf, node);
     }
 
     return conf;
@@ -2594,10 +2598,10 @@ out_free:
 
 #define POPULATE_DEVICE_SIZE (300 + PATH_MAX)
 /* trans oci linux devices */
-static struct lcr_list *trans_oci_linux_devices(const oci_runtime_config_linux *l)
+static struct isula_linked_list *trans_oci_linux_devices(const oci_runtime_config_linux *l)
 {
-    struct lcr_list *conf = NULL;
-    struct lcr_list *node = NULL;
+    struct isula_linked_list *conf = NULL;
+    struct isula_linked_list *node = NULL;
     size_t i = 0;
     int nret = 0;
     defs_device *device = NULL;
@@ -2607,7 +2611,7 @@ static struct lcr_list *trans_oci_linux_devices(const oci_runtime_config_linux *
     if (conf == NULL) {
         return NULL;
     }
-    lcr_list_init(conf);
+    isula_linked_list_init(conf);
 
     for (i = 0; i < l->devices_len; i++) {
         device = l->devices[i];
@@ -2631,7 +2635,7 @@ static struct lcr_list *trans_oci_linux_devices(const oci_runtime_config_linux *
         if (node == NULL) {
             goto out_free;
         }
-        lcr_list_add_tail(conf, node);
+        isula_linked_list_add_tail(conf, node);
     }
 
     return conf;
@@ -2914,17 +2918,17 @@ out:
     return ret;
 }
 
-static struct lcr_list *trans_oci_linux_sysctl(const json_map_string_string *sysctl)
+static struct isula_linked_list *trans_oci_linux_sysctl(const json_map_string_string *sysctl)
 {
-    struct lcr_list *conf = NULL;
-    struct lcr_list *node = NULL;
+    struct isula_linked_list *conf = NULL;
+    struct isula_linked_list *node = NULL;
     size_t i;
 
     conf = isula_common_calloc_s(sizeof(*conf));
     if (conf == NULL) {
         return NULL;
     }
-    lcr_list_init(conf);
+    isula_linked_list_init(conf);
 
     for (i = 0; i < sysctl->len; i++) {
         char sysk[ISULA_PAGE_BUFSIZE] = { 0 };
@@ -2937,7 +2941,7 @@ static struct lcr_list *trans_oci_linux_sysctl(const json_map_string_string *sys
         if (node == NULL) {
             goto out_free;
         }
-        lcr_list_add_tail(conf, node);
+        isula_linked_list_add_tail(conf, node);
     }
 
     return conf;
@@ -3051,9 +3055,9 @@ out_free:
     return ret;
 }
 
-static int trans_oci_file_selinux(const oci_runtime_config_linux *l, struct lcr_list *conf)
+static int trans_oci_file_selinux(const oci_runtime_config_linux *l, struct isula_linked_list *conf)
 {
-    struct lcr_list *node = NULL;
+    struct isula_linked_list *node = NULL;
     int ret = -1;
 
     if (l->mount_label != NULL) {
@@ -3061,7 +3065,7 @@ static int trans_oci_file_selinux(const oci_runtime_config_linux *l, struct lcr_
         if (node == NULL) {
             goto out;
         }
-        lcr_list_add_tail(conf, node);
+        isula_linked_list_add_tail(conf, node);
     }
 
     ret = 0;
@@ -3071,27 +3075,27 @@ out:
 }
 
 /* trans oci linux */
-struct lcr_list *trans_oci_linux(const oci_runtime_config_linux *l, char **seccomp_conf)
+struct isula_linked_list *trans_oci_linux(const oci_runtime_config_linux *l, char **seccomp_conf)
 {
     int ret = 0;
-    struct lcr_list *tmp = NULL;
+    struct isula_linked_list *tmp = NULL;
 
     if (l == NULL) {
         return NULL;
     }
 
-    struct lcr_list *conf = isula_common_calloc_s(sizeof(*conf));
+    struct isula_linked_list *conf = isula_common_calloc_s(sizeof(*conf));
     if (conf == NULL) {
         return NULL;
     }
-    lcr_list_init(conf);
+    isula_linked_list_init(conf);
 
     // UID/GID Mapping
     tmp = trans_oci_id_mapping(l);
     if (tmp == NULL) {
         goto out_free;
     }
-    lcr_list_merge(conf, tmp);
+    isula_linked_list_merge(conf, tmp);
 
     // Resources
     if (l->resources != NULL) {
@@ -3099,7 +3103,7 @@ struct lcr_list *trans_oci_linux(const oci_runtime_config_linux *l, char **secco
         if (tmp == NULL) {
             goto out_free;
         }
-        lcr_list_merge(conf, tmp);
+        isula_linked_list_merge(conf, tmp);
     }
 
     // linux devices
@@ -3107,21 +3111,21 @@ struct lcr_list *trans_oci_linux(const oci_runtime_config_linux *l, char **secco
     if (tmp == NULL) {
         goto out_free;
     }
-    lcr_list_merge(conf, tmp);
+    isula_linked_list_merge(conf, tmp);
 
     // Namespaces
     tmp = trans_oci_namespaces(l);
     if (tmp == NULL) {
         goto out_free;
     }
-    lcr_list_merge(conf, tmp);
+    isula_linked_list_merge(conf, tmp);
 
     // MaskedPaths and ReadonlyPaths
     tmp = trans_oci_mask_ro_paths(l);
     if (tmp == NULL) {
         goto out_free;
     }
-    lcr_list_merge(conf, tmp);
+    isula_linked_list_merge(conf, tmp);
 
     // sysctl
     if (l->sysctl != NULL && l->uid_mappings == NULL && l->gid_mappings == NULL) {
@@ -3129,7 +3133,7 @@ struct lcr_list *trans_oci_linux(const oci_runtime_config_linux *l, char **secco
         if (tmp == NULL) {
             goto out_free;
         }
-        lcr_list_merge(conf, tmp);
+        isula_linked_list_merge(conf, tmp);
     }
 
     // seccomp
@@ -3156,7 +3160,7 @@ out_free:
 }
 
 /* trans annotations */
-struct lcr_list *trans_annotations(const json_map_string_string *anno)
+struct isula_linked_list *trans_annotations(const json_map_string_string *anno)
 {
     size_t i, j;
     size_t len;
@@ -3166,11 +3170,11 @@ struct lcr_list *trans_annotations(const json_map_string_string *anno)
         return NULL;
     }
 
-    struct lcr_list *conf = isula_common_calloc_s(sizeof(*conf));
+    struct isula_linked_list *conf = isula_common_calloc_s(sizeof(*conf));
     if (conf == NULL) {
         return NULL;
     }
-    lcr_list_init(conf);
+    isula_linked_list_init(conf);
 
     len = sizeof(g_require_annotations) / sizeof(lcr_annotation_item_t);
 
@@ -3193,11 +3197,11 @@ struct lcr_list *trans_annotations(const json_map_string_string *anno)
                 continue;
             }
 
-            struct lcr_list *node = create_lcr_list_node(g_require_annotations[j].lxc_item_name, anno->values[i]);
+            struct isula_linked_list *node = create_lcr_list_node(g_require_annotations[j].lxc_item_name, anno->values[i]);
             if (node == NULL) {
                 goto out_free;
             }
-            lcr_list_add_tail(conf, node);
+            isula_linked_list_add_tail(conf, node);
             break;
         }
     }
@@ -3210,41 +3214,41 @@ out_free:
     return NULL;
 }
 
-static int add_needed_pty_conf(struct lcr_list *conf)
+static int add_needed_pty_conf(struct isula_linked_list *conf)
 {
-    struct lcr_list *node = create_lcr_list_node("lxc.pty.max", "1024");
+    struct isula_linked_list *node = create_lcr_list_node("lxc.pty.max", "1024");
     if (node == NULL) {
         return -1;
     }
-    lcr_list_add_tail(conf, node);
+    isula_linked_list_add_tail(conf, node);
 
     return 0;
 }
 
-static int add_needed_net_conf(struct lcr_list *conf)
+static int add_needed_net_conf(struct isula_linked_list *conf)
 {
-    struct lcr_list *node = create_lcr_list_node("lxc.net.0.type", "empty");
+    struct isula_linked_list *node = create_lcr_list_node("lxc.net.0.type", "empty");
     if (node == NULL) {
         return -1;
     }
-    lcr_list_add_tail(conf, node);
+    isula_linked_list_add_tail(conf, node);
 
     node = create_lcr_list_node("lxc.net.0.flags", "up");
     if (node == NULL) {
         return -1;
     }
-    lcr_list_add_tail(conf, node);
+    isula_linked_list_add_tail(conf, node);
     return 0;
 }
 
 /* get needed lxc conf */
-struct lcr_list *get_needed_lxc_conf()
+struct isula_linked_list *get_needed_lxc_conf()
 {
-    struct lcr_list *conf = isula_common_calloc_s(sizeof(*conf));
+    struct isula_linked_list *conf = isula_common_calloc_s(sizeof(*conf));
     if (conf == NULL) {
         return NULL;
     }
-    lcr_list_init(conf);
+    isula_linked_list_init(conf);
 
     if (add_needed_pty_conf(conf) < 0) {
         goto out_free;

@@ -28,7 +28,6 @@
 #include "defs.h"
 
 #include "log.h"
-#include "utils.h"
 
 #define PARSE_ERR_BUFFER_SIZE 1024
 

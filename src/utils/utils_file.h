@@ -34,21 +34,38 @@ extern "C" {
 #define O_CLOEXEC 02000000
 #endif
 
-#define MAX_PATH_DEPTH 1024
+#ifndef PATH_MAX
+// 4.4 BSD and Solaris don't have PATH_MAX
+#define PATH_MAX 4096
+#endif
 
-int lcr_util_build_dir(const char *name);
-bool lcr_util_dir_exists(const char *path);
-int lcr_util_ensure_path(char **confpath, const char *path);
-int lcr_util_recursive_rmdir(const char *dirpath, int recursive_depth);
+#define ISULA_MAX_PATH_DEPTH 1024
 
-int lcr_util_open(const char *filename, int flags, mode_t mode);
+bool isula_dir_exists(const char *path);
 
-ssize_t lcr_util_write_nointr(int fd, const void *buf, size_t count);
-ssize_t lcr_util_read_nointr(int fd, void *buf, size_t count);
-int lcr_util_atomic_write_file(const char *filepath, const char *content);
+bool isula_file_exists(const char *f);
 
-int lcr_util_check_inherited(bool closeall, int fd_to_ignore);
-int lcr_util_null_stdfds(void);
+int isula_dir_build(const char *name);
+
+int isula_dir_recursive_mk(const char *dir, mode_t mode);
+
+int isula_file_ensure_path(char **confpath, const char *path);
+
+int isula_dir_recursive_remove(const char *dirpath, int recursive_depth);
+
+int isula_file_open(const char *filename, int flags, mode_t mode);
+
+int isula_path_remove(const char *path);
+
+ssize_t isula_file_read_nointr(int fd, void *buf, size_t count);
+
+ssize_t isula_file_write_nointr(int fd, const void *buf, size_t count);
+
+ssize_t isula_file_total_write_nointr(int fd, const char *buf, size_t count);
+
+int isula_file_atomic_write(const char *filepath, const char *content);
+
+int isula_close_inherited_fds(bool closeall, int fd_to_ignore);
 
 #ifdef __cplusplus
 }

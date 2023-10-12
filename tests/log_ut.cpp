@@ -28,7 +28,7 @@
 #include <unistd.h>
 
 #include "log.h"
-#include "utils.h"
+#include "utils_file.h"
 
 TEST(log_testcases, test_isula_libutils_default_log_config)
 {
@@ -60,7 +60,7 @@ static void check_log(int fd, bool exist, bool subcheck, const char *target)
     ssize_t rlen;
     char *found = nullptr;
 
-    rlen = lcr_util_read_nointr(fd, buf, LXC_LOG_BUFFER_SIZE);
+    rlen = isula_file_read_nointr(fd, buf, LXC_LOG_BUFFER_SIZE);
     if (exist) {
         ASSERT_GT(rlen, 0);
     } else {

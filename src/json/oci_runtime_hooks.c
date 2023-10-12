@@ -28,7 +28,7 @@
 #include "oci_runtime_hooks.h"
 
 #include "log.h"
-#include "utils.h"
+#include "utils_memory.h"
 
 #define PARSE_ERR_BUFFER_SIZE 1024
 

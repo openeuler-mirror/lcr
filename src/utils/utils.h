@@ -24,19 +24,27 @@
 #ifndef _ISULA_UTILS_UTILS_H
 #define _ISULA_UTILS_UTILS_H
 
-#include "utils_memory.h"
-#include "utils_convert.h"
-#include "utils_cgroup.h"
-#include "utils_array.h"
-#include "utils_file.h"
-#include "utils_string.h"
+#include <sys/types.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-int lcr_wait_for_pid(pid_t pid);
-int lcr_wait_for_pid_status(pid_t pid);
+/*
+ * wait for pid and return status code;
+ * if success, return status code;
+ * else, return -1;
+*/
+int isula_wait_pid_ret_status(pid_t pid);
+
+/*
+ * wait for pid
+ * if success, return 0;
+ * else, return -1;
+*/
+int isula_wait_pid(pid_t pid);
+
+void isula_usleep_nointerupt(unsigned long usec);
 
 #ifdef __cplusplus
 }

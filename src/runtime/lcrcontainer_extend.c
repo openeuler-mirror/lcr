@@ -38,11 +38,12 @@
 #include "error.h"
 #include "lcrcontainer.h"
 #include "lcrcontainer_extend.h"
-#include "utils.h"
+#include "utils_file.h"
+#include "utils_memory.h"
 #include "log.h"
 #include "conf.h"
 #include "oci_runtime_hooks.h"
-#include "lcr_list.h"
+#include "utils_linked_list.h"
 
 static struct lxc_container *lcr_new_container(const char *name, const char *path)
 {
@@ -152,7 +153,7 @@ static int make_annotations(oci_runtime_spec *container, const struct lxc_contai
         ret = 0;
         goto out;
     }
-    if (lcr_util_ensure_path(&realpath, anno->values[fpos])) {
+    if (isula_file_ensure_path(&realpath, anno->values[fpos])) {
         SYSERROR("Invalid log path: %s.", anno->values[fpos]);
         goto out;
     }
@@ -198,11 +199,11 @@ out:
     return ret ? 0 : -1;
 }
 
-static int trans_rootfs_linux(struct lcr_list *lcr_conf, oci_runtime_spec *container,
+static int trans_rootfs_linux(struct isula_linked_list *lcr_conf, oci_runtime_spec *container,
                               char **seccomp)
 {
     int ret = -1;
-    struct lcr_list *node = NULL;
+    struct isula_linked_list *node = NULL;
 
     /* lxc.rootfs
      * lxc.rootfs.options
@@ -213,7 +214,7 @@ static int trans_rootfs_linux(struct lcr_list *lcr_conf, oci_runtime_spec *conta
             ERROR("Failed to translate rootfs configure");
             goto out;
         }
-        lcr_list_merge(lcr_conf, node);
+        isula_linked_list_merge(lcr_conf, node);
     }
 
     /* lxc.idmap */
@@ -223,7 +224,7 @@ static int trans_rootfs_linux(struct lcr_list *lcr_conf, oci_runtime_spec *conta
             ERROR("Failed to translate linux configure");
             goto out;
         }
-        lcr_list_merge(lcr_conf, node);
+        isula_linked_list_merge(lcr_conf, node);
     }
 
     ret = 0;
@@ -231,17 +232,17 @@ out:
     return ret;
 }
 
-static int trans_hostname_hooks_process_mounts(struct lcr_list *lcr_conf, const oci_runtime_spec *container)
+static int trans_hostname_hooks_process_mounts(struct isula_linked_list *lcr_conf, const oci_runtime_spec *container)
 {
     int ret = -1;
 
     /* lxc.uts.name */
-    struct lcr_list *node = trans_oci_hostname(container->hostname);
+    struct isula_linked_list *node = trans_oci_hostname(container->hostname);
     if (node == NULL) {
         ERROR("Failed to translate hostname");
         goto out;
     }
-    lcr_list_add_tail(lcr_conf, node);
+    isula_linked_list_add_tail(lcr_conf, node);
 
     /* lxc.init_{u|g}id
      * lxc.init_cmd
@@ -256,7 +257,7 @@ static int trans_hostname_hooks_process_mounts(struct lcr_list *lcr_conf, const 
         ERROR("Failed to translate hooks");
         goto out;
     }
-    lcr_list_merge(lcr_conf, node);
+    isula_linked_list_merge(lcr_conf, node);
 
     /* lxc.mount.entry */
     node = trans_oci_mounts(container);
@@ -264,7 +265,7 @@ static int trans_hostname_hooks_process_mounts(struct lcr_list *lcr_conf, const 
         ERROR("Failed to translate mount entry configure");
         goto out;
     }
-    lcr_list_merge(lcr_conf, node);
+    isula_linked_list_merge(lcr_conf, node);
 
     ret = 0;
 out:
@@ -401,13 +402,13 @@ static char *lcr_save_seccomp_file(const char *bundle, const char *seccomp_conf)
         goto cleanup;
     }
 
-    nret = lcr_util_ensure_path(&real_seccomp, seccomp);
+    nret = isula_file_ensure_path(&real_seccomp, seccomp);
     if (nret < 0) {
         ERROR("Failed to ensure path %s", seccomp);
         goto cleanup;
     }
 
-    fd = lcr_util_open(real_seccomp, O_CREAT | O_TRUNC | O_CLOEXEC | O_WRONLY, CONFIG_FILE_MODE);
+    fd = isula_file_open(real_seccomp, O_CREAT | O_TRUNC | O_CLOEXEC | O_WRONLY, CONFIG_FILE_MODE);
     if (fd == -1) {
         SYSERROR("Create file %s failed", real_seccomp);
         goto cleanup;
@@ -480,17 +481,17 @@ out_put:
     return ret;
 }
 
-void lcr_free_config(struct lcr_list *lcr_conf)
+void lcr_free_config(struct isula_linked_list *lcr_conf)
 {
-    struct lcr_list *it = NULL;
-    struct lcr_list *next = NULL;
+    struct isula_linked_list *it = NULL;
+    struct isula_linked_list *next = NULL;
 
     if (lcr_conf == NULL) {
         return;
     }
 
-    lcr_list_for_each_safe(it, lcr_conf, next) {
-        lcr_list_del(it);
+    isula_linked_list_for_each_safe(it, lcr_conf, next) {
+        isula_linked_list_del(it);
         free_lcr_list_node(it);
     }
 }
@@ -525,10 +526,10 @@ out_free:
     return ret;
 }
 
-static int merge_annotations(const oci_runtime_spec *container, struct lcr_list *lcr_conf)
+static int merge_annotations(const oci_runtime_spec *container, struct isula_linked_list *lcr_conf)
 {
     int ret = 0;
-    struct lcr_list *tmp = NULL;
+    struct isula_linked_list *tmp = NULL;
 
     if (container->annotations != NULL) {
         tmp = trans_annotations(container->annotations);
@@ -537,33 +538,33 @@ static int merge_annotations(const oci_runtime_spec *container, struct lcr_list 
             ret = -1;
             goto out;
         }
-        lcr_list_merge(lcr_conf, tmp);
+        isula_linked_list_merge(lcr_conf, tmp);
     }
 
 out:
     return ret;
 }
 
-static int merge_needed_lxc_conf(struct lcr_list *lcr_conf)
+static int merge_needed_lxc_conf(struct isula_linked_list *lcr_conf)
 {
     int ret = 0;
 
-    struct lcr_list *tmp = get_needed_lxc_conf();
+    struct isula_linked_list *tmp = get_needed_lxc_conf();
     if (tmp == NULL) {
         ERROR("Failed to append other lxc configure");
         ret = -1;
         goto out;
     }
-    lcr_list_merge(lcr_conf, tmp);
+    isula_linked_list_merge(lcr_conf, tmp);
 
 out:
     return ret;
 }
 
-struct lcr_list *lcr_oci2lcr(const struct lxc_container *c, oci_runtime_spec *container,
+struct isula_linked_list *lcr_oci2lcr(const struct lxc_container *c, oci_runtime_spec *container,
                              char **seccomp)
 {
-    struct lcr_list *lcr_conf = NULL;
+    struct isula_linked_list *lcr_conf = NULL;
 
     if (container == NULL) {
         ERROR("Invalid arguments");
@@ -574,7 +575,7 @@ struct lcr_list *lcr_oci2lcr(const struct lxc_container *c, oci_runtime_spec *co
     if (lcr_conf == NULL) {
         goto out_free;
     }
-    lcr_list_init(lcr_conf);
+    isula_linked_list_init(lcr_conf);
 
     if (check_annotations(container, c)) {
         ERROR("Check annotations failed");
@@ -622,13 +623,13 @@ static FILE *lcr_open_config_file(const char *bundle)
         goto out;
     }
 
-    nret = lcr_util_ensure_path(&real_config, config);
+    nret = isula_file_ensure_path(&real_config, config);
     if (nret < 0) {
         ERROR("Failed to ensure path %s", config);
         goto out;
     }
 
-    fd = lcr_util_open(real_config, O_CREAT | O_TRUNC | O_CLOEXEC | O_WRONLY, CONFIG_FILE_MODE);
+    fd = isula_file_open(real_config, O_CREAT | O_TRUNC | O_CLOEXEC | O_WRONLY, CONFIG_FILE_MODE);
     if (fd == -1) {
         SYSERROR("Create file %s failed", real_config);
         lcr_set_error_message(LCR_ERR_RUNTIME, "Create file %s failed", real_config);
@@ -709,15 +710,15 @@ static char *escape_string_encode(const char *src)
     return dst;
 }
 
-static int lcr_spec_write_config(FILE *fp, const struct lcr_list *lcr_conf)
+static int lcr_spec_write_config(FILE *fp, const struct isula_linked_list *lcr_conf)
 {
     size_t len;
     int ret = -1;
-    struct lcr_list *it = NULL;
+    struct isula_linked_list *it = NULL;
     char *line_encode = NULL;
     char *line = NULL;
 
-    lcr_list_for_each(it, lcr_conf) {
+    isula_linked_list_for_each(it, lcr_conf) {
         lcr_config_item_t *item = it->elem;
         int nret;
         if (item != NULL) {
@@ -809,7 +810,7 @@ cleanup:
     return NULL;
 }
 
-bool lcr_save_spec(const char *name, const char *lcrpath, const struct lcr_list *lcr_conf, const char *seccomp_conf)
+bool lcr_save_spec(const char *name, const char *lcrpath, const struct isula_linked_list *lcr_conf, const char *seccomp_conf)
 {
     bool bret = false;
     const char *path = lcrpath ? lcrpath : LCRPATH;
@@ -878,12 +879,12 @@ static int lcr_write_file(const char *path, const char *data, size_t len)
         return -1;
     }
 
-    if (lcr_util_ensure_path(&real_path, path) < 0) {
+    if (isula_file_ensure_path(&real_path, path) < 0) {
         ERROR("Failed to ensure path %s", path);
         goto out_free;
     }
 
-    fd = lcr_util_open(real_path, O_CREAT | O_TRUNC | O_CLOEXEC | O_WRONLY, CONFIG_FILE_MODE);
+    fd = isula_file_open(real_path, O_CREAT | O_TRUNC | O_CLOEXEC | O_WRONLY, CONFIG_FILE_MODE);
     if (fd == -1) {
         ERROR("Create file %s failed", real_path);
         lcr_set_error_message(LCR_ERR_RUNTIME, "Create file %s failed", real_path);
@@ -967,7 +968,7 @@ out_free:
 bool translate_spec(const struct lxc_container *c, oci_runtime_spec *container)
 {
     bool ret = false;
-    struct lcr_list *lcr_conf = NULL;
+    struct isula_linked_list *lcr_conf = NULL;
     char *seccomp_conf = NULL;
 
     INFO("Translate new specification file");

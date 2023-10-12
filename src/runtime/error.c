@@ -25,7 +25,8 @@
 #include <stdarg.h>
 #include <stdlib.h>
 
-#include "utils.h"
+#include "utils_memory.h"
+#include "utils_string.h"
 #include "constants.h"
 
 // record the lcr error
