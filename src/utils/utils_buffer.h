@@ -1,5 +1,5 @@
 /******************************************************************************
- * lcr: utils library for iSula
+ * isula: buffer utils
  *
  * Copyright (c) Huawei Technologies Co., Ltd. 2020. All rights reserved.
  *

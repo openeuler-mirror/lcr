@@ -74,50 +74,50 @@ typedef struct {
 } lcr_host_arch;
 
 /*
- * Create a lcr_list node, and initialize the elem to a lcr_config_item_t with
+ * Create a isula_linked_list node, and initialize the elem to a lcr_config_item_t with
  * key and value
  */
-struct lcr_list *create_lcr_list_node(const char *key, const char *value);
+struct isula_linked_list *create_lcr_list_node(const char *key, const char *value);
 
 /*
- * Free a lcr_list node
+ * Free a isula_linked_list node
  */
-void free_lcr_list_node(struct lcr_list *node);
+void free_lcr_list_node(struct isula_linked_list *node);
 
 /*
  * Translate oci hostname to lcr config
  */
-struct lcr_list *trans_oci_hostname(const char *hostname);
+struct isula_linked_list *trans_oci_hostname(const char *hostname);
 
 /*
  * Translate oci process struct to lcr config
  */
-struct lcr_list *trans_oci_process(const defs_process *proc);
+struct isula_linked_list *trans_oci_process(const defs_process *proc);
 
 /*
  * Translate oci root struct to lcr config
  */
-struct lcr_list *trans_oci_root(const oci_runtime_spec_root *root, const oci_runtime_config_linux *linux);
+struct isula_linked_list *trans_oci_root(const oci_runtime_spec_root *root, const oci_runtime_config_linux *linux);
 /*
  * Translate oci mounts struct to lcr config
  */
-struct lcr_list *trans_oci_mounts(const oci_runtime_spec *c);
+struct isula_linked_list *trans_oci_mounts(const oci_runtime_spec *c);
 
 /*
  * Translate oci linux struct to lcr config
  */
-struct lcr_list *trans_oci_linux(const oci_runtime_config_linux *l, char **seccomp_conf);
+struct isula_linked_list *trans_oci_linux(const oci_runtime_config_linux *l, char **seccomp_conf);
 
 /*
  * Translate oci annotations to lcr config
  * This is not supported in standard oci runtime-spec
  */
-struct lcr_list *trans_annotations(const json_map_string_string *anno);
+struct isula_linked_list *trans_annotations(const json_map_string_string *anno);
 
 /*
  * Get other lxc needed configurations
  */
-struct lcr_list *get_needed_lxc_conf();
+struct isula_linked_list *get_needed_lxc_conf();
 
 
 bool is_system_container(const oci_runtime_spec *container);

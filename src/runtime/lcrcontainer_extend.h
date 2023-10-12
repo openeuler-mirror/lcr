@@ -27,13 +27,11 @@
 #include <lxc/lxccontainer.h>
 
 #include "oci_runtime_spec.h"
+#include "utils_linked_list.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-/* defined in `lcr_list.h` */
-struct lcr_list;
 
 #define SAFE_MALLOC(P, size, ret)           \
     do {                                    \
@@ -55,7 +53,7 @@ bool lcr_delete_with_force(const char *name, const char *lcrpath, bool force);
 /*
  * Free lcr_conf
  */
-void lcr_free_config(struct lcr_list *lcr_conf);
+void lcr_free_config(struct isula_linked_list *lcr_conf);
 
 bool container_parse(const char *oci_filename, const char *oci_json_data, oci_runtime_spec **container);
 
@@ -64,7 +62,7 @@ bool container_parse(const char *oci_filename, const char *oci_json_data, oci_ru
  * You should pass oci_filename or oci_spec to this function.
  * return: a linked list
  */
-struct lcr_list *lcr_oci2lcr(const struct lxc_container *c, oci_runtime_spec *container,
+struct isula_linked_list *lcr_oci2lcr(const struct lxc_container *c, oci_runtime_spec *container,
                              char **seccomp);
 
 /*
@@ -74,7 +72,7 @@ struct lcr_list *lcr_oci2lcr(const struct lxc_container *c, oci_runtime_spec *co
  * param lcr_conf		: generate specification according to lcr_conf list
  * param seccomp_conf	: seccomp_conf will be wrote into seccomp file, set it to NULL if you don't need
  */
-bool lcr_save_spec(const char *name, const char *lcrpath, const struct lcr_list *lcr_conf, const char *seccomp_conf);
+bool lcr_save_spec(const char *name, const char *lcrpath, const struct isula_linked_list *lcr_conf, const char *seccomp_conf);
 
 bool translate_spec(const struct lxc_container *c, oci_runtime_spec *container);
 
