@@ -97,7 +97,7 @@ static int do_clean_path(const char *respath, const char *limit_respath, const c
     return 0;
 }
 
-// if path is not exists, realpath() will return error;
+// if path doesn't exist, realpath() will return error;
 // so we need cleanpath() to do clean path in this scene;
 static char *cleanpath(const char *path, char *realpath, size_t realpath_len)
 {

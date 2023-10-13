@@ -1,5 +1,5 @@
 /******************************************************************************
- * iSula-libutils: ut for utils_file.c
+ * iSula-libutils: ut for utils_mainloop.c
  *
  * Copyright (c) Huawei Technologies Co., Ltd. 2023. All rights reserved.
  *
@@ -20,31 +20,24 @@
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  ********************************************************************************/
-
 #include <gtest/gtest.h>
-#include "mock.h"
 
-#include <iostream>
-#include <string.h>
-#include <chrono>
+#include "utils_mainloop.h"
 
-#include "utils.h"
-
-
-TEST(utils_utils_testcase, test_isula_usleep_nointerupt)
+TEST(utils_mainloop_testcase, test_isula_mainloop)
 {
-    auto start_time = std::chrono::high_resolution_clock::now();
-    isula_usleep_nointerupt(500);
-    auto end_time = std::chrono::high_resolution_clock::now();
-    auto elapsed_time = std::chrono::duration_cast<std::chrono::microseconds>(end_time - start_time);
-    ASSERT_GT(elapsed_time.count(), 300);
-    ASSERT_LT(elapsed_time.count(), 700);
+    isula_epoll_descr_t descr = { 0 };
 
-    
-    start_time = std::chrono::high_resolution_clock::now();
-    isula_usleep_nointerupt(1000);
-    end_time = std::chrono::high_resolution_clock::now();
-    elapsed_time = std::chrono::duration_cast<std::chrono::microseconds>(end_time - start_time);
-    ASSERT_GT(elapsed_time.count(), 800);
-    ASSERT_LT(elapsed_time.count(), 1200);
+    ASSERT_NE(isula_epoll_open(nullptr), 0);
+    ASSERT_EQ(isula_epoll_add_handler(&descr, -1, nullptr, nullptr), 0);
+    ASSERT_NE(isula_epoll_add_handler(nullptr, 111, nullptr, nullptr), 0);
+    ASSERT_NE(isula_epoll_loop(nullptr, -1), 0);
+    ASSERT_NE(isula_epoll_remove_handler(nullptr, 111), 0);
+    ASSERT_EQ(isula_epoll_close(nullptr), 0);
+
+    ASSERT_EQ(isula_epoll_open(&descr), 0);
+    ASSERT_NE(isula_epoll_add_handler(&descr, 111, nullptr, nullptr), 0);
+    ASSERT_EQ(isula_epoll_loop(&descr, 10), 0);
+    ASSERT_NE(isula_epoll_remove_handler(&descr, 111), 0);
+    ASSERT_EQ(isula_epoll_close(&descr), 0);
 }

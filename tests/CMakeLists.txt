@@ -127,6 +127,7 @@ _DEFINE_NEW_TEST(utils_convert_ut utils_convert_testcase)
 _DEFINE_NEW_TEST(utils_file_ut utils_file_testcase)
 _DEFINE_NEW_TEST(utils_utils_ut utils_utils_testcase)
 _DEFINE_NEW_TEST(utils_linked_list_ut utils_linked_list_testcase)
+_DEFINE_NEW_TEST(utils_mainloop_ut utils_mainloop_testcase)
 
 set_target_properties(utils_array_ut PROPERTIES LINK_FLAGS "-Wl,--wrap,calloc")
 set_target_properties(utils_string_ut PROPERTIES LINK_FLAGS "-Wl,--wrap,calloc")
@@ -144,6 +145,7 @@ target_link_libraries(mock_ut
 add_dependencies(mock_ut log_ut libocispec_ut defs_process_ut go_crc64_ut
     auto_cleanup_ut utils_memory_ut utils_array_ut utils_string_ut
     utils_convert_ut utils_file_ut utils_utils_ut utils_linked_list_ut
+    utils_mainloop_ut
     )
 
 IF(ENABLE_GCOV)
