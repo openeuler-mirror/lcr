@@ -42,7 +42,6 @@ struct epoll_loop_handler {
 int isula_epoll_loop(isula_epoll_descr_t *descr, int t)
 {
     int i;
-    int ret = 0;
     struct epoll_loop_handler *epoll_handler = NULL;
     struct epoll_event evs[MAX_EVENTS];
 
@@ -56,15 +55,14 @@ int isula_epoll_loop(isula_epoll_descr_t *descr, int t)
             if (errno == EINTR) {
                 continue;
             }
-            ret = -1;
-            goto out;
+            return -1;
         }
 
         for (i = 0; i < ep_fds; i++) {
             epoll_handler = (struct epoll_loop_handler *)(evs[i].data.ptr);
             if (epoll_handler->cb(epoll_handler->cbfd, evs[i].events, epoll_handler->cbdata, descr) !=
                 EPOLL_LOOP_HANDLE_CONTINUE) {
-                goto out;
+                return 0;
             }
         }
 
@@ -72,15 +70,15 @@ int isula_epoll_loop(isula_epoll_descr_t *descr, int t)
             if (descr->timeout_cb != NULL) {
                 descr->timeout_cb(descr->timeout_cbdata);
             }
-            goto out;
+            return 0;
         }
 
         if (isula_linked_list_empty(&descr->handler_list)) {
-            goto out;
+            return 0;
         }
     }
-out:
-    return ret;
+
+    return 0;
 }
 
 /* epoll loop add handler */
@@ -94,9 +92,14 @@ int isula_epoll_add_handler(isula_epoll_descr_t *descr, int fd, isula_epoll_loop
         return -1;
     }
 
+    // if fd == -1, dosen't add handler for it, just ignore.
+    if (fd < 0) {
+        return 0;
+    }
+
     epoll_handler = isula_common_calloc_s(sizeof(*epoll_handler));
     if (epoll_handler == NULL) {
-        goto fail_out;
+        return -1;
     }
 
     epoll_handler->cbfd = fd;
@@ -140,7 +143,7 @@ int isula_epoll_remove_handler(isula_epoll_descr_t *descr, int fd)
 
         if (fd == epoll_handler->cbfd) {
             if (epoll_ctl(descr->fd, EPOLL_CTL_DEL, fd, NULL)) {
-                goto fail_out;
+                return -1;
             }
 
             isula_linked_list_del(index);
@@ -150,7 +153,6 @@ int isula_epoll_remove_handler(isula_epoll_descr_t *descr, int fd)
         }
     }
 
-fail_out:
     return -1;
 }
 
@@ -194,4 +196,3 @@ int isula_epoll_close(isula_epoll_descr_t *descr)
 
     return ret;
 }
-
