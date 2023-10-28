@@ -28,6 +28,9 @@
         	},
 		"ShmPath": {
 			"type": "string"
+		},
+		"IsSandboxContainer": {
+			"type": "boolean"
 		}
 	}
 }
