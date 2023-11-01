@@ -115,6 +115,9 @@
                 },
                 "deviceID": {
                     "type": "string"
+                },
+                "aliases": {
+                    "$ref": "array_of_strings.json"
                 }
             }
         },

@@ -66,6 +66,9 @@
     },
     "result": {
       "$ref": "result_curr.json"
+    },
+    "aliases": {
+      "$ref": "array_of_strings.json"
     }
   }
 }
