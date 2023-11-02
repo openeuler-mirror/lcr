@@ -1,3 +1,23 @@
+2023-11-02 xuepengxu release 2.1.3
+    - !277 network:add capabilities aliases * network:add capabilities aliases
+    - !276 [Sandbox API]: Add necessary fields for sandbox container * [Sandbox API]: Add necessary fields for pause container
+    - !274 add ut for mainloop utils
+    - !272 export utils.h and utils_file.h
+    - !271 export util array and string
+    - !256 Add image pull progress show. * Add image pull progress show.
+    - !270 add enable cri v1 config for isulad
+    - !269 export util memory functions
+    - !266 set env to avoid invoke lxc binary directly * set env to avoid invoke lxc binary directly
+    - !262 Fix empty pointer and overflow * Fix empty pointer and overflow
+    - !264 Support both C++11 and C++17 * Support both C++11 and C++17
+    - !263 refactor util buffer and add ut
+    - !260 support visibility of compiler
+    - !259 improve code of strerror Merge pull request !259 from haozi007/work
+
+    dev stats:
+      - 62 files changed, 4234 insertions(+), 1386 deletions(-)
+      - contributors: haozi007, jake, liuxu, sailorvii
+
 2023-08-28 xuepengxu release 2.1.2
     - !253 Add max size for reading json file * Fix unlimited reading issue
     - !252 Add sandbox config Merge pull request !252 from jake/sandbox-config
