@@ -24,6 +24,10 @@
 #ifndef __ISULA_AUTO_CLEANUP_H
 #define __ISULA_AUTO_CLEANUP_H
 
+#ifndef _GNU_SOURCE
+#define _GNU_SOURCE 1
+#endif
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
@@ -35,6 +39,20 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+#define isula_transfer_fd(fd)  \
+    ({                         \
+        int __tmp_fd = (fd);   \
+        (fd) = -EBADF;         \
+        __tmp_fd;              \
+    })
+
+#define isula_transfer_ptr(ptr)        \
+    ({                                 \
+        __typeof__(ptr) __tmp_ptr = (ptr); \
+        (ptr) = NULL;                  \
+        __tmp_ptr;                     \
+    })
 
 #define auto_cleanup_tag(name) __attribute__((__cleanup__(name##_cb)))
 
