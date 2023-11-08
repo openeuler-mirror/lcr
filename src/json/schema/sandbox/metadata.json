@@ -34,9 +34,6 @@
       "networkReady": {
         "type": "boolean"
       },
-      "containers": {
-        "type": "ArrayOfStrings"
-      },
      "sandboxConfigJson": {
         "type": "string"
      }
