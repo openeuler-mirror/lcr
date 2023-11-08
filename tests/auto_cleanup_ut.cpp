@@ -122,6 +122,17 @@ size_t do_auto_free()
 #endif
 }
 
+int *do_auto_free_and_transfer()
+{
+    __isula_auto_free int *test = nullptr;
+
+    // use 1024 * 1024 to ensure memory allo from mmap
+    test = static_cast<int *>(malloc(sizeof(int)));
+    *test = 8;
+
+    return isula_transfer_ptr(test);
+}
+
 TEST(autocleanup_testcase, test__isula_auto_free)
 {
 #if defined(__GLIBC__) && ((__GLIBC__ > 2) || (__GLIBC__ == 2 && __GLIBC_MINOR__ >= 33))
@@ -145,6 +156,10 @@ TEST(autocleanup_testcase, test__isula_auto_free)
     ASSERT_NE(used, after.hblks);
     ASSERT_NE(used, before.hblks);
     ASSERT_EQ(before.hblks, after.hblks);
+
+    __isula_auto_free int *transfer_ptr = do_auto_free_and_transfer();
+    ASSERT_NE(nullptr, transfer_ptr);
+    ASSERT_EQ(8, *transfer_ptr);
 }
 
 int do_auto_file()
@@ -198,14 +213,27 @@ int do_auto_close()
     return fd;
 }
 
+int do_auto_close_and_transfer()
+{
+    __isula_auto_close int fd = -1;
+
+    fd = open("/proc/self/cmdline", 0444);
+
+    return isula_transfer_fd(fd);
+}
+
 TEST(autocleanup_testcase, test__isula_auto_close)
 {
     int openfd, ret;
     size_t i;
     struct stat sbuf = { 0 };
+    __isula_auto_close int transfer_fd = -1;
+
+    transfer_fd = do_auto_close_and_transfer();
+    ret = fstat(transfer_fd, &sbuf);
+    ASSERT_EQ(0, ret);
 
     openfd = do_auto_close();
-
     ret = fstat(openfd, &sbuf);
     ASSERT_NE(0, ret);
     ASSERT_EQ(EBADF, errno);
