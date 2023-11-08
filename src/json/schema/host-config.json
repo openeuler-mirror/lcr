@@ -293,6 +293,18 @@
         },
         "CgroupParent": {
             "type": "string"
+        },
+	"MaskedPaths": {
+            "type": "array",
+	    "items": {
+                "type": "string"
+            }
+        },
+	"ReadonlyPaths": {
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
         }
     }
 }
