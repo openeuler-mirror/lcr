@@ -151,6 +151,9 @@
         "exit_fifo": {
             "type": "string"
         },
+        "attach_socket": {
+            "type": "string"
+        },
         "control_fifo": {
             "type": "string"
         },

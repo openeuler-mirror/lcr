@@ -46,6 +46,8 @@ int isula_wait_pid(pid_t pid);
 
 void isula_usleep_nointerupt(unsigned long usec);
 
+int isula_reg_match(const char *patten, const char *str);
+
 #ifdef __cplusplus
 }
 #endif

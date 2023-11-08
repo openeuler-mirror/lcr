@@ -657,3 +657,44 @@ int isula_path_remove(const char *path)
     }
     return -1;
 }
+
+int isula_set_non_block(const int fd)
+{
+    int flag = -1;
+    int ret = -1;
+
+    if (fd < 0) {
+        ERROR("Invalid fd: %d.", fd);
+        return -1;
+    }
+
+    flag = fcntl(fd, F_GETFL, 0);
+    if (flag < 0) {
+        SYSERROR("Failed to get flags for fd: %d", fd);
+        return -1;
+    }
+
+    ret = fcntl(fd, F_SETFL, flag | O_NONBLOCK);
+    if (ret != 0) {
+        SYSERROR("Failed to set flags for fd: %d", fd);
+        return -1;
+    }
+
+    return 0;
+}
+
+int isula_validate_absolute_path(const char *path)
+{
+#define PATTEN_STR "^(/[^/ ]*)+/?$"
+    int nret = 0;
+
+    if (path == NULL) {
+        return -1;
+    }
+
+    if (isula_reg_match(PATTEN_STR, path) != 0) {
+        nret = -1;
+    }
+
+    return nret;
+}

@@ -25,6 +25,9 @@
 #include <sys/wait.h>
 #include <errno.h>
 #include <time.h>
+#include <regex.h>
+
+#include "log.h"
 
 int isula_wait_pid_ret_status(pid_t pid)
 {
@@ -81,4 +84,49 @@ void isula_usleep_nointerupt(unsigned long usec)
         ret = nanosleep(&request, &remain);
         request = remain;
     } while (ret == -1 && errno == EINTR);
+}
+
+/*
+ * do not support greedy matching, like: '(:?xx)'
+ * return value:
+ * -1  failed
+ *  0  match
+ *  1  no match
+ */
+int isula_reg_match(const char *patten, const char *str)
+{
+#define EVENT_ARGS_MAX 255
+    int nret = 0;
+    char buffer[EVENT_ARGS_MAX] = { 0 };
+    regex_t reg;
+
+    if (patten == NULL || str == NULL) {
+        ERROR("invalid NULL param");
+        return -1;
+    }
+
+    nret = regcomp(&reg, patten, REG_EXTENDED | REG_NOSUB);
+    if (nret != 0) {
+        regerror(nret, &reg, buffer, EVENT_ARGS_MAX);
+        ERROR("regcomp %s failed: %s", patten, buffer);
+        return -1;
+    }
+
+    nret = regexec(&reg, str, 0, NULL, 0);
+    if (nret == 0) {
+        nret = 0;
+        goto free_out;
+    } else if (nret == REG_NOMATCH) {
+        nret = 1;
+        goto free_out;
+    } else {
+        nret = -1;
+        ERROR("reg match failed");
+        goto free_out;
+    }
+
+free_out:
+    regfree(&reg);
+
+    return nret;
 }

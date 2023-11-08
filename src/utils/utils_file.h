@@ -67,6 +67,10 @@ int isula_file_atomic_write(const char *filepath, const char *content);
 
 int isula_close_inherited_fds(bool closeall, int fd_to_ignore);
 
+int isula_set_non_block(const int fd);
+
+int isula_validate_absolute_path(const char *path);
+
 #ifdef __cplusplus
 }
 #endif
