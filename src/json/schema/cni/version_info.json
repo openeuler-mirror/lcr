@@ -4,6 +4,9 @@
 	"properties": {
 		"cniVersion": {
 			"type": "string"
+		},
+		"supportedVersions": {
+			"$ref": "array_of_strings.json"
 		}
 	},
 	"required": [
