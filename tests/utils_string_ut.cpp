@@ -287,3 +287,24 @@ TEST(utils_string_testcase, test_isula_string_split_to_multi)
     ASSERT_STREQ(ret->items[3], "d");
     isula_string_array_free(ret);
 }
+
+TEST(utils_string_testcase, test_isula_has_prefix)
+{
+    const char* prefix = "prefix";
+    EXPECT_FALSE(isula_has_prefix(NULL, prefix));
+
+    const char* str = "string";
+    EXPECT_FALSE(isula_has_prefix(str, NULL));
+
+    const char* str2 = "short";
+    const char* prefix2 = "longer";
+    EXPECT_FALSE(isula_has_prefix(str2, prefix2));
+
+    const char* str3 = "string";
+    const char* prefix3 = "prefix";
+    EXPECT_FALSE(isula_has_prefix(str3, prefix3));
+
+    const char* str4 = "prefix_string";
+    const char* prefix4 = "prefix";
+    EXPECT_TRUE(isula_has_prefix(str4, prefix4));
+}
