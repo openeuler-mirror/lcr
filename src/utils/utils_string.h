@@ -102,6 +102,8 @@ void isula_string_array_free(isula_string_array *ptr);
 
 isula_string_array *isula_string_split_to_multi(const char *src_str, char delim);
 
+bool isula_has_prefix(const char *str, const char *prefix);
+
 #ifdef __cplusplus
 }
 #endif

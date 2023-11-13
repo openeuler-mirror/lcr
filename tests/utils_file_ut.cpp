@@ -211,3 +211,33 @@ TEST(utils_file_testcase, test_isula_read_write_nointr)
 
     isula_path_remove(test_file.c_str());
 }
+
+TEST(utils_file_testcase, test_isula_set_non_block)
+{
+    ASSERT_EQ(isula_set_non_block(-1), -1);
+
+    int pipefd[2];
+    ASSERT_EQ(0, pipe(pipefd));
+    ASSERT_EQ(0, isula_set_non_block(pipefd[0]));
+    int flag = fcntl(pipefd[0], F_GETFL, 0);
+    ASSERT_NE(-1, flag);
+    EXPECT_TRUE(flag & O_NONBLOCK);
+    close(pipefd[0]);
+    close(pipefd[1]);
+
+    int pipefd2[2];
+    ASSERT_EQ(0, pipe(pipefd2));
+    close(pipefd2[1]);
+    ASSERT_EQ(-1, isula_set_non_block(pipefd2[1]));
+    close(pipefd2[0]);
+}
+
+TEST(utils_file_testcase, test_util_validate_absolute_path)
+{
+    ASSERT_EQ(isula_validate_absolute_path("/etc/isulad"), 0);
+    ASSERT_EQ(isula_validate_absolute_path("/isulad/"), 0);
+
+    ASSERT_EQ(isula_validate_absolute_path(nullptr), -1);
+    ASSERT_EQ(isula_validate_absolute_path("./isulad"), -1);
+    ASSERT_EQ(isula_validate_absolute_path("isulad"), -1);
+}

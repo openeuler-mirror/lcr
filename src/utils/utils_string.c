@@ -376,3 +376,20 @@ isula_string_array *isula_string_array_new(size_t req_init_cap)
 
     return ptr;
 }
+
+bool isula_has_prefix(const char *str, const char *prefix)
+{
+    if (str == NULL || prefix == NULL) {
+        return false;
+    }
+
+    if (strlen(str) < strlen(prefix)) {
+        return false;
+    }
+
+    if (strncmp(str, prefix, strlen(prefix)) != 0) {
+        return false;
+    }
+
+    return true;
+}

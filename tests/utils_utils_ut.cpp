@@ -48,3 +48,16 @@ TEST(utils_utils_testcase, test_isula_usleep_nointerupt)
     ASSERT_GT(elapsed_time.count(), 800);
     ASSERT_LT(elapsed_time.count(), 1200);
 }
+
+TEST(utils_utils_testcase, test_isula_reg_match)
+{
+    const char *pattern = "^[a-f0-9]{64}$";
+    const char *valid = "c8da28a6cea7443b648ec70a1c947b6cb920ee0ef3c4a691d4252ff6e1888036";
+    const char *invalid = "g8da28a6cea7443b648ec70a1c947b6cb920ee0ef3c4a691d4252ff6e1888036";
+
+    ASSERT_EQ(isula_reg_match(pattern, valid), 0);
+    ASSERT_EQ(isula_reg_match(pattern, invalid), 1);
+
+    ASSERT_EQ(isula_reg_match(pattern, nullptr), -1);
+    ASSERT_EQ(isula_reg_match(nullptr, pattern), -1);
+}
