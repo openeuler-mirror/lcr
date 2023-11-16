@@ -52,6 +52,7 @@ extern __thread engine_error_t g_lcr_error;
     XX(ERR_FORMAT, "Error message is too long")                     \
     XX(ERR_INPUT, "Invalid input parameter")                        \
     XX(ERR_INTERNAL, "Server internal error")                       \
+    XX(ERR_CONFIG, "Invalid container config")                      \
     \
     /* err in runtime module */                                     \
     XX(ERR_RUNTIME, DEF_ERR_RUNTIME_STR)                            \
