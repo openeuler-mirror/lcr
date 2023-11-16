@@ -29,6 +29,18 @@
                 "type": {
                     "type": "string"
                 },
+                "subnet": {
+                    "type": "string"
+                },
+                "gateway": {
+                    "type": "string"
+                },
+                "rangeStart": {
+                    "type": "string"
+                },
+                "rangeEnd": {
+                    "type": "string"
+                },
                 "routes": {
                     "type": "array",
                     "items": {
