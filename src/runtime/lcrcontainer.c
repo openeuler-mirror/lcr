@@ -355,7 +355,8 @@ bool lcr_kill(const char *name, const char *lcrpath, uint32_t signal)
 
     c = lxc_container_new(name, path);
     if (c == NULL) {
-        ERROR("Failed to stop container.");
+        lcr_set_error_message(LCR_ERR_CONFIG, "Failed to load config for kill: %s", name);
+        ERROR("Failed to load config for kill: %s.", name);
         isula_libutils_free_log_prefix();
         return false;
     }
@@ -403,7 +404,8 @@ bool lcr_delete(const char *name, const char *lcrpath)
     isula_libutils_set_log_prefix(name);
     c = lxc_container_new(name, path);
     if (c == NULL) {
-        ERROR("Failed to delete container.");
+        lcr_set_error_message(LCR_ERR_CONFIG, "Failed to load config for delete: %s", name);
+        ERROR("Failed to load config for delete: %s.", name);
         isula_libutils_free_log_prefix();
         return false;
     }
@@ -476,7 +478,8 @@ bool lcr_exec(const struct lcr_exec_request *request, int *exit_code)
 
     c = lxc_container_new(name, tmp_path);
     if (c == NULL) {
-        ERROR("Failed to delete container.");
+        lcr_set_error_message(LCR_ERR_CONFIG, "Failed to load config for exec: %s", name);
+        ERROR("Failed to load config for exec: %s.", name);
         goto out;
     }
 
@@ -521,7 +524,8 @@ bool lcr_clean(const char *name, const char *lcrpath, const char *logpath, const
 
     c = lxc_container_new(name, tmp_path);
     if (c == NULL) {
-        ERROR("Failed to delete container.");
+        lcr_set_error_message(LCR_ERR_CONFIG, "Failed to load config for clean: %s", name);
+        ERROR("Failed to load config for clean: %s.", name);
         isula_libutils_free_log_prefix();
         return false;
     }
@@ -565,7 +569,8 @@ bool lcr_state(const char *name, const char *lcrpath, struct lcr_container_state
     isula_libutils_set_log_prefix(name);
     c = lxc_container_new(name, tmp_path);
     if (c == NULL) {
-        ERROR("Failure to retrieve state infomation on %s", tmp_path);
+        lcr_set_error_message(LCR_ERR_CONFIG, "Failed to load config for state: %s", name);
+        ERROR("Failed to load config %s for state: %s", tmp_path, name);
         isula_libutils_free_log_prefix();
         return false;
     }
@@ -602,7 +607,8 @@ bool lcr_get_container_pids(const char *name, const char *lcrpath, pid_t **pids,
     isula_libutils_set_log_prefix(name);
     c = lxc_container_new(name, tmp_path);
     if (c == NULL) {
-        ERROR("Failure to retrieve state infomation on %s", tmp_path);
+        lcr_set_error_message(LCR_ERR_CONFIG, "Failed to load config for get pids of: %s", name);
+        ERROR("Failed to load config for get pids of: %s", name);
         isula_libutils_free_log_prefix();
         return false;
     }
@@ -653,7 +659,8 @@ bool lcr_pause(const char *name, const char *lcrpath)
     isula_libutils_set_log_prefix(name);
     c = lxc_container_new(name, tmp_path);
     if (c == NULL) {
-        ERROR("Failed to pause container");
+        lcr_set_error_message(LCR_ERR_CONFIG, "Failed to load config for pause: %s", name);
+        ERROR("Failed to load config for pause: %s.", name);
         isula_libutils_free_log_prefix();
         return false;
     }
@@ -696,7 +703,8 @@ bool lcr_resume(const char *name, const char *lcrpath)
     isula_libutils_set_log_prefix(name);
     c = lxc_container_new(name, tmp_path);
     if (c == NULL) {
-        ERROR("Failed to resume container");
+        lcr_set_error_message(LCR_ERR_CONFIG, "Failed to load config for resume: %s", name);
+        ERROR("Failed to load config for resume: %s.", name);
         goto out;
     }
 
@@ -740,7 +748,8 @@ bool lcr_resize(const char *name, const char *lcrpath, unsigned int height, unsi
     isula_libutils_set_log_prefix(name);
     c = lxc_container_new(name, tmp_path);
     if (c == NULL) {
-        ERROR("Failed to pause container");
+        lcr_set_error_message(LCR_ERR_CONFIG, "Failed to load config for resize: %s", name);
+        ERROR("Failed to load config for resize: %s", name);
         isula_libutils_free_log_prefix();
         return false;
     }
@@ -763,7 +772,7 @@ bool lcr_resize(const char *name, const char *lcrpath, unsigned int height, unsi
     }
 
     if (!c->set_terminal_winch(c, height, width)) {
-        ERROR("Failed to pause");
+        ERROR("Failed to resize: %s", name);
         bret = false;
         goto out_put;
     }
@@ -790,7 +799,8 @@ bool lcr_exec_resize(const char *name, const char *lcrpath, const char *suffix, 
     isula_libutils_set_log_prefix(name);
     c = lxc_container_new(name, tmp_path);
     if (c == NULL) {
-        ERROR("Failed to pause container");
+        lcr_set_error_message(LCR_ERR_CONFIG, "Failed to load config for exec resize: %s", name);
+        ERROR("Failed to load config for exec resize: %s.", name);
         isula_libutils_free_log_prefix();
         return false;
     }
@@ -839,7 +849,8 @@ bool lcr_console(const char *name, const char *lcrpath, const char *in_fifo, con
 
     c = lxc_container_new(name, tmp_path);
     if (c == NULL) {
-        ERROR("Failed to create container.");
+        lcr_set_error_message(LCR_ERR_CONFIG, "Failed to load config for attach: %s", name);
+        ERROR("Failed to load config for attach: %s.", name);
         bresult = false;
         goto out;
     }
@@ -977,7 +988,8 @@ bool lcr_get_console_config(const char *name, const char *lcrpath, struct lcr_co
     isula_libutils_set_log_prefix(name);
     c = lxc_container_new(name, tmp_path);
     if (c == NULL) {
-        ERROR("Failed to create container.");
+        lcr_set_error_message(LCR_ERR_CONFIG, "Failed to load config for get console config of: %s", name);
+        ERROR("Failed to load config for get config of: %s.", name);
         isula_libutils_free_log_prefix();
         return false;
     }
@@ -1027,7 +1039,8 @@ bool lcr_update(const char *name, const char *lcrpath, const struct lcr_cgroup_r
 
     c = lxc_container_new(name, tmp_path);
     if (c == NULL) {
-        ERROR("Failed to new container.");
+        lcr_set_error_message(LCR_ERR_CONFIG, "Failed to load config for udpate: %s", name);
+        ERROR("Failed to load config for update: %s.", name);
         goto out_free;
     }
 
