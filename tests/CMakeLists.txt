@@ -69,6 +69,7 @@ endif()
 _DEFINE_NEW_TEST(log_ut log_testcase)
 _DEFINE_NEW_TEST(libocispec_ut libocispec_testcase)
 _DEFINE_NEW_TEST(go_crc64_ut go_crc64_testcase)
+_DEFINE_NEW_TEST(utils_ut utils_testcase)
 
 
 # mock test for run lcov to generate html
@@ -81,7 +82,7 @@ target_link_libraries(mock_ut
     ${GTEST_LIBRARY}
     pthread
     )
-add_dependencies(mock_ut log_ut libocispec_ut go_crc64_ut)
+add_dependencies(mock_ut log_ut libocispec_ut go_crc64_ut utils_ut)
 
 IF(ENABLE_GCOV)
     add_custom_target(coverage

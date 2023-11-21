@@ -632,6 +632,7 @@ static FILE *lcr_open_tmp_config_file(const char *bundle, char **config_file, ch
 
     fp = fdopen(fd, "w");
     if (fp == NULL) {
+        close(fd);
         ERROR("FILE open failed");
         goto out;
     }

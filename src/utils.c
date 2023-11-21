@@ -1376,9 +1376,9 @@ static int lcr_util_generate_random_str(char *id, size_t len)
     }
 
     len = len / 2;
-    fd = open("/dev/urandom", O_RDONLY);
+    fd = open("/dev/random", O_RDONLY);
     if (fd == -1) {
-        ERROR("Failed to open /dev/urandom");
+        ERROR("Failed to open /dev/random");
         return -1;
     }
     for (i = 0; i < len; i++) {
