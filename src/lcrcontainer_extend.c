@@ -346,7 +346,7 @@ out:
     return ret;
 }
 
-static int lcr_spec_write_seccomp_line(int fd, const char *seccomp)
+static int lcr_spec_write_seccomp_line(FILE *fp, const char *seccomp)
 {
     size_t len;
     char *line = NULL;
@@ -371,14 +371,17 @@ static int lcr_spec_write_seccomp_line(int fd, const char *seccomp)
         ERROR("Sprintf failed");
         goto cleanup;
     }
+
     if ((size_t)nret > len - 1) {
         nret = (int)(len - 1);
     }
+
     line[nret] = '\n';
-    if (write(fd, line, len) == -1) {
+    if (fwrite(line, 1, len ,fp) != len) {
         SYSERROR("Write file failed");
         goto cleanup;
     }
+
     ret = 0;
 cleanup:
     free(line);
@@ -389,9 +392,7 @@ static char *lcr_save_seccomp_file(const char *bundle, const char *seccomp_conf)
 {
     char seccomp[PATH_MAX] = { 0 };
     char *real_seccomp = NULL;
-    int fd = -1;
     int nret;
-    ssize_t written_cnt;
 
     nret = snprintf(seccomp, sizeof(seccomp), "%s/seccomp", bundle);
     if (nret < 0 || (size_t)nret >= sizeof(seccomp)) {
@@ -404,16 +405,9 @@ static char *lcr_save_seccomp_file(const char *bundle, const char *seccomp_conf)
         goto cleanup;
     }
 
-    fd = lcr_util_open(real_seccomp, O_CREAT | O_TRUNC | O_CLOEXEC | O_WRONLY, CONFIG_FILE_MODE);
-    if (fd == -1) {
-        SYSERROR("Create file %s failed", real_seccomp);
-        goto cleanup;
-    }
-
-    written_cnt = write(fd, seccomp_conf, strlen(seccomp_conf));
-    close(fd);
-    if (written_cnt == -1) {
-        SYSERROR("write seccomp_conf failed");
+    if (lcr_util_atomic_write_file(real_seccomp, seccomp_conf, strlen(seccomp_conf),
+                                   CONFIG_FILE_MODE, false) != -1) {
+        ERROR("write seccomp_conf failed");
         goto cleanup;
     }
     return real_seccomp;
@@ -605,34 +599,51 @@ out_free:
     return NULL;
 }
 
-
-static int lcr_open_config_file(const char *bundle)
+static FILE *lcr_open_tmp_config_file(const char *bundle, char **config_file, char **tmp_file)
 {
     char config[PATH_MAX] = { 0 };
-    char *real_config = NULL;
     int fd = -1;
     int nret;
+    FILE *fp = NULL;
 
     nret = snprintf(config, sizeof(config), "%s/config", bundle);
     if (nret < 0 || (size_t)nret >= sizeof(config)) {
         goto out;
     }
 
-    nret = lcr_util_ensure_path(&real_config, config);
+    nret = lcr_util_ensure_path(config_file, config);
     if (nret < 0) {
         ERROR("Failed to ensure path %s", config);
         goto out;
     }
 
-    fd = lcr_util_open(real_config, O_CREAT | O_TRUNC | O_CLOEXEC | O_WRONLY, CONFIG_FILE_MODE);
-    if (fd == -1) {
-        SYSERROR("Create file %s failed", real_config);
-        lcr_set_error_message(LCR_ERR_RUNTIME, "Create file %s failed", real_config);
+    *tmp_file = lcr_util_get_random_tmp_file(*config_file);
+    if (*tmp_file == NULL) {
+        ERROR("Failed to get random tmp file for %s", *config_file);
         goto out;
     }
+
+    fd = lcr_util_open(*tmp_file, O_CREAT | O_TRUNC | O_CLOEXEC | O_WRONLY, CONFIG_FILE_MODE);
+    if (fd == -1) {
+        SYSERROR("Create file %s failed", *tmp_file);
+        lcr_set_error_message(LCR_ERR_RUNTIME, "Create file %s failed", *tmp_file);
+        goto out;
+    }
+
+    fp = fdopen(fd, "w");
+    if (fp == NULL) {
+        ERROR("FILE open failed");
+        goto out;
+    }
+
 out:
-    free(real_config);
-    return fd;
+    if (fp == NULL) {
+        free(*tmp_file);
+        *tmp_file = NULL;
+        free(*config_file);
+        *config_file = NULL;
+    }
+    return fp;
 }
 
 // escape_string_encode unzip some escape characters
@@ -698,18 +709,17 @@ static char *escape_string_encode(const char *src)
     return dst;
 }
 
-static int lcr_spec_write_config(int fd, const struct lcr_list *lcr_conf)
+static int lcr_spec_write_config(FILE *fp, const struct lcr_list *lcr_conf)
 {
-    struct lcr_list *it = NULL;
     size_t len;
-    char *line = NULL;
-    char *line_encode = NULL;
     int ret = -1;
+    struct lcr_list *it = NULL;
+    char *line_encode = NULL;
+    char *line = NULL;
 
     lcr_list_for_each(it, lcr_conf) {
         lcr_config_item_t *item = it->elem;
         int nret;
-        size_t encode_len;
         if (item != NULL) {
             if (strlen(item->value) > ((SIZE_MAX - strlen(item->name)) - 4)) {
                 goto cleanup;
@@ -722,7 +732,6 @@ static int lcr_spec_write_config(int fd, const struct lcr_list *lcr_conf)
             }
 
             nret = snprintf(line, len, "%s = %s", item->name, item->value);
-
             if (nret < 0 || (size_t)nret >= len) {
                 ERROR("Sprintf failed");
                 goto cleanup;
@@ -734,19 +743,21 @@ static int lcr_spec_write_config(int fd, const struct lcr_list *lcr_conf)
                 goto cleanup;
             }
 
-            encode_len = strlen(line_encode);
+            len = strlen(line_encode);
+            line_encode[len] = '\n';
 
-            line_encode[encode_len] = '\n';
-            if (write(fd, line_encode, encode_len + 1) == -1) {
+            if (fwrite(line_encode, 1, len + 1, fp) != len + 1) {
                 SYSERROR("Write file failed");
                 goto cleanup;
             }
+
             free(line);
             line = NULL;
             free(line_encode);
             line_encode = NULL;
         }
     }
+
     ret = 0;
 cleanup:
     free(line);
@@ -804,7 +815,9 @@ bool lcr_save_spec(const char *name, const char *lcrpath, const struct lcr_list 
     const char *path = lcrpath ? lcrpath : LCRPATH;
     char *bundle = NULL;
     char *seccomp = NULL;
-    int fd = -1;
+    char *config_file = NULL;
+    char *tmp_file = NULL;
+    FILE *fp = NULL;
     int nret = 0;
 
     if (name == NULL) {
@@ -829,71 +842,47 @@ bool lcr_save_spec(const char *name, const char *lcrpath, const struct lcr_list 
         }
     }
 
-    fd = lcr_open_config_file(bundle);
-    if (fd == -1) {
+    fp = lcr_open_tmp_config_file(bundle, &config_file, &tmp_file);
+    if (fp == NULL) {
         goto out_free;
     }
 
-    if (lcr_spec_write_config(fd, lcr_conf)) {
+    if (lcr_spec_write_config(fp, lcr_conf)) {
         goto out_free;
     }
 
     if (seccomp_conf != NULL) {
-        nret = lcr_spec_write_seccomp_line(fd, seccomp);
+        nret = lcr_spec_write_seccomp_line(fp, seccomp);
         if (nret) {
             goto out_free;
         }
     }
 
+    fclose(fp);
+    fp = NULL;
+
+    nret = rename(tmp_file, config_file);
+    if (nret != 0) {
+        ERROR("Failed to rename old file %s to target %s", tmp_file, config_file);
+        goto out_free;
+    }
+
     bret = true;
 
 out_free:
-    free(bundle);
-    free(seccomp);
-    if (fd != -1) {
-        close(fd);
+    if (fp != NULL) {
+        fclose(fp);
     }
+    if (!bret && unlink(tmp_file) != 0 && errno != ENOENT) {
+        SYSERROR("Failed to remove temp file:%s", tmp_file);
+    }
+    free(config_file);
+    free(tmp_file);
+    free(seccomp);
+    free(bundle);
 
     return bret;
 }
-
-static int lcr_write_file(const char *path, const char *data, size_t len)
-{
-    char *real_path = NULL;
-    int fd = -1;
-    int ret = -1;
-
-    if (path == NULL || strlen(path) == 0 || data == NULL || len == 0) {
-        return -1;
-    }
-
-    if (lcr_util_ensure_path(&real_path, path) < 0) {
-        ERROR("Failed to ensure path %s", path);
-        goto out_free;
-    }
-
-    fd = lcr_util_open(real_path, O_CREAT | O_TRUNC | O_CLOEXEC | O_WRONLY, CONFIG_FILE_MODE);
-    if (fd == -1) {
-        ERROR("Create file %s failed", real_path);
-        lcr_set_error_message(LCR_ERR_RUNTIME, "Create file %s failed", real_path);
-        goto out_free;
-    }
-
-    if (write(fd, data, len) == -1) {
-        SYSERROR("write data to %s failed", real_path);
-        goto out_free;
-    }
-
-    ret = 0;
-
-out_free:
-    if (fd != -1) {
-        close(fd);
-    }
-    free(real_path);
-    return ret;
-}
-
 
 static bool lcr_write_ocihooks(const char *path, const oci_runtime_spec_hooks *hooks)
 {
@@ -907,8 +896,9 @@ static bool lcr_write_ocihooks(const char *path, const oci_runtime_spec_hooks *h
         goto out_free;
     }
 
-    if (lcr_write_file(path, json_hooks, strlen(json_hooks)) == -1) {
-        SYSERROR("write json hooks failed");
+    if (lcr_util_atomic_write_file(path, json_hooks, strlen(json_hooks),
+                                   CONFIG_FILE_MODE, false) == -1) {
+        ERROR("write json hooks failed");
         goto out_free;
     }
 

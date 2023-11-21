@@ -1248,7 +1248,7 @@ out:
     return ret;
 }
 
-int lcr_util_atomic_write_file(const char *filepath, const char *content)
+int lcr_util_flock_append_file(const char *filepath, const char *content)
 {
     int fd;
     int ret = 0;
@@ -1281,6 +1281,272 @@ out:
         fclose(fp);
     }
     close(fd);
+    return ret;
+}
+
+static char *lcr_util_path_base(const char *path)
+{
+    char *dir = NULL;
+    int len = 0;
+    int i = 0;
+
+    if (path == NULL) {
+        ERROR("invalid NULL param");
+        return NULL;
+    }
+
+    len = (int)strlen(path);
+    if (len == 0) {
+        return lcr_util_strdup_s(".");
+    }
+
+    dir = lcr_util_strdup_s(path);
+
+    // strip last slashes
+    for (i = len - 1; i >= 0; i--) {
+        if (dir[i] != '/') {
+            break;
+        }
+        dir[i] = '\0';
+    }
+
+    len = (int)strlen(dir);
+    if (len == 0) {
+        free(dir);
+        return lcr_util_strdup_s("/");
+    }
+
+    for (i = len - 1; i >= 0; i--) {
+        if (dir[i] == '/') {
+            break;
+        }
+    }
+
+    if (i < 0) {
+        return dir;
+    }
+
+    char *result = lcr_util_strdup_s(&dir[i + 1]);
+    free(dir);
+    return result;
+}
+
+static char *lcr_util_path_dir(const char *path)
+{
+    char *dir = NULL;
+    int len = 0;
+    int i = 0;
+
+    if (path == NULL) {
+        ERROR("invalid NULL param");
+        return NULL;
+    }
+
+    len = (int)strlen(path);
+    if (len == 0) {
+        return lcr_util_strdup_s(".");
+    }
+
+    dir = lcr_util_strdup_s(path);
+
+    for (i = len - 1; i > 0; i--) {
+        if (dir[i] == '/') {
+            dir[i] = 0;
+            break;
+        }
+    }
+
+    if (i == 0 && dir[0] == '/') {
+        free(dir);
+        return lcr_util_strdup_s("/");
+    }
+
+    return dir;
+}
+
+static int lcr_util_generate_random_str(char *id, size_t len)
+{
+    int fd = -1;
+    int num = 0;
+    size_t i;
+    const int m = 256;
+
+    if (id == NULL) {
+        return -1;
+    }
+
+    len = len / 2;
+    fd = open("/dev/urandom", O_RDONLY);
+    if (fd == -1) {
+        ERROR("Failed to open /dev/urandom");
+        return -1;
+    }
+    for (i = 0; i < len; i++) {
+        int nret;
+        if (lcr_util_read_nointr(fd, &num, sizeof(int)) < 0) {
+            ERROR("Failed to read urandom value");
+            close(fd);
+            return -1;
+        }
+        unsigned char rs = (unsigned char)(num % m);
+        nret = snprintf((id + i * 2), ((len - i) * 2 + 1), "%02x", (unsigned int)rs);
+        if (nret < 0 || (size_t)nret >= ((len - i) * 2 + 1)) {
+            ERROR("Failed to snprintf random string");
+            close(fd);
+            return -1;
+        }
+    }
+    close(fd);
+    id[i * 2] = '\0';
+    return 0;
+}
+
+static char *lcr_util_path_join(const char *dir, const char *file)
+{
+    int nret = 0;
+    char path[PATH_MAX] = { 0 };
+    char cleaned[PATH_MAX] = { 0 };
+
+    if (dir == NULL || file == NULL) {
+        ERROR("NULL dir or file failed");
+        return NULL;
+    }
+
+    nret = snprintf(path, PATH_MAX, "%s/%s", dir, file);
+    if (nret < 0 || (size_t)nret >= PATH_MAX) {
+        ERROR("dir or file too long failed");
+        return NULL;
+    }
+
+    if (cleanpath(path, cleaned, sizeof(cleaned)) == NULL) {
+        ERROR("Failed to clean path: %s", path);
+        return NULL;
+    }
+
+    return lcr_util_strdup_s(cleaned);
+}
+
+char *lcr_util_get_random_tmp_file(const char *fname)
+{
+#define RANDOM_TMP_PATH 10
+    int nret = 0;
+    char *result = NULL;
+    char *base = NULL;
+    char *dir = NULL;
+    char rpath[PATH_MAX] = { 0x00 };
+    char random_tmp[RANDOM_TMP_PATH + 1] = { 0x00 };
+
+    if (fname == NULL) {
+        ERROR("Invalid NULL param");
+        return NULL;
+    }
+
+    base = lcr_util_path_base(fname);
+    if (base == NULL) {
+        ERROR("Failed to get base of %s", fname);
+        goto out;
+    }
+
+    dir = lcr_util_path_dir(fname);
+    if (dir == NULL) {
+        ERROR("Failed to get dir of %s", fname);
+        goto out;
+    }
+
+    if (lcr_util_generate_random_str(random_tmp, (size_t)RANDOM_TMP_PATH)) {
+        ERROR("Failed to generate random str for random path");
+        goto out;
+    }
+
+    nret = snprintf(rpath, PATH_MAX, ".tmp-%s-%s", base, random_tmp);
+    if (nret < 0 || (size_t)nret >= PATH_MAX) {
+        ERROR("Failed to generate tmp base file");
+        goto out;
+    }
+
+    result = lcr_util_path_join(dir, rpath);
+
+out:
+    free(base);
+    free(dir);
+    return result;
+}
+
+static int do_atomic_write_file(const char *fname, const char *content, size_t content_len, mode_t mode, bool sync)
+{
+    int ret = 0;
+    int dst_fd = -1;
+    ssize_t len = 0;
+
+    dst_fd = lcr_util_open(fname, O_WRONLY | O_CREAT | O_TRUNC, mode);
+    if (dst_fd < 0) {
+        SYSERROR("Creat file: %s, failed", fname);
+        ret = -1;
+        goto free_out;
+    }
+
+    len = lcr_util_write_nointr(dst_fd, content, content_len);
+    if (len < 0 || ((size_t)len) != content_len) {
+        ret = -1;
+        SYSERROR("Write file failed");
+        goto free_out;
+    }
+
+    if (sync && (fdatasync(dst_fd) != 0)) {
+        ret = -1;
+        SYSERROR("Failed to sync data of file:%s", fname);
+        goto free_out;
+    }
+
+free_out:
+    if (dst_fd >= 0) {
+        close(dst_fd);
+    }
+    return ret;
+}
+
+int lcr_util_atomic_write_file(const char *fname, const char *content, size_t content_len, mode_t mode, bool sync)
+{
+    int ret = 0;
+    char *tmp_file = NULL;
+    char rpath[PATH_MAX] = { 0x00 };
+
+    if (fname == NULL) {
+        return -1;
+    }
+    if (content == NULL || content_len == 0) {
+        return 0;
+    }
+
+    if (cleanpath(fname, rpath, sizeof(rpath)) == NULL) {
+        return -1;
+    }
+
+    tmp_file = lcr_util_get_random_tmp_file(fname);
+    if (tmp_file == NULL) {
+        ERROR("Failed to get tmp file for %s", fname);
+        return -1;
+    }
+
+    ret = do_atomic_write_file(tmp_file, content, content_len, mode, sync);
+    if (ret != 0) {
+        ERROR("Failed to write content to tmp file for %s", tmp_file);
+        ret = -1;
+        goto free_out;
+    }
+
+    ret = rename(tmp_file, rpath);
+    if (ret != 0) {
+        ERROR("Failed to rename old file %s to target %s", tmp_file, rpath);
+        ret = -1;
+        goto free_out;
+    }
+
+free_out:
+    if (ret != 0 && unlink(tmp_file) != 0 && errno != ENOENT) {
+        SYSERROR("Failed to remove temp file:%s", tmp_file);
+    }
+    free(tmp_file);
     return ret;
 }
 

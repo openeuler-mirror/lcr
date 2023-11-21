@@ -1241,7 +1241,7 @@ static int trans_one_oci_id_mapping(struct lcr_list *conf, const char *typ, cons
     if (nret < 0 || (size_t)nret >= sizeof(subid)) {
         return -1;
     }
-    nret = lcr_util_atomic_write_file(path, subid);
+    nret = lcr_util_flock_append_file(path, subid);
     if (nret < 0) {
         return -1;
     }
