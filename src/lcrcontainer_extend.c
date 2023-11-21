@@ -406,7 +406,7 @@ static char *lcr_save_seccomp_file(const char *bundle, const char *seccomp_conf)
     }
 
     if (lcr_util_atomic_write_file(real_seccomp, seccomp_conf, strlen(seccomp_conf),
-                                   CONFIG_FILE_MODE, false) != -1) {
+                                   CONFIG_FILE_MODE, false) == -1) {
         ERROR("write seccomp_conf failed");
         goto cleanup;
     }
