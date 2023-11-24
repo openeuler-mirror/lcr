@@ -111,7 +111,7 @@ static void remove_partial(const struct lxc_container *c)
         goto out_free;
     }
     if (unlink(path) < 0) {
-        SYSERROR("Error unlink partial file %s", path);
+        SYSERROR("Error unlinking partial file %s", path);
     }
 
 out_free:
@@ -212,7 +212,7 @@ static bool lcr_start_check_config(const char *lcrpath, const char *name)
 
     nret = snprintf(config, sizeof(config), "%s/%s/config", lcrpath, name);
     if (nret < 0 || (size_t)nret >= sizeof(config)) {
-        SYSERROR("Failed to allocated memory");
+        SYSERROR("Failed to allocate memory");
         return false;
     }
 
@@ -238,7 +238,7 @@ static bool wait_start_pid(pid_t pid, int rfd, const char *name, const char *pat
     // set default error
     lcr_set_error_message(LCR_ERR_RUNTIME, "runtime error");
 
-    INFO("begin to stop container\n");
+    INFO("Begin to stop container\n");
     if (!lcr_kill(name, path, SIGKILL)) {
         ERROR("Failed to stop container");
     }
