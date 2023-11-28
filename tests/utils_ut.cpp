@@ -95,19 +95,16 @@ err_out:
     return buf;
 }
 
-TEST(utils_testcase, test_get_random_tmp_file)
+TEST(utils_testcase, test_get_tmp_file)
 {
-#define RANDOM_TMP_PATH 10
     const char *fname = "/tmp/lcr-test/test";
-    char *tmp_file = lcr_util_get_random_tmp_file(nullptr);
-    const char *prefix = "/tmp/lcr-test/.tmp-test-";
+    char *tmp_file = lcr_util_get_tmp_file(nullptr, ".tmp_test_file");
     ASSERT_EQ(tmp_file, nullptr);
 
-    tmp_file = lcr_util_get_random_tmp_file(fname);
+    tmp_file = lcr_util_get_tmp_file(fname, ".tmp_test_file");
     ASSERT_NE(tmp_file, nullptr);
 
-    ASSERT_EQ(strlen(tmp_file), strlen("/tmp/lcr-test/.tmp-test-") + RANDOM_TMP_PATH);
-    ASSERT_EQ(memcmp(tmp_file, prefix, strlen(prefix)), 0);
+    ASSERT_STREQ(tmp_file, "/tmp/lcr-test/.tmp_test_file");
     free(tmp_file);
 }
 
@@ -118,19 +115,19 @@ TEST(utils_testcase, test_atomic_write_file)
     const char *new_content = "line1\nline2\nline3\n";
     char *readcontent = nullptr;
 
-    ASSERT_EQ(lcr_util_atomic_write_file(NULL, content, strlen(content), 0644, false), -1);
-    ASSERT_EQ(lcr_util_atomic_write_file(fname, NULL, 0, 0644, false), 0);
+    ASSERT_EQ(lcr_util_atomic_write_file(NULL, content, strlen(content), 0644, ".tmp_test"), -1);
+    ASSERT_EQ(lcr_util_atomic_write_file(fname, NULL, 0, 0644, ".tmp_test"), 0);
 
     ASSERT_EQ(lcr_util_build_dir(fname), 0);
 
-    ASSERT_EQ(lcr_util_atomic_write_file(fname, content, strlen(content), 0644, false), 0);
+    ASSERT_EQ(lcr_util_atomic_write_file(fname, content, strlen(content), 0644, ".tmp_test"), 0);
 
     readcontent = test_read_text_file(fname);
     ASSERT_NE(readcontent, nullptr);
     ASSERT_STREQ(readcontent, content);
     free(readcontent);
 
-    ASSERT_EQ(lcr_util_atomic_write_file(fname, new_content, strlen(new_content), 0644, false), 0);
+    ASSERT_EQ(lcr_util_atomic_write_file(fname, new_content, strlen(new_content), 0644, ".tmp_test"), 0);
     readcontent = test_read_text_file(fname);
     ASSERT_NE(readcontent, nullptr);
     ASSERT_STREQ(readcontent, new_content);

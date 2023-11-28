@@ -406,7 +406,7 @@ static char *lcr_save_seccomp_file(const char *bundle, const char *seccomp_conf)
     }
 
     if (lcr_util_atomic_write_file(real_seccomp, seccomp_conf, strlen(seccomp_conf),
-                                   CONFIG_FILE_MODE, false) == -1) {
+                                   CONFIG_FILE_MODE, ".tmp_seccomp_save") == -1) {
         ERROR("write seccomp_conf failed");
         goto cleanup;
     }
@@ -617,7 +617,7 @@ static FILE *lcr_open_tmp_config_file(const char *bundle, char **config_file, ch
         goto out;
     }
 
-    *tmp_file = lcr_util_get_random_tmp_file(*config_file);
+    *tmp_file = lcr_util_get_tmp_file(*config_file, ".tmp_config_save");
     if (*tmp_file == NULL) {
         ERROR("Failed to get random tmp file for %s", *config_file);
         goto out;
@@ -874,7 +874,7 @@ out_free:
     if (fp != NULL) {
         fclose(fp);
     }
-    if (!bret && unlink(tmp_file) != 0 && errno != ENOENT) {
+    if (!bret && tmp_file != NULL && unlink(tmp_file) != 0 && errno != ENOENT) {
         SYSERROR("Failed to remove temp file:%s", tmp_file);
     }
     free(config_file);
@@ -898,7 +898,7 @@ static bool lcr_write_ocihooks(const char *path, const oci_runtime_spec_hooks *h
     }
 
     if (lcr_util_atomic_write_file(path, json_hooks, strlen(json_hooks),
-                                   CONFIG_FILE_MODE, false) == -1) {
+                                   CONFIG_FILE_MODE, ".tmp_ocihooks_save") == -1) {
         ERROR("write json hooks failed");
         goto out_free;
     }
