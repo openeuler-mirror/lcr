@@ -1284,53 +1284,6 @@ out:
     return ret;
 }
 
-static char *lcr_util_path_base(const char *path)
-{
-    char *dir = NULL;
-    int len = 0;
-    int i = 0;
-
-    if (path == NULL) {
-        ERROR("invalid NULL param");
-        return NULL;
-    }
-
-    len = (int)strlen(path);
-    if (len == 0) {
-        return lcr_util_strdup_s(".");
-    }
-
-    dir = lcr_util_strdup_s(path);
-
-    // strip last slashes
-    for (i = len - 1; i >= 0; i--) {
-        if (dir[i] != '/') {
-            break;
-        }
-        dir[i] = '\0';
-    }
-
-    len = (int)strlen(dir);
-    if (len == 0) {
-        free(dir);
-        return lcr_util_strdup_s("/");
-    }
-
-    for (i = len - 1; i >= 0; i--) {
-        if (dir[i] == '/') {
-            break;
-        }
-    }
-
-    if (i < 0) {
-        return dir;
-    }
-
-    char *result = lcr_util_strdup_s(&dir[i + 1]);
-    free(dir);
-    return result;
-}
-
 static char *lcr_util_path_dir(const char *path)
 {
     char *dir = NULL;
@@ -1364,43 +1317,6 @@ static char *lcr_util_path_dir(const char *path)
     return dir;
 }
 
-static int lcr_util_generate_random_str(char *id, size_t len)
-{
-    int fd = -1;
-    int num = 0;
-    size_t i;
-    const int m = 256;
-
-    if (id == NULL) {
-        return -1;
-    }
-
-    len = len / 2;
-    fd = open("/dev/urandom", O_RDONLY);
-    if (fd == -1) {
-        ERROR("Failed to open /dev/urandom");
-        return -1;
-    }
-    for (i = 0; i < len; i++) {
-        int nret;
-        if (lcr_util_read_nointr(fd, &num, sizeof(int)) < 0) {
-            ERROR("Failed to read urandom value");
-            close(fd);
-            return -1;
-        }
-        unsigned char rs = (unsigned char)(num % m);
-        nret = snprintf((id + i * 2), ((len - i) * 2 + 1), "%02x", (unsigned int)rs);
-        if (nret < 0 || (size_t)nret >= ((len - i) * 2 + 1)) {
-            ERROR("Failed to snprintf random string");
-            close(fd);
-            return -1;
-        }
-    }
-    close(fd);
-    id[i * 2] = '\0';
-    return 0;
-}
-
 static char *lcr_util_path_join(const char *dir, const char *file)
 {
     int nret = 0;
@@ -1426,25 +1342,14 @@ static char *lcr_util_path_join(const char *dir, const char *file)
     return lcr_util_strdup_s(cleaned);
 }
 
-char *lcr_util_get_random_tmp_file(const char *fname)
+char *lcr_util_get_tmp_file(const char *fname, const char *tmp_name)
 {
-#define RANDOM_TMP_PATH 10
-    int nret = 0;
     char *result = NULL;
-    char *base = NULL;
     char *dir = NULL;
-    char rpath[PATH_MAX] = { 0x00 };
-    char random_tmp[RANDOM_TMP_PATH + 1] = { 0x00 };
 
-    if (fname == NULL) {
+    if (fname == NULL || tmp_name == NULL) {
         ERROR("Invalid NULL param");
         return NULL;
-    }
-
-    base = lcr_util_path_base(fname);
-    if (base == NULL) {
-        ERROR("Failed to get base of %s", fname);
-        goto out;
     }
 
     dir = lcr_util_path_dir(fname);
@@ -1453,26 +1358,14 @@ char *lcr_util_get_random_tmp_file(const char *fname)
         goto out;
     }
 
-    if (lcr_util_generate_random_str(random_tmp, (size_t)RANDOM_TMP_PATH)) {
-        ERROR("Failed to generate random str for random path");
-        goto out;
-    }
-
-    nret = snprintf(rpath, PATH_MAX, ".tmp-%s-%s", base, random_tmp);
-    if (nret < 0 || (size_t)nret >= PATH_MAX) {
-        ERROR("Failed to generate tmp base file");
-        goto out;
-    }
-
-    result = lcr_util_path_join(dir, rpath);
+    result = lcr_util_path_join(dir, tmp_name);
 
 out:
-    free(base);
     free(dir);
     return result;
 }
 
-static int do_atomic_write_file(const char *fname, const char *content, size_t content_len, mode_t mode, bool sync)
+static int do_atomic_write_file(const char *fname, const char *content, size_t content_len, mode_t mode)
 {
     int ret = 0;
     int dst_fd = -1;
@@ -1492,12 +1385,6 @@ static int do_atomic_write_file(const char *fname, const char *content, size_t c
         goto free_out;
     }
 
-    if (sync && (fdatasync(dst_fd) != 0)) {
-        ret = -1;
-        SYSERROR("Failed to sync data of file:%s", fname);
-        goto free_out;
-    }
-
 free_out:
     if (dst_fd >= 0) {
         close(dst_fd);
@@ -1505,7 +1392,7 @@ free_out:
     return ret;
 }
 
-int lcr_util_atomic_write_file(const char *fname, const char *content, size_t content_len, mode_t mode, bool sync)
+int lcr_util_atomic_write_file(const char *fname, const char *content, size_t content_len, mode_t mode, const char *tmp_name)
 {
     int ret = 0;
     char *tmp_file = NULL;
@@ -1522,13 +1409,13 @@ int lcr_util_atomic_write_file(const char *fname, const char *content, size_t co
         return -1;
     }
 
-    tmp_file = lcr_util_get_random_tmp_file(fname);
+    tmp_file = lcr_util_get_tmp_file(fname, tmp_name);
     if (tmp_file == NULL) {
         ERROR("Failed to get tmp file for %s", fname);
         return -1;
     }
 
-    ret = do_atomic_write_file(tmp_file, content, content_len, mode, sync);
+    ret = do_atomic_write_file(tmp_file, content, content_len, mode);
     if (ret != 0) {
         ERROR("Failed to write content to tmp file for %s", tmp_file);
         ret = -1;
