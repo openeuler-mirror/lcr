@@ -65,6 +65,17 @@
                             }
                         }
                     }
+                },
+                "blkio": {
+                    "type": "object",
+                    "properties": {
+                        "ioServiceBytesRecursive": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "../../defs.json#/definitions/BlkioEntry"
+                            }
+                        }
+                    }
                 }
             }
         }
