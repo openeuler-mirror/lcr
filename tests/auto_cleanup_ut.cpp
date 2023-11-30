@@ -249,3 +249,49 @@ TEST(autocleanup_testcase, test__isula_auto_close)
         openfd = inner_fd;
     }
 }
+
+static bool g_test_auto_cleanup_callback_called = false;
+
+typedef struct foo {
+    int *a;
+    int *b;
+} foo_t;
+
+void foo_free(foo_t *f)
+{
+    if (f == nullptr) {
+        return;
+    }
+    if (f->a != nullptr) {
+        free(f->a);
+        f->a = nullptr;
+    }
+    if (f->b != nullptr) {
+        free(f->b);
+        f->b = nullptr;
+    }
+    g_test_auto_cleanup_callback_called = true;
+    free(f);
+}
+
+define_auto_cleanup_callback(foo_free, foo_t);
+#define __isula_auto_foo_t auto_cleanup_tag(foo_free)
+
+void do_auto_cleanup_callback()
+{
+    __isula_auto_foo_t foo_t *f = nullptr;
+
+    f = static_cast<foo_t *>(malloc(sizeof(foo_t)));
+    f->a = static_cast<int *>(malloc(sizeof(int)));
+    f->b = static_cast<int *>(malloc(sizeof(int)));
+    *(f->a) = 1;
+    *(f->b) = 2;
+}
+
+TEST(autocleanup_testcase, test_define_auto_cleanup_callback)
+{
+    g_test_auto_cleanup_callback_called = false;
+    do_auto_cleanup_callback();
+    // check if the callback function is called
+    ASSERT_EQ(g_test_auto_cleanup_callback_called, true);
+}

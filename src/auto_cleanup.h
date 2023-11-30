@@ -57,20 +57,29 @@ extern "C" {
 #define auto_cleanup_tag(name) __attribute__((__cleanup__(name##_cb)))
 
 // define all used auto tags
-#define __isula_auto_free auto_cleanup_tag(free_pointer)
+#define __isula_auto_free auto_cleanup_tag(free)
 #define __isula_auto_file auto_cleanup_tag(close_file)
 #define __isula_auto_dir auto_cleanup_tag(close_dir)
 #define __isula_auto_close auto_cleanup_tag(auto_close)
 #define __isula_auto_pm_unlock auto_cleanup_tag(auto_pm_unlock)
 #define __isula_auto_prw_unlock auto_cleanup_tag(auto_prw_unlock)
 
-static inline void free_pointer_cb(void *ptr)
-{
-    void *real = *(void **)ptr;
-    if (real != NULL) {
-        free(real);
+/*
+ * define auto cleanup callback for the type free function.
+ * _cleanup_func: the type free function, must be void type and
+ *                accept one parameter with type _type *.
+ * _type: the type of the pointer to be cleaned up.
+ */
+#define define_auto_cleanup_callback(_cleanup_func, _type)       \
+    static inline void _cleanup_func##_cb(void *p)               \
+    {                                                            \
+        _type *_p = *(_type **)p;                                \
+        if (_p != NULL) {                                        \
+            _cleanup_func(_p);                                   \
+        }                                                        \
     }
-}
+
+define_auto_cleanup_callback(free, void)
 
 static inline void close_file_cb(FILE **p)
 {
