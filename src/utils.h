@@ -217,10 +217,6 @@ int lcr_util_null_stdfds(void);
 
 int lcr_util_flock_append_file(const char *filepath, const char *content);
 
-char *lcr_util_get_tmp_file(const char *fname, const char *tmp_name);
-
-int lcr_util_atomic_write_file(const char *fname, const char *content, size_t content_len, mode_t mode, const char *tmp_name);
-
 int lcr_util_get_real_swap(int64_t memory, int64_t memory_swap, int64_t *swap);
 int lcr_util_trans_cpushare_to_cpuweight(int64_t cpu_share);
 uint64_t lcr_util_trans_blkio_weight_to_io_weight(int weight);
