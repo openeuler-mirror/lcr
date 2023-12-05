@@ -1,0 +1,55 @@
+{
+	"$schema": "http://json-schema.org/draft-04/schema#",
+	"type": "object",
+	"properties": {
+		"status": {
+			"type": "string"
+		},
+		"message": {
+			"type": "string"
+		},
+		"reason": {
+			"type": "string"
+		},
+		"details": {
+			"type": "object",
+			"properties": {
+				"name": {
+					"type": "string"
+				},
+				"group": {
+					"type": "string"
+				},
+				"kind": {
+					"type": "string"
+				},
+				"uid": {
+					"type": "string"
+				},
+				"causes": {
+					"type": "array",
+					"items": {
+						"type": "object",
+						"properties": {
+							"reason": {
+								"type": "string"
+							},
+							"message": {
+								"type": "string"
+							},
+							"field": {
+								"type": "string"
+							}
+						}
+					}
+				},
+				"retryAfterSeconds": {
+					"type": "int32"
+				}
+			}
+		},
+		"code": {
+			"type": "int32"
+		}
+	}
+}
