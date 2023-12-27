@@ -26,6 +26,8 @@
 #include <errno.h>
 #include <time.h>
 #include <regex.h>
+#include <fcntl.h>
+#include <unistd.h>
 
 #include "log.h"
 
@@ -129,4 +131,54 @@ free_out:
     regfree(&reg);
 
     return nret;
+}
+
+static int open_devnull(void)
+{
+    int fd = open("/dev/null", O_RDWR);
+    if (fd < 0) {
+        SYSERROR("Can't open /dev/null");
+    }
+
+    return fd;
+}
+
+static int set_stdfds(int fd)
+{
+    int ret = 0;
+
+    if (fd < 0) {
+        return -1;
+    }
+
+    ret = dup2(fd, STDIN_FILENO);
+    if (ret < 0) {
+        return -1;
+    }
+
+    ret = dup2(fd, STDOUT_FILENO);
+    if (ret < 0) {
+        return -1;
+    }
+
+    ret = dup2(fd, STDERR_FILENO);
+    if (ret < 0) {
+        return -1;
+    }
+
+    return 0;
+}
+
+int isula_null_stdfds(void)
+{
+    int ret = -1;
+    int fd;
+
+    fd = open_devnull();
+    if (fd >= 0) {
+        ret = set_stdfds(fd);
+        close(fd);
+    }
+
+    return ret;
 }

@@ -48,6 +48,8 @@ void isula_usleep_nointerupt(unsigned long usec);
 
 int isula_reg_match(const char *patten, const char *str);
 
+int isula_null_stdfds(void);
+
 #ifdef __cplusplus
 }
 #endif

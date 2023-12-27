@@ -904,57 +904,6 @@ static void execute_lxc_attach(const char *name, const char *path, const struct 
     exit(EXIT_FAILURE);
 }
 
-
-static int open_devnull(void)
-{
-    int fd = open("/dev/null", O_RDWR);
-    if (fd < 0) {
-        SYSERROR("Can't open /dev/null");
-    }
-
-    return fd;
-}
-
-static int set_stdfds(int fd)
-{
-    int ret = 0;
-
-    if (fd < 0) {
-        return -1;
-    }
-
-    ret = dup2(fd, STDIN_FILENO);
-    if (ret < 0) {
-        return -1;
-    }
-
-    ret = dup2(fd, STDOUT_FILENO);
-    if (ret < 0) {
-        return -1;
-    }
-
-    ret = dup2(fd, STDERR_FILENO);
-    if (ret < 0) {
-        return -1;
-    }
-
-    return 0;
-}
-
-static int lcr_util_null_stdfds(void)
-{
-    int ret = -1;
-    int fd;
-
-    fd = open_devnull();
-    if (fd >= 0) {
-        ret = set_stdfds(fd);
-        close(fd);
-    }
-
-    return ret;
-}
-
 static int do_attach_get_exit_code(int status)
 {
     int exit_code = 0;
@@ -1007,7 +956,7 @@ bool do_attach(const char *name, const char *path, const struct lcr_exec_request
 
     if (pid == (pid_t)0) {
         (void)unsetenv("NOTIFY_SOCKET");
-        if (lcr_util_null_stdfds() < 0) {
+        if (isula_null_stdfds() < 0) {
             COMMAND_ERROR("Failed to close fds");
             exit(EXIT_FAILURE);
         }
