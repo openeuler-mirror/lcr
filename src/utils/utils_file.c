@@ -98,8 +98,9 @@ static int do_clean_path(const char *respath, const char *limit_respath, const c
 }
 
 // if path doesn't exist, realpath() will return error;
-// so we need cleanpath() to do clean path in this scene;
-static char *cleanpath(const char *path, char *realpath, size_t realpath_len)
+// realpath() will resolve soft links, isula_clean_path will not
+// so we need isula_clean_path() to do clean path in this scene;
+char *isula_clean_path(const char *path, char *realpath, size_t realpath_len)
 {
     char *respath = NULL;
     char *dest = NULL;
@@ -305,7 +306,7 @@ int isula_file_open(const char *filename, int flags, mode_t mode)
 {
     char rpath[PATH_MAX] = { 0x00 };
 
-    if (cleanpath(filename, rpath, sizeof(rpath)) == NULL) {
+    if (isula_clean_path(filename, rpath, sizeof(rpath)) == NULL) {
         return -1;
     }
     if (mode) {
@@ -430,7 +431,7 @@ int isula_dir_recursive_mk(const char *dir, mode_t mode)
         return -1;
     }
 
-    if (cleanpath(dir, rpath, sizeof(rpath)) == NULL) {
+    if (isula_clean_path(dir, rpath, sizeof(rpath)) == NULL) {
         return -1;
     }
 
