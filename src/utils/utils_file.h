@@ -41,6 +41,9 @@ extern "C" {
 
 #define ISULA_MAX_PATH_DEPTH 1024
 
+// isula_clean_path does not resolve soft links
+char *isula_clean_path(const char *path, char *realpath, size_t realpath_len);
+
 bool isula_dir_exists(const char *path);
 
 bool isula_file_exists(const char *f);
