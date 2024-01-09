@@ -1,3 +1,24 @@
+2024-01-09 xuepengxu release 2.1.4
+    - !304 add isula_clean_path util function
+    - !303 add isula_null_stdfds util function * add isula_null_stdfds util function
+    - !302 add cri status error
+    - !296 Add macro for define cleanup function * Add macro for define cleanup function
+    - !292 add blkio info for runtime-stats * add blkio info for runtime-stats
+    - !295 Standardize the content of prompt information
+    - !293 Add declaration macro for unit test * Add declaration macro for unit test
+    - !294 Add ncurses-devel for gateway
+    - !285 Restore subnet, gateway etc in ipam
+    - !284 improve error of lcr apis
+    - !281 add attach fd for process state and add needed util function Merge pull request !281 from zhongtao/runc_attach_change
+    - !283 network:support version opt result * network:support version opt result
+    - !282 add function to transfer of ownership
+    - !279 sanbox:del containers in metadata * sanbox:del containers in metadata
+    - !280 Add masked and readonly path in host config * Add masked and readonly path in host config
+
+    dev stats:
+      - 25 files changed, 533 insertions(+), 87 deletions(-)
+      - contributors: zhongtao, haozi007, xuxuepeng, liuxu, gaojiazhen, jake, jikai
+
 2023-11-02 xuepengxu release 2.1.3
     - !277 network:add capabilities aliases * network:add capabilities aliases
     - !276 [Sandbox API]: Add necessary fields for sandbox container * [Sandbox API]: Add necessary fields for pause container
