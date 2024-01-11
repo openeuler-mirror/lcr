@@ -204,6 +204,9 @@
         },
         "logMaxsize": {
             "type": "int64"
+        },
+        "systemdCgroup": {
+            "type": "boolean"
         }
     }
 }

@@ -173,6 +173,9 @@
         },
         "enable-cri-v1": {
             "type": "boolean"
+        },
+        "systemd-cgroup": {
+            "type": "boolean"
         }
     }
 }
