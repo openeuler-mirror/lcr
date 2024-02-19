@@ -1,9 +1,9 @@
-# iSula-libutils: utils library for iSula
+# iSula-libutils: import http_parser for iSula utils library
 #
-# Copyright (c) Huawei Technologies Co., Ltd. 2020. All rights reserved.
+# Copyright (c) Huawei Technologies Co., Ltd. 2024. All rights reserved.
 #
 # Authors:
-# Haozi007 <liuhao27@huawei.com>
+# xuxuepeng <xuxuepeng1@huawei.com>
 #
 # This library is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
@@ -20,23 +20,16 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #
 
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/libocispec)
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/http_parser)
-
 # get current directory sources files
-aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR} local_utils_srcs)
+aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR} local_http_parser_srcs)
 
-set(THIRD_PARTY_SRCS
-    ${local_utils_srcs}
-    ${LIBOCISPEC_SRCS}
-    ${HTTP_PARSER_SRCS}
+set(HTTP_PARSER_SRCS
+    ${local_http_parser_srcs}
     PARENT_SCOPE
     )
 
-set(THIRD_PARTY_INCS
+set(HTTP_PARSER_INCS
     ${CMAKE_CURRENT_SOURCE_DIR}
-    ${CMAKE_CURRENT_SOURCE_DIR}/libocispec/
-    ${HTTP_PARSER_INCS}
     PARENT_SCOPE
     )
 
