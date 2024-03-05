@@ -305,6 +305,12 @@
             "items": {
                 "type": "string"
             }
+        },
+        "CdiRequestedDevices": {
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
         }
     }
 }

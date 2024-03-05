@@ -1,0 +1,23 @@
+{
+    "_comment": "third party depend: cdi",
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "type": "object",
+    "properties": {
+        "hostPath": {
+            "type": "string"
+        },
+        "containerPath": {
+            "type": "string"
+        },
+        "type": {
+            "type": "string"
+        },
+        "options": {
+            "$ref": "../defs.json#/definitions/ArrayOfStrings"
+        }
+    },
+    "required": [
+        "hostPath",
+        "containerPath"
+    ]
+}

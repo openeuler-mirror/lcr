@@ -1,0 +1,20 @@
+{
+    "_comment": "third party depend: cdi",
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "type": "object",
+    "properties": {
+        "name": {
+            "type": "string"
+        },
+        "annotations": {
+            "$ref": "../defs.json#/definitions/annotations"
+        },
+        "containerEdits": {
+            "$ref": "container_edits.json"
+        }
+    },
+    "required": [
+        "name",
+        "containerEdits"
+    ]
+}

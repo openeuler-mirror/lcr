@@ -1,0 +1,30 @@
+{
+    "_comment": "third party depend: cdi",
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "type": "object",
+    "properties": {
+        "cdiVersion": {
+            "type": "string"
+        },
+        "kind": {
+            "type": "string"
+        },
+        "annotations": {
+            "$ref": "../defs.json#/definitions/annotations"
+        },
+        "devices": {
+          "type": "array",
+          "items": {
+            "$ref": "device.json"
+          }
+        },
+        "containerEdits": {
+            "$ref": "container_edits.json"
+        }
+    },
+    "required": [
+        "cdiVersion",
+        "kind",
+        "devices"
+    ]
+}
