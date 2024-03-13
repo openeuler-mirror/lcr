@@ -176,6 +176,9 @@
         },
         "systemd-cgroup": {
             "type": "boolean"
+        },
+        "enable-pod-events": {
+            "type": "boolean"
         }
     }
 }
