@@ -79,6 +79,12 @@
     },
     "timestamp": {
       "type": "uint64"
+    },
+    "swap_used": {
+      "type": "uint64"
+    },
+    "swap_limit": {
+      "type": "uint64"
     }
   }
 }

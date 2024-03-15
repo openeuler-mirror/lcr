@@ -63,6 +63,17 @@
                                     "$ref": "../../defs.json#/definitions/uint64"
                                 }
                             }
+                        },
+                        "swap": {
+                            "type": "object",
+                            "properties": {
+                                "usage": {
+                                    "$ref": "../../defs.json#/definitions/uint64"
+                                },
+                                "limit": {
+                                    "$ref": "../../defs.json#/definitions/uint64"
+                                }
+                            }
                         }
                     }
                 },
