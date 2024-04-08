@@ -178,6 +178,9 @@
         "resizeFifo": {
             "type": "string"
         },
+        "runtime": {
+            "type": "string"
+        },
         "runtimeArgs": {
             "type": "array",
             "items": {
