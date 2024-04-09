@@ -54,9 +54,6 @@ extern "C" {
 
 #define DEBUG_DIRECTORY_MODE 0750
 
-/* buffer constants defined here */
-#define ISULA_PAGE_BUFSIZE 4096
-
 #ifdef __cplusplus
 }
 #endif
