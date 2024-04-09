@@ -2931,7 +2931,7 @@ static struct isula_linked_list *trans_oci_linux_sysctl(const json_map_string_st
     isula_linked_list_init(conf);
 
     for (i = 0; i < sysctl->len; i++) {
-        char sysk[ISULA_PAGE_BUFSIZE] = { 0 };
+        char sysk[BUFSIZ] = { 0 };
         int nret = snprintf(sysk, sizeof(sysk), "lxc.sysctl.%s", sysctl->keys[i]);
         if (nret < 0 || (size_t)nret >= sizeof(sysk)) {
             ERROR("Failed to print string");

@@ -21,11 +21,6 @@
 #include <limits.h>
 #include <stdio.h>
 
-#ifndef BUFSIZ
-// default use BUFSIZ from stdio.h
-#define BUFSIZ 8096
-#endif
-
 #ifndef JSON_MAX_SIZE
 #define JSON_MAX_SIZE (10LL * 1024LL * 1024LL)
 #endif
