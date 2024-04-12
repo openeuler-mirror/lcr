@@ -1,0 +1,28 @@
+{
+    "_comment": "third party depend: cdi",
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "type": "object",
+    "properties": {
+        "env": {
+            "$ref": "../defs.json#/definitions/ArrayOfStrings"
+        },
+        "deviceNodes": {
+            "type": "array",
+            "items": {
+                "$ref": "device_node.json"
+            }
+        },
+        "mounts": {
+            "type": "array",
+            "items": {
+                "$ref": "mount.json"
+            }
+        },
+        "hooks": {
+            "type": "array",
+            "items": {
+                "$ref": "hook.json"
+            }
+        }
+    }
+}

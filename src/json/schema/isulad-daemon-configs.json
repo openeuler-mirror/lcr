@@ -179,6 +179,12 @@
         },
         "enable-pod-events": {
             "type": "boolean"
+        },
+        "cdi-spec-dirs": {
+            "type": "ArrayOfStrings"
+        },
+        "enable-cdi": {
+            "type": "boolean"
         }
     }
 }

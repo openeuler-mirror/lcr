@@ -1,0 +1,37 @@
+{
+    "_comment": "third party depend: cdi",
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "type": "object",
+    "properties": {
+        "path": {
+            "type": "string"
+        },
+        "hostPath": {
+            "type": "string"
+        },
+        "type": {
+            "type": "string"
+        },
+        "major": {
+            "$ref": "../defs.json#/definitions/int64"
+        },
+        "minor": {
+            "$ref": "../defs.json#/definitions/int64"
+        },
+        "fileMode": {
+            "$ref": "../defs.json#/definitions/int64"
+        },
+        "permissions": {
+            "type": "string"
+        },
+        "uid": {
+            "$ref": "../defs.json#/definitions/UID"
+        },
+        "gid": {
+            "$ref": "../defs.json#/definitions/GID"
+        }
+    },
+    "required": [
+        "path"
+    ]
+}
