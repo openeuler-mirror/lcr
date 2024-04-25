@@ -986,3 +986,48 @@ out_free_conf:
     return ret;
 }
 
+
+static void delete_specific_spec(const char *bundle, const char *name)
+{
+    char filepath[PATH_MAX] = { 0 };
+    int nret = snprintf(filepath, sizeof(filepath), "%s/%s", bundle, name);
+    if (nret < 0 || (size_t)nret >= sizeof(filepath)) {
+        ERROR("Failed to print string");
+        return;
+    }
+
+    if (unlink(filepath) != 0) {
+        SYSERROR("Failed to delete %s", filepath);
+        return;
+    }
+}
+
+void lcr_delete_spec(const struct lxc_container *c, oci_runtime_spec *container)
+{
+    const char *path = NULL;
+    const char *name = NULL;
+    char *bundle = NULL;
+
+    if (c == NULL || c->name == NULL || container == NULL) {
+        ERROR("Invalid arguments");
+        return;
+    }
+
+    path = c->config_path ? c->config_path : LCRPATH;
+    name = c->name;
+    bundle = lcr_get_bundle(path, name);
+    if (bundle == NULL) {
+        return;
+    }
+
+    if (container->hooks != NULL) {
+        delete_specific_spec(bundle, OCIHOOKSFILE);
+    }
+
+    delete_specific_spec(bundle, "config");
+
+    // There might not exist seccomp file, try to delete anyway
+    delete_specific_spec(bundle, "seccomp");
+
+    free(bundle);
+}

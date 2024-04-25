@@ -184,14 +184,12 @@ bool lcr_create(const char *name, const char *lcrpath, void *oci_config)
 
     bret = true;
 out_unlock:
+    if (!bret) {
+        lcr_delete_spec(c, oci_spec);
+    }
     if (partial_fd >= 0) {
         close(partial_fd);
         remove_partial(c);
-    }
-    if (!bret) {
-        if (!c->destroy(c)) {
-            WARN("Unable to clean lxc resources");
-        }
     }
     lxc_container_put(c);
     isula_libutils_free_log_prefix();
