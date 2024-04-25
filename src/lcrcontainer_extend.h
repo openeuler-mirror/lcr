@@ -78,6 +78,8 @@ bool lcr_save_spec(const char *name, const char *lcrpath, const struct lcr_list 
 
 bool translate_spec(const struct lxc_container *c, oci_runtime_spec *container);
 
+void lcr_delete_spec(const struct lxc_container *c, oci_runtime_spec *container);
+
 #ifdef __cplusplus
 }
 #endif
