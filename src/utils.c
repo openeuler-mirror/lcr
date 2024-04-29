@@ -1040,6 +1040,36 @@ int lcr_util_build_dir(const char *name)
     return 0;
 }
 
+ssize_t lcr_util_write_nointr_in_total(int fd, const char *buf, size_t count)
+{
+    size_t nwritten;
+
+    if (buf == NULL) {
+        return -1;
+    }
+
+    if (count > SSIZE_MAX) {
+        ERROR("Too large data to write");
+        return -1;
+    }
+
+    for (nwritten = 0; nwritten < count;) {
+        ssize_t nret;
+        nret = write(fd, buf + nwritten, count - nwritten);
+        if (nret < 0) {
+            if (errno == EINTR || errno == EAGAIN) {
+                continue;
+            } else {
+                return nret;
+            }
+        } else {
+            nwritten += nret;
+        }
+    }
+
+    return (ssize_t)nwritten;
+}
+
 /* util write nointr */
 ssize_t lcr_util_write_nointr(int fd, const void *buf, size_t count)
 {

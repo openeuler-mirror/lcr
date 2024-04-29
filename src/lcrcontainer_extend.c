@@ -352,6 +352,7 @@ static int lcr_spec_write_seccomp_line(int fd, const char *seccomp)
     char *line = NULL;
     int ret = -1;
     int nret;
+    ssize_t nwritten = -1;
 
     if (strlen(seccomp) > SIZE_MAX - strlen("lxc.seccomp.profile") - 3 - 1) {
         ERROR("the length of lxc.seccomp is too long!");
@@ -375,7 +376,8 @@ static int lcr_spec_write_seccomp_line(int fd, const char *seccomp)
         nret = (int)(len - 1);
     }
     line[nret] = '\n';
-    if (write(fd, line, len) == -1) {
+    nwritten = lcr_util_write_nointr_in_total(fd, line, len);
+    if (nwritten < 0 || (size_t)nwritten != len) {
         SYSERROR("Write file failed");
         goto cleanup;
     }
@@ -391,7 +393,7 @@ static char *lcr_save_seccomp_file(const char *bundle, const char *seccomp_conf)
     char *real_seccomp = NULL;
     int fd = -1;
     int nret;
-    ssize_t written_cnt;
+    ssize_t nwritten = -1;
 
     nret = snprintf(seccomp, sizeof(seccomp), "%s/seccomp", bundle);
     if (nret < 0 || (size_t)nret >= sizeof(seccomp)) {
@@ -410,9 +412,9 @@ static char *lcr_save_seccomp_file(const char *bundle, const char *seccomp_conf)
         goto cleanup;
     }
 
-    written_cnt = write(fd, seccomp_conf, strlen(seccomp_conf));
+    nwritten = lcr_util_write_nointr(fd, seccomp_conf, strlen(seccomp_conf));
     close(fd);
-    if (written_cnt == -1) {
+    if (nwritten < 0 || (size_t)nwritten != strlen(seccomp_conf)) {
         SYSERROR("write seccomp_conf failed");
         goto cleanup;
     }
@@ -710,6 +712,7 @@ static int lcr_spec_write_config(int fd, const struct lcr_list *lcr_conf)
         lcr_config_item_t *item = it->elem;
         int nret;
         size_t encode_len;
+        ssize_t nwritten = -1;
         if (item != NULL) {
             if (strlen(item->value) > ((SIZE_MAX - strlen(item->name)) - 4)) {
                 goto cleanup;
@@ -737,7 +740,8 @@ static int lcr_spec_write_config(int fd, const struct lcr_list *lcr_conf)
             encode_len = strlen(line_encode);
 
             line_encode[encode_len] = '\n';
-            if (write(fd, line_encode, encode_len + 1) == -1) {
+            nwritten = lcr_util_write_nointr_in_total(fd, line_encode, encode_len + 1);
+            if (nwritten < 0 || (size_t)nwritten != encode_len + 1) {
                 SYSERROR("Write file failed");
                 goto cleanup;
             }
@@ -862,6 +866,7 @@ static int lcr_write_file(const char *path, const char *data, size_t len)
     char *real_path = NULL;
     int fd = -1;
     int ret = -1;
+    ssize_t nwritten = -1;
 
     if (path == NULL || strlen(path) == 0 || data == NULL || len == 0) {
         return -1;
@@ -879,7 +884,8 @@ static int lcr_write_file(const char *path, const char *data, size_t len)
         goto out_free;
     }
 
-    if (write(fd, data, len) == -1) {
+    nwritten = lcr_util_write_nointr_in_total(fd, data, len);
+    if (nwritten < 0 || (size_t)nwritten != len) {
         SYSERROR("write data to %s failed", real_path);
         goto out_free;
     }

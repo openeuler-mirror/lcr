@@ -206,6 +206,7 @@ char *lcr_util_string_append(const char *post, const char *pre);
 char *lcr_util_string_split_prefix(size_t prefix_len, const char *file);
 
 int lcr_util_build_dir(const char *name);
+ssize_t lcr_util_write_nointr_in_total(int fd, const char *buf, size_t count);
 ssize_t lcr_util_write_nointr(int fd, const void *buf, size_t count);
 ssize_t lcr_util_read_nointr(int fd, void *buf, size_t count);
 
