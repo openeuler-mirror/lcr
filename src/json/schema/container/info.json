@@ -78,7 +78,7 @@
       "type": "uint64"
     },
     "timestamp": {
-      "type": "uint64"
+      "type": "int64"
     },
     "swap_used": {
       "type": "uint64"
