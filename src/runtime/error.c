@@ -27,7 +27,6 @@
 
 #include "utils_memory.h"
 #include "utils_string.h"
-#include "constants.h"
 
 // record the lcr error
 __thread engine_error_t g_lcr_error = {

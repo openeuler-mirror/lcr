@@ -48,7 +48,7 @@ char *isula_string_append(const char *pre, const char *add_str);
 /*
  * Replace 'needle' in string haystack with 'replacement';
 */
-char *isula_string_replace(const char *needle, const char *replacement, const char *haystack);
+char *isula_string_replace(const char *needle, const char *replace, const char *haystack);
 
 struct __isula_string_array;
 

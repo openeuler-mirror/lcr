@@ -325,7 +325,7 @@ int isula_parse_byte_size_string(const char *s, int64_t *converted)
     }
 
     ret = parse_unit_multiple(pmlt, &mltpl);
-    if (ret) {
+    if (ret != 0) {
         return ret;
     }
 

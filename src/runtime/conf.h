@@ -117,7 +117,7 @@ struct isula_linked_list *trans_annotations(const json_map_string_string *anno);
 /*
  * Get other lxc needed configurations
  */
-struct isula_linked_list *get_needed_lxc_conf();
+struct isula_linked_list *get_needed_lxc_conf(void);
 
 
 bool is_system_container(const oci_runtime_spec *container);

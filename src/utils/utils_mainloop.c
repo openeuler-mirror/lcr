@@ -142,7 +142,7 @@ int isula_epoll_remove_handler(isula_epoll_descr_t *descr, int fd)
         epoll_handler = index->elem;
 
         if (fd == epoll_handler->cbfd) {
-            if (epoll_ctl(descr->fd, EPOLL_CTL_DEL, fd, NULL)) {
+            if (epoll_ctl(descr->fd, EPOLL_CTL_DEL, fd, NULL) != 0) {
                 return -1;
             }
 

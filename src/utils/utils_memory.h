@@ -23,7 +23,6 @@
 #ifndef _ISULA_UTILS_UTILS_MEMORY_H
 #define _ISULA_UTILS_UTILS_MEMORY_H
 
-#include <stdbool.h>
 #include <stdint.h>
 #include <sys/types.h>
 
