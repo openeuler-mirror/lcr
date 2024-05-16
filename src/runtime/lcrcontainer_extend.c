@@ -347,12 +347,13 @@ out:
     return ret;
 }
 
-static int lcr_spec_write_seccomp_line(FILE *fp, const char *seccomp)
+static int lcr_spec_write_seccomp_line(int fd, const char *seccomp)
 {
     size_t len;
     char *line = NULL;
     int ret = -1;
     int nret;
+    ssize_t nwritten = -1;
 
     if (strlen(seccomp) > SIZE_MAX - strlen("lxc.seccomp.profile") - 3 - 1) {
         ERROR("the length of lxc.seccomp is too long!");
@@ -378,7 +379,8 @@ static int lcr_spec_write_seccomp_line(FILE *fp, const char *seccomp)
     }
 
     line[nret] = '\n';
-    if (fwrite(line, 1, len ,fp) != len) {
+    nwritten = isula_file_total_write_nointr(fd, line, len);
+    if (nwritten < 0 || (size_t)nwritten != len) {
         SYSERROR("Write file failed");
         goto cleanup;
     }
@@ -395,7 +397,7 @@ static char *lcr_save_seccomp_file(const char *bundle, const char *seccomp_conf)
     char *real_seccomp = NULL;
     int fd = -1;
     int nret;
-    ssize_t written_cnt;
+    ssize_t nwritten = -1;
 
     nret = snprintf(seccomp, sizeof(seccomp), "%s/seccomp", bundle);
     if (nret < 0 || (size_t)nret >= sizeof(seccomp)) {
@@ -414,9 +416,9 @@ static char *lcr_save_seccomp_file(const char *bundle, const char *seccomp_conf)
         goto cleanup;
     }
 
-    written_cnt = write(fd, seccomp_conf, strlen(seccomp_conf));
+    nwritten = isula_file_total_write_nointr(fd, seccomp_conf, strlen(seccomp_conf));
     close(fd);
-    if (written_cnt == -1) {
+    if (nwritten < 0 || (size_t)nwritten != strlen(seccomp_conf)) {
         SYSERROR("write seccomp_conf failed");
         goto cleanup;
     }
@@ -609,14 +611,12 @@ out_free:
     return NULL;
 }
 
-
-static FILE *lcr_open_config_file(const char *bundle)
+static int lcr_open_config_file(const char *bundle)
 {
     char config[PATH_MAX] = { 0 };
     char *real_config = NULL;
     int fd = -1;
     int nret;
-    FILE *fp = NULL;
 
     nret = snprintf(config, sizeof(config), "%s/config", bundle);
     if (nret < 0 || (size_t)nret >= sizeof(config)) {
@@ -636,15 +636,9 @@ static FILE *lcr_open_config_file(const char *bundle)
         goto out;
     }
 
-    fp = fdopen(fd, "w");
-    if(fp == NULL){
-        ERROR("FILE open failed");
-        goto out;
-    }
-
 out:
     free(real_config);
-    return fp;
+    return fd;
 }
 
 // escape_string_encode unzip some escape characters
@@ -710,17 +704,19 @@ static char *escape_string_encode(const char *src)
     return dst;
 }
 
-static int lcr_spec_write_config(FILE *fp, const struct isula_linked_list *lcr_conf)
+static int lcr_spec_write_config(int fd, const struct isula_linked_list *lcr_conf)
 {
     size_t len;
-    int ret = -1;
+    char *line = NULL;
     struct isula_linked_list *it = NULL;
     char *line_encode = NULL;
-    char *line = NULL;
+    int ret = -1;
 
     isula_linked_list_for_each(it, lcr_conf) {
         lcr_config_item_t *item = it->elem;
         int nret;
+        size_t encode_len;
+        ssize_t nwritten = -1;
         if (item != NULL) {
             if (strlen(item->value) > ((SIZE_MAX - strlen(item->name)) - 4)) {
                 goto cleanup;
@@ -733,6 +729,7 @@ static int lcr_spec_write_config(FILE *fp, const struct isula_linked_list *lcr_c
             }
 
             nret = snprintf(line, len, "%s = %s", item->name, item->value);
+
             if (nret < 0 || (size_t)nret >= len) {
                 ERROR("Sprintf failed");
                 goto cleanup;
@@ -744,10 +741,11 @@ static int lcr_spec_write_config(FILE *fp, const struct isula_linked_list *lcr_c
                 goto cleanup;
             }
 
-            len = strlen(line_encode);
-            line_encode[len] = '\n';
+            encode_len = strlen(line_encode);
 
-            if (fwrite(line_encode, 1, len + 1, fp) != len + 1) {
+            line_encode[encode_len] = '\n';
+            nwritten = isula_file_total_write_nointr(fd, line_encode, encode_len + 1);
+            if (nwritten < 0 || (size_t)nwritten != encode_len + 1) {
                 SYSERROR("Write file failed");
                 goto cleanup;
             }
@@ -816,7 +814,7 @@ bool lcr_save_spec(const char *name, const char *lcrpath, const struct isula_lin
     const char *path = lcrpath ? lcrpath : LCRPATH;
     char *bundle = NULL;
     char *seccomp = NULL;
-    FILE *fp = NULL;
+    int fd = -1;
     int nret = 0;
 
     if (name == NULL) {
@@ -841,17 +839,17 @@ bool lcr_save_spec(const char *name, const char *lcrpath, const struct isula_lin
         }
     }
 
-    fp = lcr_open_config_file(bundle);
-    if (fp == NULL) {
+    fd = lcr_open_config_file(bundle);
+    if (fd == -1) {
         goto out_free;
     }
 
-    if (lcr_spec_write_config(fp, lcr_conf)) {
+    if (lcr_spec_write_config(fd, lcr_conf)) {
         goto out_free;
     }
 
     if (seccomp_conf != NULL) {
-        nret = lcr_spec_write_seccomp_line(fp, seccomp);
+        nret = lcr_spec_write_seccomp_line(fd, seccomp);
         if (nret) {
             goto out_free;
         }
@@ -860,11 +858,11 @@ bool lcr_save_spec(const char *name, const char *lcrpath, const struct isula_lin
     bret = true;
 
 out_free:
-    if (fp != NULL) {
-        fclose(fp);
-    }
-    free(seccomp);
     free(bundle);
+    free(seccomp);
+    if (fd != -1) {
+        close(fd);
+    }
 
     return bret;
 }
@@ -874,6 +872,7 @@ static int lcr_write_file(const char *path, const char *data, size_t len)
     char *real_path = NULL;
     int fd = -1;
     int ret = -1;
+    ssize_t nwritten = -1;
 
     if (path == NULL || strlen(path) == 0 || data == NULL || len == 0) {
         return -1;
@@ -891,7 +890,8 @@ static int lcr_write_file(const char *path, const char *data, size_t len)
         goto out_free;
     }
 
-    if (write(fd, data, len) == -1) {
+    nwritten = isula_file_total_write_nointr(fd, data, len);
+    if (nwritten < 0 || (size_t)nwritten != len) {
         SYSERROR("write data to %s failed", real_path);
         goto out_free;
     }
