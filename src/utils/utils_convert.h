@@ -43,7 +43,7 @@ int isula_safe_strto_uint16(const char *numstr, uint16_t *converted);
 
 int isula_safe_strto_uint64(const char *numstr, uint64_t *converted);
 
-int isula_safe_strto_int(const char *numstr, int *converted);
+int isula_safe_strto_int(const char *num_str, int *converted);
 
 int isula_safe_strto_uint(const char *numstr, unsigned int *converted);
 

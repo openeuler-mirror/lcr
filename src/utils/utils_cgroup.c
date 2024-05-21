@@ -81,7 +81,7 @@ uint64_t lcr_util_trans_blkio_weight_to_io_bfq_weight(int weight)
     return (uint64_t)(1 + ((uint64_t)weight - 10) * 999 / 990);
 }
 
-int lcr_util_get_cgroup_version()
+int lcr_util_get_cgroup_version(void)
 {
     struct statfs fs = {0};
 

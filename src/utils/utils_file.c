@@ -62,12 +62,12 @@ static int do_clean_path(const char *respath, const char *limit_respath, const c
     char *dest = *dst;
     const char *endpos = stpos;
 
-    for (; *stpos; stpos = endpos) {
+    for (; *stpos != '\0'; stpos = endpos) {
         while (ISSLASH(*stpos)) {
             ++stpos;
         }
 
-        for (endpos = stpos; *endpos && !ISSLASH(*endpos); ++endpos) {
+        for (endpos = stpos; (*endpos != '\0') && !ISSLASH(*endpos); ++endpos) {
         }
 
         if (endpos - stpos == 0) {
@@ -139,7 +139,7 @@ char *isula_clean_path(const char *path, char *realpath, size_t realpath_len)
         stpos = path;
     }
 
-    if (do_clean_path(respath, limit_respath, stpos, &dest)) {
+    if (do_clean_path(respath, limit_respath, stpos, &dest) != 0) {
         return NULL;
     }
 
@@ -243,7 +243,7 @@ static void util_rmdir_one(const char *dirpath, const struct dirent *pdirent, in
     }
 
     nret = lstat(fname, &fstat);
-    if (nret) {
+    if (nret != 0) {
         ERROR("Failed to stat %s", fname);
         *failure = -1;
         return;
@@ -405,9 +405,9 @@ int isula_dir_build(const char *name)
             continue;
         }
         set_char_to_terminator(p);
-        if (access(n, F_OK)) {
+        if (access(n, F_OK) != 0) {
             nret = mkdir(n, DEFAULT_SECURE_DIRECTORY_MODE);
-            if (nret && (errno != EEXIST || !isula_dir_exists(n))) {
+            if (nret != 0 && (errno != EEXIST || !isula_dir_exists(n))) {
                 ERROR("failed to create directory '%s'.", n);
                 free(n);
                 return -1;
@@ -451,7 +451,7 @@ int isula_dir_recursive_mk(const char *dir, mode_t mode)
             ERROR("strndup failed");
             return -1;
         }
-        if (*cur_dir) {
+        if (*cur_dir != '\0') {
             ret = mkdir(cur_dir, mode);
             if (ret != 0 && (errno != EEXIST || !isula_dir_exists(cur_dir))) {
                 SYSERROR("failed to create directory '%s'", cur_dir);
@@ -536,7 +536,7 @@ static int append_new_content_to_file(FILE *fp, const char *content)
             return -1;
         }
         util_trim_newline(line);
-        if (!strcmp(content, line)) {
+        if (strcmp(content, line) == 0) {
             need_append = false;
             break;
         }

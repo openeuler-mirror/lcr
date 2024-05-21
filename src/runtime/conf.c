@@ -3242,7 +3242,7 @@ static int add_needed_net_conf(struct isula_linked_list *conf)
 }
 
 /* get needed lxc conf */
-struct isula_linked_list *get_needed_lxc_conf()
+struct isula_linked_list *get_needed_lxc_conf(void)
 {
     struct isula_linked_list *conf = isula_common_calloc_s(sizeof(*conf));
     if (conf == NULL) {

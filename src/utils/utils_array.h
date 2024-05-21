@@ -29,11 +29,11 @@
 extern "C" {
 #endif
 
-void isula_free_array(void **array);
+void isula_free_array(void **orig_array);
 
-int isula_grow_array(void ***array, size_t *capacity, size_t new_size, size_t capacity_increment);
+int isula_grow_array(void ***orig_array, size_t *orig_capacity, size_t size, size_t increment);
 
-size_t isula_array_len(void **array);
+size_t isula_array_len(void **orig_array);
 
 typedef void *(*clone_cb)(const void *src);
 int isula_array_append(void ***array, const void *element, clone_cb cb);

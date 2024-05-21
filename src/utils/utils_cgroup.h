@@ -23,9 +23,10 @@
 #ifndef _ISULA_UTILS_UTILS_CGROUP_H
 #define _ISULA_UTILS_UTILS_CGROUP_H
 
+#include <stdint.h>
+
 #include <sys/types.h>
 #include <linux/magic.h>
-#include <stdint.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -54,7 +55,7 @@ int lcr_util_get_real_swap(int64_t memory, int64_t memory_swap, int64_t *swap);
 int lcr_util_trans_cpushare_to_cpuweight(int64_t cpu_share);
 uint64_t lcr_util_trans_blkio_weight_to_io_weight(int weight);
 uint64_t lcr_util_trans_blkio_weight_to_io_bfq_weight(int weight);
-int lcr_util_get_cgroup_version();
+int lcr_util_get_cgroup_version(void);
 
 #ifdef __cplusplus
 }
