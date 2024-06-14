@@ -20,6 +20,9 @@
 		"sandbox": {
 			"$ref": "sandbox-info.json"
 		},
+		"adjust": {
+			"$ref": "../nri/container-adjustment.json"
+		},
 		"hostconfig": {
 			"type": "string"
 		},
