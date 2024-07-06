@@ -1,0 +1,18 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "type": "object",
+    "properties": {
+        "path": {
+            "type": "string"
+        },
+        "args": {
+            "$ref": "../defs.json#/definitions/ArrayOfStrings"
+        },
+        "env": {
+            "$ref": "../defs.json#/definitions/ArrayOfStrings"
+        },
+        "timeout": {
+            "$ref": "../defs.json#/definitions/int64Pointer"
+        }
+    }
+}

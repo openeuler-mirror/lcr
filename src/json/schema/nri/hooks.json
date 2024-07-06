@@ -1,0 +1,42 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "type": "object",
+    "properties": {
+        "prestart": {
+            "type": "array",
+            "items": {
+                "$ref": "hook.json"
+            }
+        },
+        "create_runtime": {
+            "type": "array",
+            "items": {
+                "$ref": "hook.json"
+            }
+        },
+        "create_container": {
+            "type": "array",
+            "items": {
+                "$ref": "hook.json"
+            }
+        },
+        "start_container": {
+            "type": "array",
+            "items": {
+                "$ref": "hook.json"
+            }
+        },
+        "poststart": {
+            "type": "array",
+            "items": {
+                "$ref": "hook.json"
+            }
+        },
+        "poststop": {
+            "type": "array",
+            "items": {
+                "$ref": "hook.json"
+            }
+        }
+    }
+}

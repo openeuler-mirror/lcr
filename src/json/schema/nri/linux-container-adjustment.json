@@ -1,0 +1,18 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "type": "object",
+    "properties": {
+        "devices": {
+            "type": "array",
+            "items": {
+                "$ref": "linux-device.json"
+            }
+        },
+        "resources": {
+            "$ref": "linux-resources.json"
+        },
+        "cgroups-path": {
+            "type": "string"
+        }
+    }
+}

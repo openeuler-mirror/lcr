@@ -1,0 +1,51 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "type": "object",
+    "properties": {
+        "id": {
+            "type": "string"
+        },
+        "pod_sandbox_id": {
+            "type": "string"
+        },
+        "name": {
+            "type": "string"
+        },
+        "state": {
+            "$ref": "../defs.json#/definitions/int32"
+        },
+        "labels": {
+            "$ref": "../defs.json#/definitions/mapStringString"
+        },
+        "annotations": {
+            "$ref": "../defs.json#/definitions/mapStringString"
+        },
+        "args": {
+            "$ref": "../defs.json#/definitions/ArrayOfStrings"
+        },
+        "env": {
+            "$ref": "../defs.json#/definitions/ArrayOfStrings"
+        },
+        "mounts": {
+            "type": "array",
+            "items": {
+                "$ref": "mount.json"
+            }
+        },
+        "hooks": {
+            "$ref": "hooks.json"
+        },
+        "linux": {
+            "$ref": "linux-container.json"
+        },
+        "pid": {
+            "$ref": "../defs.json#/definitions/uint32"
+        },
+        "rlimits": {
+            "type": "array",
+            "items": {
+                "$ref": "posix-rlimit.json"
+            }
+        }
+    }
+}

@@ -1,0 +1,33 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "type": "object",
+    "properties": {
+        "memory": {
+            "$ref": "linux-memory.json"
+        },
+        "cpu": {
+            "$ref": "linux-cpu.json"
+        },
+        "hugepage_limits": {
+            "type": "array",
+            "items": {
+                "$ref": "hugepage-limit.json"
+            }
+        },
+        "blockio_class": {
+            "type": "string"
+        },
+        "rdt_class": {
+            "type": "string"
+        },
+        "unified": {
+            "$ref": "../defs.json#/definitions/mapStringString"
+        },
+        "devices": {
+            "type": "array",
+            "items": {
+                "$ref": "linux-device-cgroup.json"
+            }
+        } 
+    }
+}

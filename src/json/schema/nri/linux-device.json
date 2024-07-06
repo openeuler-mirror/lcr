@@ -1,0 +1,27 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "type": "object",
+    "properties": {
+        "path": {
+            "type": "string"
+        },
+        "type": {
+            "type": "string"
+        },
+        "major": {
+            "$ref": "../defs.json#/definitions/int64"
+        },
+        "minor": {
+            "$ref": "../defs.json#/definitions/int64"
+        },
+        "file_mode": {
+            "$ref": "../defs.json#/definitions/uint32Pointer"
+        },
+        "uid": {
+            "$ref": "../defs.json#/definitions/uint32Pointer"
+        },
+        "gid": {
+            "$ref": "../defs.json#/definitions/uint32Pointer"
+        }
+    }
+}
