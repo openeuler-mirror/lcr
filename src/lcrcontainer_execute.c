@@ -840,7 +840,13 @@ static void execute_lxc_attach(const char *name, const char *path, const struct 
         exit(EXIT_FAILURE);
     }
 
-    args_len = args_len + request->args_len + request->env_len;
+    if (args_len > SIZE_MAX - request->args_len || request->env_len > SIZE_MAX / 2
+        || args_len + request->args_len > SIZE_MAX - request->env_len * 2) {
+        COMMAND_ERROR("Too many arguments");
+        exit(EXIT_FAILURE);
+    }
+
+    args_len = args_len + request->args_len + request->env_len * 2;
 
     if (args_len > (SIZE_MAX / sizeof(char *))) {
         exit(EXIT_FAILURE);
