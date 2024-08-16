@@ -1,0 +1,15 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "type": "object",
+    "properties": {
+        "container_id": {
+            "type": "string"
+        },
+        "linux": {
+            "$ref": "linux-container-update.json"
+        },
+        "ignore_failure": {
+            "$ref": "../defs.json#/definitions/uint8"
+        }
+    }
+}

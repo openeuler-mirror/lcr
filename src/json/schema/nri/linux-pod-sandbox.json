@@ -1,0 +1,27 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "type": "object",
+    "properties": {
+        "pod_overhead": {
+            "$ref": "linux-resources.json"
+        },
+        "pod_resources": {
+            "$ref": "linux-resources.json"
+        },
+        "cgroup_parent": {
+            "type": "string"
+        },
+        "cgroups_path": {
+            "type": "string"
+        },
+        "namespaces": {
+            "type": "array",
+            "items": {
+                "$ref": "linux-namespace.json"
+            }
+        },
+        "resources": {
+            "$ref": "linux-resources.json"
+        }
+    }
+}

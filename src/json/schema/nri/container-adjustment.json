@@ -1,0 +1,33 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "type": "object",
+    "properties": {
+        "annotations": {
+            "$ref": "../defs.json#/definitions/mapStringString"
+        },
+        "mounts": {
+            "type": "array",
+            "items": {
+                "$ref": "mount.json"
+            }
+        },
+        "env": {
+            "type": "array",
+            "items": {
+                "$ref": "key-value.json"
+            }
+        },
+        "hooks": {
+            "$ref": "hooks.json"
+        },
+        "linux": {
+            "$ref": "linux-container-adjustment.json"
+        },
+        "rlimits": {
+            "type": "array",
+            "items": {
+                "$ref": "posix-rlimit.json"
+            }
+        }
+    }
+}

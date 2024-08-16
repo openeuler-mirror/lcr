@@ -1,0 +1,27 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "type": "object",
+    "properties": {
+        "shares": {
+            "$ref": "../defs.json#/definitions/uint64Pointer"
+        },
+        "quota": {
+            "$ref": "../defs.json#/definitions/int64Pointer"
+        },
+        "period": {
+            "$ref": "../defs.json#/definitions/uint64Pointer"
+        },
+        "realtime_runtime": {
+            "$ref": "../defs.json#/definitions/int64Pointer"
+        },
+        "realtime_period": {
+            "$ref": "../defs.json#/definitions/uint64Pointer"
+        },
+        "cpus": {
+            "type": "string"
+        },
+        "mems": {
+            "type": "string"
+        }
+    }
+}

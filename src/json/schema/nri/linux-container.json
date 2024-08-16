@@ -1,0 +1,27 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "type": "object",
+    "properties": {
+        "namespaces": {
+            "type": "array",
+            "items": {
+                "$ref": "linux-namespace.json"
+            }
+        },
+        "devices": {
+            "type": "array",
+            "items": {
+                "$ref": "linux-device.json"
+            }
+        },
+        "resources": {
+            "$ref": "linux-resources.json"
+        },
+        "oom_score_adj": {
+            "$ref": "../defs.json#/definitions/int64Pointer"
+        },
+        "cgroups_path": {
+            "type": "string"
+        }
+    }
+}

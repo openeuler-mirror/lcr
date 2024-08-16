@@ -1,0 +1,21 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "type": "object",
+    "properties": {
+        "adjust": {
+            "$ref": "container-adjustment.json"
+        },
+        "update": {
+            "type": "array",
+            "items": {
+                "$ref": "container-update.json"
+            }
+        },
+        "evict": {
+            "type": "array",
+            "items": {
+                "$ref": "container-eviction.json"
+            }
+        }
+    }
+}

@@ -1,0 +1,12 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "type": "object",
+    "properties": {
+        "pod": {
+            "$ref": "pod-sandbox.json"
+        },
+        "container": {
+            "$ref": "container.json"
+        }
+    }
+}

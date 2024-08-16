@@ -1,0 +1,18 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "type": "object",
+    "properties": {
+        "pods": {
+            "type": "array",
+            "items": {
+                "$ref": "pod-sandbox.json"
+            }
+        },
+        "containers": {
+            "type": "array",
+            "items": {
+                "$ref": "container.json"
+            }
+        }
+    }
+}

@@ -1,0 +1,33 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "type": "object",
+    "properties": {
+        "id": {
+            "type": "string"
+        },
+        "name": {
+            "type": "string"
+        },
+        "uid": {
+            "type": "string"
+        },
+        "_namespace": {
+            "type": "string"
+        },
+        "labels": {
+            "$ref": "../defs.json#/definitions/mapStringString"
+        },
+        "annotations": {
+            "$ref": "../defs.json#/definitions/mapStringString"
+        },
+        "runtime_handler": {
+            "type": "string"
+        },
+        "linux": {
+            "$ref": "linux-pod-sandbox.json"
+        },
+        "pid": {
+            "$ref": "../defs.json#/definitions/uint32"
+        }
+    }
+}
