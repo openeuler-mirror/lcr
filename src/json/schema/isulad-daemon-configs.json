@@ -100,6 +100,27 @@
         "cni-conf-dir": {
             "type": "string"
         },
+        "nri-support" : {
+            "type": "boolean"
+        },
+        "disable-connections" : {
+            "type": "boolean"
+        },
+        "plugin_config_path": {
+            "type": "string"
+        },
+        "plugin_path": {
+            "type": "string"
+        },
+        "nri_socket_path": {
+            "type": "string"
+        },
+        "plugin_registration_timeout": {
+            "type": "uint64"
+        },
+        "plugin_requst_timeout": {
+            "type": "uint64"
+        },
         "image-layer-check": {
             "type": "boolean"
         },
