@@ -311,6 +311,41 @@
             "items": {
                 "type": "string"
             }
+        },
+        "NriDevices": {
+            "id": "https://opencontainers.org/schema/bundle/linux/devices",
+            "type": "array",
+            "items": {
+                "$ref": "defs.json#/definitions/Device"
+            }
+        },
+        "NriRlimits": {
+            "id": "https://opencontainers.org/schema/bundle/linux/rlimits",
+            "type": "array",
+            "items": {
+                "id": "https://opencontainers.org/schema/bundle/linux/rlimits/0",
+                "type": "object",
+                "required": [
+                    "type",
+                    "soft",
+                    "hard"
+                ],
+                "properties": {
+                    "hard": {
+                        "id": "https://opencontainers.org/schema/bundle/linux/rlimits/0/hard",
+                        "$ref": "defs.json#/definitions/uint64"
+                    },
+                    "soft": {
+                        "id": "https://opencontainers.org/schema/bundle/linux/rlimits/0/soft",
+                        "$ref": "defs.json#/definitions/uint64"
+                    },
+                    "type": {
+                        "id": "https://opencontainers.org/schema/bundle/linux/rlimits/0/type",
+                        "type": "string",
+                        "pattern": "^RLIMIT_[A-Z]+$"
+                    }
+                }
+            }
         }
     }
 }
