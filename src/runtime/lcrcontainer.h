@@ -40,13 +40,13 @@ extern "C" {
 
 /* define console log config */
 
-__EXPORT__ struct lcr_console_config {
+struct lcr_console_config {
     char *log_path;
     unsigned int log_rotate;
     char *log_file_size;
 };
 
-__EXPORT__ struct blkio_stats {
+struct blkio_stats {
     uint64_t read;
     uint64_t write;
     uint64_t total;
@@ -55,7 +55,7 @@ __EXPORT__ struct blkio_stats {
 /*
 * Store lcr container state
 */
-__EXPORT__ struct lcr_container_state {
+struct lcr_container_state {
     /* Name of container */
     char *name;
     /* State of container */
@@ -92,14 +92,14 @@ typedef enum {
     lcr_msg_exit_code,
 } lcr_msg_type_t;
 
-__EXPORT__ struct lcr_msg {
+struct lcr_msg {
     lcr_msg_type_t type;
     char name[NAME_MAX + 1];
     int value;
     int pid;
 };
 
-__EXPORT__ struct lcr_cgroup_resources {
+struct lcr_cgroup_resources {
     uint64_t blkio_weight;
     uint64_t cpu_shares;
     uint64_t cpu_period;
@@ -150,7 +150,7 @@ __EXPORT__ bool lcr_create(const char *name, const char *lcrpath, void *oci_conf
 * gid : user in which group
 * additional_gids : Add additional groups to join
 */
-__EXPORT__ struct lcr_start_request {
+struct lcr_start_request {
     const char *name;
     const char *lcrpath;
 
@@ -237,7 +237,7 @@ __EXPORT__ void lcr_free_console_config(struct lcr_console_config *config);
 __EXPORT__ int lcr_log_init(const char *name, const char *file, const char *priority,
                  const char *prefix, int quiet, const char *lcrpath);
 
-__EXPORT__ struct lcr_exec_request {
+struct lcr_exec_request {
     const char *name;
     const char *lcrpath;
 
