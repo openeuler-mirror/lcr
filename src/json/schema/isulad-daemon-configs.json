@@ -106,19 +106,19 @@
         "disable-connections" : {
             "type": "boolean"
         },
-        "plugin_config_path": {
+        "plugin-config-path": {
             "type": "string"
         },
-        "plugin_path": {
+        "plugin-path": {
             "type": "string"
         },
-        "nri_socket_path": {
+        "nri-socket-path": {
             "type": "string"
         },
-        "plugin_registration_timeout": {
+        "plugin-registration-timeout": {
             "type": "uint64"
         },
-        "plugin_requst_timeout": {
+        "plugin-requst-timeout": {
             "type": "uint64"
         },
         "image-layer-check": {
