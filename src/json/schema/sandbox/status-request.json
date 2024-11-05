@@ -1,0 +1,15 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "type": "object",
+    "properties": {
+        "sandbox_id": {
+            "type": "string"
+        },
+        "verbose": {
+            "type": "boolean"
+        },
+        "sandboxer": {
+            "type": "string"
+        }
+    }
+}

@@ -1,0 +1,33 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "type": "object",
+    "properties": {
+        "sandbox_id": {
+            "type": "string"
+        },
+        "rootfs": {
+            "type": "array",
+            "items": {
+                "$ref": "mount.json"
+            }
+        },
+        "options": {
+            "type": "array",
+            "items": {
+                "type": "byte"
+            }
+        },
+        "netns_path": {
+            "type": "string"
+        },
+        "annotations": {
+            "$ref": "../defs.json#/definitions/mapStringString"
+        },
+        "sandbox":{
+            "$ref": "sandbox.json"
+        },
+        "sandboxer": {
+            "type": "string"
+        }
+    }
+}

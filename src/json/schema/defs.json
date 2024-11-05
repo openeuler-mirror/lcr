@@ -406,6 +406,22 @@
                 }
             }
         },
+        "mapStringObjectByteArray": {
+            "type": "object",
+            "patternProperties": {
+                ".{1,}": {
+                    "type": "object",
+                    "properties": {
+                        "Element": {
+                            "type": "array",
+                            "items": {
+                                "type": "byte"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "digest": {
             "type": "string",
             "pattern": "^[a-z0-9]+(?:[+._-][a-z0-9]+)*:[a-zA-Z0-9=_-]+$"

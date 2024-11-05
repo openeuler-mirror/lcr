@@ -1,0 +1,36 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "type": "object",
+    "properties": {
+        "sandbox_id": {
+            "type": "string"
+        },
+        "pid": {
+            "type": "uint32"
+        },
+        "state": {
+            "type": "string"
+        },
+        "info": {
+            "$ref": "../defs.json#/definitions/mapStringString"
+        },
+        "created_at": {
+            "type": "uint64"
+        },
+        "exited_at": {
+            "type": "uint64"
+        },
+        "extra": {
+            "type": "array",
+            "items": {
+                "type": "byte"
+            }
+        },
+        "address": {
+            "type": "string"
+        },
+        "version": {
+            "type": "uint32"
+        }
+    }
+}
