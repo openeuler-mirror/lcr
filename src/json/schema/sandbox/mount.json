@@ -1,0 +1,19 @@
+{
+    "_comment": "github.com/containerd/containerd/api/types/mount.proto",
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "type": "object",
+    "properties": {
+        "type": {
+            "type": "string"
+        },
+        "source": {
+            "type": "string"
+        },
+        "target": {
+            "type": "string"
+        },
+        "options": {
+            "$ref": "../defs.json#/definitions/ArrayOfStrings"
+        }
+    }
+}

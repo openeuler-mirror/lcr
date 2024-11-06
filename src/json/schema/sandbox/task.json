@@ -1,0 +1,34 @@
+{
+    "_comment": "sandbox api depend: update",
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "type": "object",
+    "properties": {
+        "task_id": {
+            "type": "string"
+        },
+        "spec": {
+            "$ref": "../oci/runtime/spec.json"
+        },
+        "rootfs": {
+            "type": "array",
+            "items": {
+                "$ref": "mount.json"
+            }
+        },
+        "stdin": {
+            "type": "string"
+        },
+        "stdout": {
+            "type": "string"
+        },
+        "stderr": {
+            "type": "string"
+        },
+        "processes": {
+            "type": "array",
+            "items": {
+                "$ref": "process.json"
+            }
+        }
+    }
+}

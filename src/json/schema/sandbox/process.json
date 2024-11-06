@@ -1,0 +1,22 @@
+{
+    "_comment": "sandbox api depend: update",
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "type": "object",
+    "properties": {
+        "exec_id": {
+            "type": "string"
+        },
+        "spec": {
+            "$ref": "../defs.json#/definitions/process"
+        },
+        "stdin": {
+            "type": "string"
+        },
+        "stdout": {
+            "type": "string"
+        },
+        "stderr": {
+            "type": "string"
+        }
+    }
+}
