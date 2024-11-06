@@ -188,7 +188,7 @@
             }
         },
         "noPivotRoot": {
-            "tyoe": "boolean"
+            "type": "boolean"
         },
         "checkpoint": {
             "type": "string"
