@@ -9,10 +9,7 @@
             "type": "string"
         },
         "data": {
-            "type": "array",
-            "items": {
-                "type": "byte"
-            }
+            "$ref": "../defs.json#/definitions/any"
         }
     }
 }

@@ -12,18 +12,12 @@
                     "type": "string"
                 },
                 "options": {
-                    "type": "array",
-                    "items": {
-                        "type": "byte"
-                    }
+                    "$ref": "../defs.json#/definitions/any"
                 }
             }
         },
         "spec": {
-            "type": "array",
-            "items": {
-                "type": "byte"
-            }
+            "$ref": "../defs.json#/definitions/any"
         },
         "labels": {
             "$ref": "../defs.json#/definitions/mapStringString"
@@ -35,7 +29,7 @@
             "type": "uint64"
         },
         "extensions": {
-            "$ref": "../defs.json#/definitions/mapStringObjectByteArray"
+            "$ref": "../defs.json#/definitions/mapStringObjectAny"
         },
         "sandboxer": {
             "type": "string"

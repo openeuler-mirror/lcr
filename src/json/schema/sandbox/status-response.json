@@ -21,10 +21,7 @@
             "type": "uint64"
         },
         "extra": {
-            "type": "array",
-            "items": {
-                "type": "byte"
-            }
+            "$ref": "../defs.json#/definitions/any"
         },
         "address": {
             "type": "string"

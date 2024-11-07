@@ -12,10 +12,7 @@
             }
         },
         "options": {
-            "type": "array",
-            "items": {
-                "type": "byte"
-            }
+            "$ref": "../defs.json#/definitions/any"
         },
         "netns_path": {
             "type": "string"

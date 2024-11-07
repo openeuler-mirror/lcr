@@ -226,6 +226,20 @@
                 "type": "string"
             }
         },
+        "any": {
+            "type": "object",
+            "properties": {
+                "type_url": {
+                    "type": "string"
+                },
+                "value": {
+                    "type": "array",
+                    "items": {
+                        "type": "byte"
+                    }
+                }
+            }
+        },
         "mapStringString": {
             "type": "object",
             "patternProperties": {
@@ -406,17 +420,14 @@
                 }
             }
         },
-        "mapStringObjectByteArray": {
+        "mapStringObjectAny": {
             "type": "object",
             "patternProperties": {
                 ".{1,}": {
                     "type": "object",
                     "properties": {
                         "Element": {
-                            "type": "array",
-                            "items": {
-                                "type": "byte"
-                            }
+                            "$ref": "#/definitions/any"
                         }
                     }
                 }
@@ -495,20 +506,6 @@
             "patternProperties": {
                 ".{1,}": {
                     "$ref": "#/definitions/mapStringBool"
-                }
-            }
-        },
-        "any": {
-            "type": "object",
-            "properties": {
-                "type_url": {
-                    "type": "string"
-                },
-                "value": {
-                    "type": "array",
-                    "items": {
-                        "type": "byte"
-                    }
                 }
             }
         },
