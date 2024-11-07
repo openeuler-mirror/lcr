@@ -23,6 +23,9 @@
     "command": {
       "type": "string"
     },
+    "ports": {
+      "type": "string"
+    },
     "ram": {
       "type": "double"
     },
