@@ -306,6 +306,9 @@
                 "type": "string"
             }
         },
+    "NoPivotRoot": {
+        "type": "boolean"
+    },
         "CdiRequestedDevices": {
             "type": "array",
             "items": {
