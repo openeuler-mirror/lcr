@@ -1,0 +1,38 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "type": "object",
+    "properties": {
+        "sandbox_id": {
+            "type": "string"
+        },
+        "runtime": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "options": {
+                    "$ref": "../defs.json#/definitions/any"
+                }
+            }
+        },
+        "spec": {
+            "$ref": "../defs.json#/definitions/any"
+        },
+        "labels": {
+            "$ref": "../defs.json#/definitions/mapStringString"
+        },
+        "created_at": {
+            "type": "uint64"
+        },
+        "updated_at": {
+            "type": "uint64"
+        },
+        "extensions": {
+            "$ref": "../defs.json#/definitions/mapStringObjectAny"
+        },
+        "sandboxer": {
+            "type": "string"
+        }
+    }
+}
