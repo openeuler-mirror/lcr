@@ -5,6 +5,9 @@
 		"sandboxer": {
 			"type": "string"
 		},
+		"ImageType": {
+			"type": "string"
+		},
 		"id": {
 			"type": "string"
 		},
