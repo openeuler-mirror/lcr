@@ -315,6 +315,9 @@
                         },
                         "address": {
                             "type": "string"
+                        },
+                        "image-type": {
+                            "type": "string"
                         }
                     }
                 }
