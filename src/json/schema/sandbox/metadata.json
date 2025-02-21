@@ -31,9 +31,6 @@
       "netNsPath": {
         "type": "string"
       },
-      "networkReady": {
-        "type": "boolean"
-      },
      "sandboxConfigJson": {
         "type": "string"
      }

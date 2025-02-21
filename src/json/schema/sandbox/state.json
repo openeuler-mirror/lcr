@@ -19,6 +19,9 @@
         },
         "Status": {
             "type": "integer"
+        },
+        "networkReady": {
+            "type": "boolean"
         }
     }
 }
