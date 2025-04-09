@@ -563,6 +563,26 @@ out:
     return ret;
 }
 
+static int merge_auto_dev(const oci_runtime_spec *container, struct isula_linked_list *lcr_conf)
+{
+    int i = 0;
+    struct isula_linked_list *tmp = NULL;
+
+    for (i = 0; i < container->mounts_len; i++) {
+        if (strcmp("/dev", container->mounts[i]->destination) == 0) {
+            tmp = get_zero_auto_dev_conf();
+            if (tmp == NULL) {
+                ERROR("Failed to translate auto dev configure");
+                return -1;
+            }
+            isula_linked_list_merge(lcr_conf, tmp);
+            break;
+        }
+    }
+
+    return 0;
+}
+
 struct isula_linked_list *lcr_oci2lcr(const struct lxc_container *c, oci_runtime_spec *container,
                              char **seccomp)
 {
@@ -594,6 +614,11 @@ struct isula_linked_list *lcr_oci2lcr(const struct lxc_container *c, oci_runtime
 
     /* annotations.files.limit */
     if (merge_annotations(container, lcr_conf) != 0) {
+        goto out_free;
+    }
+
+    // set lxc.autodev to 0 when there is a dev mount
+    if (merge_auto_dev(container, lcr_conf) != 0) {
         goto out_free;
     }
 
