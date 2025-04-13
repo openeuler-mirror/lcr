@@ -119,11 +119,6 @@ struct isula_linked_list *trans_annotations(const json_map_string_string *anno);
  */
 struct isula_linked_list *get_needed_lxc_conf(void);
 
-/*
- * Get zero auto dev lxc configurations
- */
-struct isula_linked_list *get_zero_auto_dev_conf(void);
-
 
 bool is_system_container(const oci_runtime_spec *container);
 
