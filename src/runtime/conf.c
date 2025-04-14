@@ -3214,26 +3214,6 @@ out_free:
     return NULL;
 }
 
-struct isula_linked_list *get_zero_auto_dev_conf()
-{
-    struct isula_linked_list *conf = isula_common_calloc_s(sizeof(*conf));
-    if (conf == NULL) {
-        return NULL;
-    }
-    isula_linked_list_init(conf);
-    struct isula_linked_list *node = create_lcr_list_node("lxc.autodev", "0");
-    if (node == NULL) {
-        goto out_free;
-    }
-    isula_linked_list_add_tail(conf, node);
-    return conf;
-
-out_free:
-    lcr_free_config(conf);
-    free(conf);
-    return NULL;
-}
-
 static int add_needed_pty_conf(struct isula_linked_list *conf)
 {
     struct isula_linked_list *node = create_lcr_list_node("lxc.pty.max", "1024");
